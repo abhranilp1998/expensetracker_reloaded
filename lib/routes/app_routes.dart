@@ -5,6 +5,7 @@ import 'package:expensetracker_reloaded/screens/settings_page.dart';
 import 'package:expensetracker_reloaded/screens/history_page.dart';
 import 'package:expensetracker_reloaded/screens/demo_page.dart';
 import 'package:expensetracker_reloaded/screens/profile_page.dart';
+import 'package:expensetracker_reloaded/routes/animation_variants.dart';
 
 /// Global route constants
 class AppRoutes {
@@ -18,20 +19,10 @@ class AppRoutes {
   static const String profile = '/profile';
 }
 
-/// Creates an animated route with fade + slide transition
-/// Used globally for all navigation
+/// Creates an animated route using the currently selected animation variant
+/// This respects the global AnimationVariants.currentType setting
 Route<dynamic> createRoute(Widget page) {
-  return PageRouteBuilder(
-    transitionDuration: const Duration(milliseconds: 450),
-    pageBuilder: (context, animation, secondaryAnimation) => page,
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      final tween = Tween(begin: const Offset(0.0, 0.1), end: Offset.zero)
-          .chain(CurveTween(curve: Curves.easeOut));
-      return FadeTransition(
-          opacity: animation,
-          child: SlideTransition(position: animation.drive(tween), child: child));
-    },
-  );
+  return AnimationVariants.createRoute(page);
 }
 
 /// Centralized route generator used by `MaterialApp.onGenerateRoute`.

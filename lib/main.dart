@@ -3,6 +3,7 @@ import 'package:another_telephony/telephony.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:expensetracker_reloaded/routes/app_routes.dart';
+import 'package:expensetracker_reloaded/routes/animation_preferences.dart';
 import 'dart:async';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -19,6 +20,9 @@ void main() async {
       InitializationSettings(android: initializationSettingsAndroid);
 
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
+  // Load saved animation preference
+  await AnimationPreferencesService.loadAnimationType();
 
   runApp(const ExpenseTrackerApp());
 }
