@@ -4,7 +4,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:expensetracker_reloaded/routes/app_routes.dart' show createRoute;
+import 'package:expensetracker_reloaded/routes/app_routes.dart' show createRoute, AppRoutes;
 import 'dart:async';
 import 'dart:convert';
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -365,6 +365,13 @@ class _HomeDashboardState extends State<HomeDashboard>
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {},
+          ),
+          IconButton(
+            icon: const Icon(Icons.fireplace_outlined),
+            tooltip: 'Animation Showcase',
+            onPressed: () {
+              Navigator.of(context).pushNamed(AppRoutes.animationShowcase);
+            },
           ),
         ],
       ),

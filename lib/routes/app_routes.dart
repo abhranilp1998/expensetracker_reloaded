@@ -1,3 +1,4 @@
+import 'package:expensetracker_reloaded/routes/animation_showcase.dart';
 import 'package:flutter/material.dart';
 import 'package:expensetracker_reloaded/screens/welcome_screen.dart';
 import 'package:expensetracker_reloaded/screens/home_dashboard.dart';
@@ -17,6 +18,7 @@ class AppRoutes {
   static const String history = '/history';
   static const String demo = '/demo';
   static const String profile = '/profile';
+  static const String animationShowcase = '/animation-showcase';
 }
 
 /// Creates an animated route using the currently selected animation variant
@@ -41,6 +43,8 @@ Route<dynamic> onGenerateRoute(RouteSettings settings) {
       return createRoute(const DemoPage());
     case AppRoutes.profile:
       return createRoute(const ProfilePage());
+    case AppRoutes.animationShowcase:
+      return createRoute(const AnimationPreview());
     default:
       return createRoute(const WelcomeScreen());
   }

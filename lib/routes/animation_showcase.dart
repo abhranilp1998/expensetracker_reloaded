@@ -10,6 +10,21 @@ class AnimationPreview extends StatefulWidget {
 }
 
 class _AnimationPreviewState extends State<AnimationPreview> {
+  late AnimationType _currentAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentAnimation = AnimationVariants.currentType;
+  }
+
+  void _updateAnimation(AnimationType type) {
+    setState(() {
+      _currentAnimation = type;
+      AnimationVariants.setAnimationType(type);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,6 +41,15 @@ class _AnimationPreviewState extends State<AnimationPreview> {
               'Available Animation Types',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
+            const SizedBox(height: 8),
+            Text(
+              'Current: ${AnimationVariants.getAnimationName(_currentAnimation)}',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade600,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
             const SizedBox(height: 16),
             ..._buildAnimationCards(),
           ],
@@ -36,8 +60,12 @@ class _AnimationPreviewState extends State<AnimationPreview> {
 
   List<Widget> _buildAnimationCards() {
     return AnimationType.values.map((type) {
-      final isActive = type == AnimationType.fadeSlide; // Default for preview
-      return AnimationCard(type: type, isActive: isActive);
+      final isActive = type == _currentAnimation;
+      return AnimationCard(
+        type: type,
+        isActive: isActive,
+        onSelect: () => _updateAnimation(type),
+      );
     }).toList();
   }
 }
@@ -46,11 +74,13 @@ class _AnimationPreviewState extends State<AnimationPreview> {
 class AnimationCard extends StatelessWidget {
   final AnimationType type;
   final bool isActive;
+  final VoidCallback onSelect;
 
   const AnimationCard({
     super.key,
     required this.type,
     required this.isActive,
+    required this.onSelect,
   });
 
   @override
@@ -112,18 +142,38 @@ class AnimationCard extends StatelessWidget {
             const SizedBox(height: 12),
             _buildAnimationPreview(type),
             const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () {
-                _previewAnimation(context, type);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green.shade600,
-                minimumSize: const Size(double.infinity, 44),
-              ),
-              child: const Text(
-                'Preview Animation',
-                style: TextStyle(color: Colors.white),
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: onSelect,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isActive ? Colors.green.shade600 : Colors.grey.shade400,
+                      minimumSize: const Size(double.infinity, 44),
+                    ),
+                    child: Text(
+                      isActive ? 'Selected' : 'Select',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      _previewAnimation(context, type);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue.shade600,
+                      minimumSize: const Size(double.infinity, 44),
+                    ),
+                    child: const Text(
+                      'Preview',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
