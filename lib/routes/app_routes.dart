@@ -7,6 +7,9 @@ import 'package:expensetracker_reloaded/screens/history_page.dart';
 import 'package:expensetracker_reloaded/screens/demo_page.dart';
 import 'package:expensetracker_reloaded/screens/profile_page.dart';
 import 'package:expensetracker_reloaded/routes/animation_variants.dart';
+import 'package:expensetracker_reloaded/screens/permissions_page.dart';
+import 'package:expensetracker_reloaded/screens/event_logs_page.dart';
+import 'package:expensetracker_reloaded/screens/till_now_page.dart';
 
 /// Global route constants
 class AppRoutes {
@@ -19,6 +22,9 @@ class AppRoutes {
   static const String demo = '/demo';
   static const String profile = '/profile';
   static const String animationShowcase = '/animation-showcase';
+  static const String permissions = '/permissions';
+  static const String eventLogs = '/event-logs';
+  static const String tillNow = '/till-now';
 }
 
 /// Creates an animated route using the currently selected animation variant
@@ -45,6 +51,12 @@ Route<dynamic> onGenerateRoute(RouteSettings settings) {
       return createRoute(const ProfilePage());
     case AppRoutes.animationShowcase:
       return createRoute(const AnimationPreview());
+    case AppRoutes.permissions:
+      return createRoute(const PermissionsPage());
+    case AppRoutes.eventLogs:
+      return createRoute(const EventLogsPage());
+    case AppRoutes.tillNow:
+      return createRoute(const TillNowPage());
     default:
       return createRoute(const WelcomeScreen());
   }

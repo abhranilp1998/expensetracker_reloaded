@@ -1032,37 +1032,67 @@ class AppDrawer extends StatelessWidget {
                 ),
               ),
               const Divider(),
-              _DrawerTile(
-                icon: Icons.home,
-                title: 'Home',
-                color: Colors.green,
-                onTap: () => Navigator.of(context).pushReplacementNamed('/home'),
+              Expanded(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: [
+                    _DrawerTile(
+                      icon: Icons.home,
+                      title: 'Home',
+                      color: Colors.green,
+                      onTap: () => Navigator.of(context).pushReplacementNamed('/home'),
+                    ),
+                    _DrawerTile(
+                      icon: Icons.history,
+                      title: 'History',
+                      color: Colors.purple,
+                      onTap: () => Navigator.of(context).pushNamed('/history'),
+                    ),
+                    _DrawerTile(
+                      icon: Icons.emoji_events,
+                      title: 'Medals',
+                      color: Colors.amber,
+                      onTap: () {},
+                    ),
+                    _DrawerTile(
+                      icon: Icons.person,
+                      title: 'Profile',
+                      color: Colors.blue,
+                      onTap: () => Navigator.of(context).pushNamed('/profile'),
+                    ),
+                    _DrawerTile(
+                      icon: Icons.bug_report,
+                      title: 'Demo',
+                      color: Colors.orange,
+                      onTap: () => Navigator.of(context).pushNamed('/demo'),
+                    ),
+                    _DrawerTile(
+                      icon: Icons.fireplace_outlined,
+                      title: 'Fun',
+                      color: Colors.red,
+                      onTap: () => Navigator.of(context).pushNamed(AppRoutes.animationShowcase),
+                    ),
+                    _DrawerTile(
+                      icon: Icons.trending_up,
+                      title: 'Till Now',
+                      color: Colors.teal,
+                      onTap: () => Navigator.of(context).pushNamed(AppRoutes.tillNow),
+                    ),
+                    _DrawerTile(
+                      icon: Icons.lock_open,
+                      title: 'Permissions',
+                      color: Colors.indigo,
+                      onTap: () => Navigator.of(context).pushNamed(AppRoutes.permissions),
+                    ),
+                    _DrawerTile(
+                      icon: Icons.event_note,
+                      title: 'Event Logs',
+                      color: Colors.cyan,
+                      onTap: () => Navigator.of(context).pushNamed(AppRoutes.eventLogs),
+                    ),
+                  ],
+                ),
               ),
-              _DrawerTile(
-                icon: Icons.history,
-                title: 'History',
-                color: Colors.purple,
-                onTap: () => Navigator.of(context).pushNamed('/history'),
-              ),
-              _DrawerTile(
-                icon: Icons.emoji_events,
-                title: 'Medals',
-                color: Colors.amber,
-                onTap: () {},
-              ),
-              _DrawerTile(
-                icon: Icons.person,
-                title: 'Profile',
-                color: Colors.blue,
-                onTap: () => Navigator.of(context).pushNamed('/profile'),
-              ),
-              _DrawerTile(
-                icon: Icons.bug_report,
-                title: 'Demo',
-                color: Colors.orange,
-                onTap: () => Navigator.of(context).pushNamed('/demo'),
-              ),
-              const Spacer(),
               const Divider(),
               _DrawerTile(
                 icon: Icons.settings,
