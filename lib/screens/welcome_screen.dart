@@ -55,10 +55,14 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 40),
-                const Text(
+                Text(
                   'Welcome to\nExpenseTracker',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    height: 1.2,
+                  ) ?? const TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
                     height: 1.2,
@@ -68,7 +72,10 @@ class WelcomeScreen extends StatelessWidget {
                 Text(
                   'Automatically track expenses from SMS, view daily summaries, and manage your history.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontSize: 16,
+                    height: 1.5,
+                  ) ?? TextStyle(
                     fontSize: 16,
                     color: Colors.grey.shade700,
                     height: 1.5,

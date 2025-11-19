@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:expensetracker_reloaded/services/storage_service.dart';
+import 'package:expensetracker_reloaded/services/theme_service.dart';
 import 'package:intl/intl.dart';
 
 /// Till Now page - shows all-time statistics and summaries
@@ -36,10 +37,10 @@ class _TillNowPageState extends State<TillNowPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: context.getScaffoldBg(),
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: context.getAppBarBg(),
         title: const Text(
           'Till Now',
           style: TextStyle(fontWeight: FontWeight.bold),

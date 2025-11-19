@@ -10,6 +10,7 @@ import 'package:expensetracker_reloaded/routes/animation_variants.dart';
 import 'package:expensetracker_reloaded/screens/permissions_page.dart';
 import 'package:expensetracker_reloaded/screens/event_logs_page.dart';
 import 'package:expensetracker_reloaded/screens/till_now_page.dart';
+import 'package:expensetracker_reloaded/screens/comprehensive_settings_page.dart' show ComprehensiveSettingsPage;
 
 /// Global route constants
 class AppRoutes {
@@ -18,6 +19,7 @@ class AppRoutes {
   static const String welcome = '/';
   static const String home = '/home';
   static const String settings = '/settings';
+  static const String comprehensiveSettings = '/settings-comprehensive';
   static const String history = '/history';
   static const String demo = '/demo';
   static const String profile = '/profile';
@@ -43,6 +45,8 @@ Route<dynamic> onGenerateRoute(RouteSettings settings) {
       return createRoute(const HomeDashboard());
     case AppRoutes.settings:
       return createRoute(const SettingsPage());
+    case AppRoutes.comprehensiveSettings:
+      return createRoute(const ComprehensiveSettingsPage());
     case AppRoutes.history:
       return createRoute(const HistoryPage());
     case AppRoutes.demo:

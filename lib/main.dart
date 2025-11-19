@@ -96,7 +96,8 @@ class _ExpenseTrackerAppState extends State<ExpenseTrackerApp> {
     setState(() {
       _themeMode = mode;
     });
-    ThemeService.setTheme(mode);
+    // Fire and forget, but ensure it's saved
+    unawaited(ThemeService.setTheme(mode));
   }
 
   void setAccentColor(MaterialColor color) {
@@ -105,7 +106,8 @@ class _ExpenseTrackerAppState extends State<ExpenseTrackerApp> {
     });
     final colorName = ThemeService.availableColors.keys
         .firstWhere((k) => ThemeService.availableColors[k] == color, orElse: () => 'green');
-    ThemeService.setAccentColor(colorName);
+    // Fire and forget, but ensure it's saved
+    unawaited(ThemeService.setAccentColor(colorName));
   }
 
   @override

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:expensetracker_reloaded/services/event_logger_service.dart';
+import 'package:expensetracker_reloaded/services/theme_service.dart';
 
 /// Event logs page - shows all application events and activity
 class EventLogsPage extends StatefulWidget {
@@ -30,10 +31,10 @@ class _EventLogsPageState extends State<EventLogsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: context.getScaffoldBg(),
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: context.getAppBarBg(),
         title: const Text(
           'Event Logs',
           style: TextStyle(fontWeight: FontWeight.bold),

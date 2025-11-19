@@ -19,17 +19,26 @@ class WelcomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).primaryColor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Colors.green.shade50,
-              Colors.green.shade100,
-              Colors.white,
-            ],
+            colors: isDark
+                ? [
+                    primaryColor.withOpacity(0.1),
+                    primaryColor.withOpacity(0.05),
+                    const Color(0xFF121212),
+                  ]
+                : [
+                    primaryColor.withOpacity(0.05),
+                    primaryColor.withOpacity(0.02),
+                    Colors.white,
+                  ],
           ),
         ),
         child: SafeArea(
@@ -53,21 +62,24 @@ class WelcomeScreen extends StatelessWidget {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           gradient: LinearGradient(
-                            colors: [Colors.green.shade400, Colors.green.shade700],
+                            colors: [
+                              primaryColor,
+                              primaryColor.withOpacity(0.6),
+                            ],
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.green.withOpacity(0.3),
+                              color: primaryColor.withOpacity(0.3),
                               blurRadius: 20,
                               spreadRadius: 5,
                             ),
                           ],
                         ),
                         padding: const EdgeInsets.all(32),
-                        child: const Icon(
+                        child: Icon(
                           Icons.account_balance_wallet_rounded,
                           size: 64,
-                          color: Colors.white,
+                          color: isDark ? const Color(0xFF121212) : Colors.white,
                         ),
                       ),
                     );
@@ -78,28 +90,33 @@ class WelcomeScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: LinearGradient(
-                        colors: [Colors.green.shade400, Colors.green.shade700],
+                        colors: [
+                          primaryColor,
+                          primaryColor.withOpacity(0.6),
+                        ],
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.green.withOpacity(0.3),
+                          color: primaryColor.withOpacity(0.3),
                           blurRadius: 20,
                           spreadRadius: 5,
                         ),
                       ],
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.account_balance_wallet_rounded,
                       size: 64,
-                      color: Colors.white,
+                      color: isDark ? const Color(0xFF121212) : Colors.white,
                     ),
                   ),
                 ),
                 const SizedBox(height: 40),
-                const Text(
+                Text(
                   'Welcome to\nExpenseTracker',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                    height: 1.2,
+                  ) ?? const TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
                     height: 1.2,
@@ -107,9 +124,11 @@ class WelcomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Automatically track expenses from SMS, view daily summaries, and manage your hisĒtory.',
+                  'Automatically track expenses from SMS, view daily summaries, and manage your history.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    height: 1.5,
+                  ) ?? TextStyle(
                     fontSize: 16,
                     color: Colors.grey.shade700,
                     height: 1.5,
@@ -127,15 +146,15 @@ class WelcomeScreen extends StatelessWidget {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green.shade600,
-                        foregroundColor: Colors.white,
+                        backgroundColor: primaryColor,
+                        foregroundColor: isDark ? const Color(0xFF121212) : Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 18),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
                         elevation: 4,
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
@@ -143,10 +162,14 @@ class WelcomeScreen extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
+                              color: isDark ? const Color(0xFF121212) : Colors.white,
                             ),
                           ),
-                          SizedBox(width: 8),
-                          Icon(Icons.arrow_forward_rounded),
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.arrow_forward_rounded,
+                            color: isDark ? const Color(0xFF121212) : Colors.white,
+                          ),
                         ],
                       ),
                     ),
@@ -157,7 +180,10 @@ class WelcomeScreen extends StatelessWidget {
                   onPressed: () => Navigator.of(context).pushReplacementNamed('/home'),
                   child: Text(
                     'Skip for now',
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                    style: Theme.of(context).textTheme.bodyMedium ?? TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 16,
+                    ),
                   ),
                 )
               ],
@@ -331,10 +357,10 @@ class _HomeDashboardState extends State<HomeDashboard>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         title: Row(
           children: [
             Hero(
@@ -345,20 +371,27 @@ class _HomeDashboardState extends State<HomeDashboard>
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
-                    colors: [Colors.green.shade400, Colors.green.shade700],
+                    colors: [
+                      Theme.of(context).primaryColor,
+                      Theme.of(context).primaryColor.withOpacity(0.6),
+                    ],
                   ),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.account_balance_wallet_rounded,
-                  color: Colors.white,
+                  color: Theme.of(context).brightness == Brightness.dark 
+                    ? const Color(0xFF121212) 
+                    : Colors.white,
                   size: 20,
                 ),
               ),
             ),
             const SizedBox(width: 12),
-            const Text(
+            Text(
               'Expense Tracker',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ) ?? const TextStyle(fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -404,14 +437,17 @@ class _HomeDashboardState extends State<HomeDashboard>
                       child: Container(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [Colors.green.shade400, Colors.green.shade700],
+                            colors: [
+                              Theme.of(context).primaryColor,
+                              Theme.of(context).primaryColor.withOpacity(0.6),
+                            ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.green.withOpacity(0.3),
+                              color: Theme.of(context).primaryColor.withOpacity(0.3),
                               blurRadius: 15,
                               offset: const Offset(0, 8),
                             ),
@@ -528,7 +564,7 @@ class _HomeDashboardState extends State<HomeDashboard>
                         icon: Icons.settings,
                         label: 'Settings',
                         color: Colors.orange,
-                        onTap: () => Navigator.of(context).pushNamed('/settings'),
+                        onTap: () => Navigator.of(context).pushNamed(AppRoutes.comprehensiveSettings),
                       ),
                     ),
                   ],
@@ -605,7 +641,7 @@ class _HomeDashboardState extends State<HomeDashboard>
                 const SizedBox(height: 12),
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
@@ -721,7 +757,7 @@ class _ActionCardState extends State<_ActionCard> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 20),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
@@ -749,7 +785,9 @@ class _ActionCardState extends State<_ActionCard> {
               Text(
                 widget.label,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ) ?? const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
@@ -887,7 +925,9 @@ class _SummaryRow extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              fontWeight: FontWeight.w500,
+            ) ?? const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
             ),
@@ -914,11 +954,15 @@ class TodayTotalDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.green.shade700,
+      backgroundColor: Theme.of(context).primaryColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(
+          color: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF121212)
+            : Colors.white,
+        ),
       ),
       body: Center(
         child: Hero(
@@ -980,16 +1024,24 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = Theme.of(context).primaryColor;
+    
     return Drawer(
       child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Colors.green.shade50,
-              Colors.white,
-            ],
+            colors: isDark
+                ? [
+                    primaryColor.withOpacity(0.1),
+                    primaryColor.withOpacity(0.05),
+                  ]
+                : [
+                    primaryColor.withOpacity(0.05),
+                    primaryColor.withOpacity(0.02),
+                  ],
           ),
         ),
         child: SafeArea(
@@ -1100,7 +1152,7 @@ class AppDrawer extends StatelessWidget {
                 icon: Icons.settings,
                 title: 'Settings',
                 color: Colors.grey,
-                onTap: () => Navigator.of(context).pushNamed('/settings'),
+                onTap: () => Navigator.of(context).pushNamed(AppRoutes.comprehensiveSettings),
               ),
               const SizedBox(height: 16),
             ],
@@ -1191,10 +1243,10 @@ class HistoryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         title: const Text(
           'Transaction History',
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -1919,10 +1971,10 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         title: const Text(
           'Settings',
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -2094,10 +2146,10 @@ class _DemoPageState extends State<DemoPage> with SingleTickerProviderStateMixin
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         title: const Text(
           'Demo Mode',
           style: TextStyle(fontWeight: FontWeight.bold),
