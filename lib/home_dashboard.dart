@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:expensetracker_reloaded/routes/app_routes.dart' show createRoute, AppRoutes;
+import 'package:expensetracker_reloaded/services/theme_service.dart';
+import 'package:expensetracker_reloaded/main.dart' show ExpenseTrackerApp;
 import 'dart:async';
 import 'dart:convert';
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -1426,97 +1428,483 @@ class _HistoryTransactionTileState extends State<_HistoryTransactionTile> {
   }
 }
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
   @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  late ThemeMode _currentTheme;
+  late MaterialColor _currentAccentColor;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentTheme = ThemeService.getCurrentTheme();
+    _currentAccentColor = ThemeService.getCurrentAccentColor();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final primaryColor = Theme.of(context).primaryColor;
+
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
         title: const Text(
-          'Profile',
+          'Profile & Preferences',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
-      body: Center(
+      body: SingleChildScrollView(
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           children: [
-            Hero(
-              tag: 'app-logo',
-              flightShuttleBuilder: (flightContext, animation, flightDirection,
-                  fromContext, toContext) {
-                return ScaleTransition(
-                  scale: animation.drive(
-                    Tween(begin: 0.5, end: 1.5).chain(
-                      CurveTween(curve: Curves.easeInOutCubic),
+            // Profile Header
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 32.0),
+              child: Column(
+                children: [
+                  Hero(
+                    tag: 'app-logo',
+                    flightShuttleBuilder: (flightContext, animation,
+                        flightDirection, fromContext, toContext) {
+                      return ScaleTransition(
+                        scale: animation.drive(
+                          Tween(begin: 0.5, end: 1.5).chain(
+                            CurveTween(curve: Curves.easeInOutCubic),
+                          ),
+                        ),
+                        child: Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [
+                                primaryColor.withOpacity(0.6),
+                                primaryColor,
+                              ],
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: primaryColor.withOpacity(0.3),
+                                blurRadius: 20,
+                                spreadRadius: 5,
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.person,
+                            size: 50,
+                            color: Colors.white,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: [
+                            primaryColor.withOpacity(0.6),
+                            primaryColor,
+                          ],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: primaryColor.withOpacity(0.3),
+                            blurRadius: 20,
+                            spreadRadius: 5,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.person,
+                        size: 50,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
-                  child: Container(
-                    width: 128,
-                    height: 128,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [Colors.green.shade400, Colors.green.shade700],
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Abhranil Paul',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Expense Tracker User',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Theme Settings
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
+                    child: Text(
+                      'Appearance',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.green.withOpacity(0.3),
-                          blurRadius: 20,
-                          spreadRadius: 5,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // Theme Mode Selection
+                  _PreferenceCard(
+                    icon: Icons.brightness_4,
+                    title: 'Theme Mode',
+                    subtitle: 'Choose your preferred theme',
+                    color: Colors.blue,
+                    child: Column(
+                      children: [
+                        RadioListTile<ThemeMode>(
+                          title: const Text('Light'),
+                          value: ThemeMode.light,
+                          groupValue: _currentTheme,
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() => _currentTheme = value);
+                              ExpenseTrackerApp.of(context)?.setTheme(value);
+                            }
+                          },
+                        ),
+                        RadioListTile<ThemeMode>(
+                          title: const Text('Dark'),
+                          value: ThemeMode.dark,
+                          groupValue: _currentTheme,
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() => _currentTheme = value);
+                              ExpenseTrackerApp.of(context)?.setTheme(value);
+                            }
+                          },
+                        ),
+                        RadioListTile<ThemeMode>(
+                          title: const Text('System'),
+                          value: ThemeMode.system,
+                          groupValue: _currentTheme,
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() => _currentTheme = value);
+                              ExpenseTrackerApp.of(context)?.setTheme(value);
+                            }
+                          },
                         ),
                       ],
                     ),
-                    child: const Icon(
-                      Icons.person,
-                      size: 64,
-                      color: Colors.white,
+                  ),
+                  const SizedBox(height: 16),
+                  // Accent Color Selection
+                  _PreferenceCard(
+                    icon: Icons.palette,
+                    title: 'Accent Color',
+                    subtitle: 'Customize app colors',
+                    color: Colors.purple,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 5,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                        ),
+                        itemCount: ThemeService.availableColors.length,
+                        itemBuilder: (context, index) {
+                          final colorName = ThemeService.availableColors.keys
+                              .toList()[index];
+                          final color = ThemeService.availableColors[colorName]!;
+                          final isSelected = _currentAccentColor == color;
+
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() => _currentAccentColor = color);
+                              ExpenseTrackerApp.of(context)
+                                  ?.setAccentColor(color);
+                            },
+                            child: AnimatedScale(
+                              scale: isSelected ? 1.1 : 1.0,
+                              duration: const Duration(milliseconds: 200),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: color.shade600,
+                                  shape: BoxShape.circle,
+                                  border: isSelected
+                                      ? Border.all(
+                                          color: Colors.white,
+                                          width: 3,
+                                        )
+                                      : null,
+                                  boxShadow: isSelected
+                                      ? [
+                                          BoxShadow(
+                                            color: color.withOpacity(0.4),
+                                            blurRadius: 12,
+                                            spreadRadius: 2,
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                                child: isSelected
+                                    ? const Icon(
+                                        Icons.check,
+                                        color: Colors.white,
+                                        size: 20,
+                                      )
+                                    : null,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ),
-                );
+                  const SizedBox(height: 24),
+                  // User Preferences
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
+                    child: Text(
+                      'Preferences',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _SwitchPreferenceCard(
+                    icon: Icons.notifications,
+                    title: 'Notifications',
+                    subtitle: 'Receive expense alerts',
+                    color: Colors.orange,
+                    initialValue: true,
+                    onChanged: (value) {
+                      // Handle notifications setting
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  _SwitchPreferenceCard(
+                    icon: Icons.security,
+                    title: 'Dark Mode Auto-Switch',
+                    subtitle: 'Follow system theme',
+                    color: Colors.blue,
+                    initialValue: _currentTheme == ThemeMode.system,
+                    onChanged: (value) {
+                      if (value) {
+                        ExpenseTrackerApp.of(context)
+                            ?.setTheme(ThemeMode.system);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  _SwitchPreferenceCard(
+                    icon: Icons.vibration,
+                    title: 'Haptic Feedback',
+                    subtitle: 'Vibrations on interactions',
+                    color: Colors.green,
+                    initialValue: true,
+                    onChanged: (value) {
+                      // Handle haptic feedback setting
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PreferenceCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final Widget child;
+
+  const _PreferenceCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.grey.shade300,
+          width: 0.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: color, size: 24),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(
+              left: 16.0,
+              right: 16.0,
+              bottom: 16.0,
+            ),
+            child: child,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SwitchPreferenceCard extends StatefulWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final bool initialValue;
+  final Function(bool) onChanged;
+
+  const _SwitchPreferenceCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    required this.initialValue,
+    required this.onChanged,
+  });
+
+  @override
+  State<_SwitchPreferenceCard> createState() => _SwitchPreferenceCardState();
+}
+
+class _SwitchPreferenceCardState extends State<_SwitchPreferenceCard> {
+  late bool _value;
+
+  @override
+  void initState() {
+    super.initState();
+    _value = widget.initialValue;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        setState(() => _value = !_value);
+        widget.onChanged(_value);
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Colors.grey.shade300,
+            width: 0.5,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: widget.color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(widget.icon, color: widget.color, size: 24),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    widget.subtitle,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Switch(
+              value: _value,
+              onChanged: (value) {
+                setState(() => _value = value);
+                widget.onChanged(value);
               },
-              child: Container(
-                width: 128,
-                height: 128,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [Colors.green.shade400, Colors.green.shade700],
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.green.withOpacity(0.3),
-                      blurRadius: 20,
-                      spreadRadius: 5,
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.person,
-                  size: 64,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Abhranil Paul',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Expense Tracker User',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey.shade600,
-              ),
             ),
           ],
         ),

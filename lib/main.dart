@@ -4,6 +4,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:expensetracker_reloaded/routes/app_routes.dart';
 import 'package:expensetracker_reloaded/routes/animation_preferences.dart';
+import 'package:expensetracker_reloaded/services/theme_service.dart';
 import 'dart:async';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -23,6 +24,9 @@ void main() async {
 
   // Load saved animation preference
   await AnimationPreferencesService.loadAnimationType();
+
+  // Initialize theme service
+  await ThemeService.initialize();
 
   runApp(const ExpenseTrackerApp());
 }
@@ -66,17 +70,51 @@ Future<void> backgroundMessageHandler(SmsMessage message) async {
   }
 }
 
-class ExpenseTrackerApp extends StatelessWidget {
+class ExpenseTrackerApp extends StatefulWidget {
   const ExpenseTrackerApp({super.key});
+
+  @override
+  State<ExpenseTrackerApp> createState() => _ExpenseTrackerAppState();
+
+  static _ExpenseTrackerAppState? of(BuildContext context) {
+    return context.findAncestorStateOfType<_ExpenseTrackerAppState>();
+  }
+}
+
+class _ExpenseTrackerAppState extends State<ExpenseTrackerApp> {
+  late ThemeMode _themeMode;
+  late MaterialColor _accentColor;
+
+  @override
+  void initState() {
+    super.initState();
+    _themeMode = ThemeService.getCurrentTheme();
+    _accentColor = ThemeService.getCurrentAccentColor();
+  }
+
+  void setTheme(ThemeMode mode) {
+    setState(() {
+      _themeMode = mode;
+    });
+    ThemeService.setTheme(mode);
+  }
+
+  void setAccentColor(MaterialColor color) {
+    setState(() {
+      _accentColor = color;
+    });
+    final colorName = ThemeService.availableColors.keys
+        .firstWhere((k) => ThemeService.availableColors[k] == color, orElse: () => 'green');
+    ThemeService.setAccentColor(colorName);
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Expense Tracker',
-      theme: ThemeData(
-        primarySwatch: Colors.green,
-        scaffoldBackgroundColor: Colors.grey[100],
-      ),
+      theme: AppThemeData.lightTheme(_accentColor),
+      darkTheme: AppThemeData.darkTheme(_accentColor),
+      themeMode: _themeMode,
       initialRoute: AppRoutes.welcome,
       onGenerateRoute: onGenerateRoute,
     );
