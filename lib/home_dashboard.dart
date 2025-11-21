@@ -287,18 +287,36 @@ class _HomeDashboardState extends State<HomeDashboard>
   }
 
   Future<void> _requestPermissions() async {
-    final status = await Permission.sms.request();
+    final smsStatus = await Permission.sms.request();
+    
     setState(() {
-      _hasPermission = status.isGranted;
+      _hasPermission = smsStatus.isGranted;
     });
+    
+    // Log the permission request result
+    if (_hasPermission) {
+      debugPrint('✅ SMS Permission GRANTED');
+    } else if (smsStatus.isPermanentlyDenied) {
+      debugPrint('❌ SMS Permission PERMANENTLY DENIED');
+    } else {
+      debugPrint('❌ SMS Permission DENIED');
+    }
   }
 
   void _listenForSMS() {
+    debugPrint('📱 Starting SMS listener...');
+    
+    // Listen for incoming SMS
     telephony.listenIncomingSms(
       onNewMessage: (SmsMessage message) {
-        if (message.body != null) _parseMessage(message.body!);
+        debugPrint('📨 SMS Received: ${message.body}');
+        if (message.body != null) {
+          _parseMessage(message.body!);
+        }
       },
     );
+    
+    debugPrint('✅ SMS listener started');
   }
 
   void _parseMessage(String text) {
@@ -816,8 +834,27 @@ class _TransactionTile extends StatefulWidget {
 class _TransactionTileState extends State<_TransactionTile> {
   bool _isPressed = false;
 
+  // Alternating color palette for transactions
+  static const List<Color> _transactionColors = [
+    Color(0xFFFF6B6B), // Red
+    Color(0xFF4ECDC4), // Teal
+    Color(0xFFFFE66D), // Yellow
+    Color(0xFF95E1D3), // Mint
+    Color(0xFFF38181), // Pink
+    Color(0xFFAA96DA), // Purple
+    Color(0xFFFCBD49), // Gold
+    Color(0xFF5DADE2), // Blue
+  ];
+
+  Color _getBackgroundColor(int index) {
+    return _transactionColors[index % _transactionColors.length];
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final tileColor = _getBackgroundColor(widget.index);
+    
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) => setState(() => _isPressed = false),
@@ -829,11 +866,17 @@ class _TransactionTileState extends State<_TransactionTile> {
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark
+                ? tileColor.withOpacity(0.15)
+                : tileColor.withOpacity(0.08),
             borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: tileColor.withOpacity(isDark ? 0.3 : 0.15),
+              width: 1,
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 2),
               ),
@@ -844,12 +887,12 @@ class _TransactionTileState extends State<_TransactionTile> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.red.shade50,
+                  color: tileColor.withOpacity(isDark ? 0.3 : 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.arrow_downward,
-                  color: Colors.red.shade600,
+                  color: tileColor,
                   size: 20,
                 ),
               ),
@@ -860,9 +903,12 @@ class _TransactionTileState extends State<_TransactionTile> {
                   children: [
                     Text(
                       widget.transaction['message'] ?? 'Expense',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
+                        color: isDark 
+                          ? Colors.white
+                          : Colors.grey.shade900,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -873,7 +919,9 @@ class _TransactionTileState extends State<_TransactionTile> {
                         DateTime.parse(widget.transaction['time'].toString()),
                       ),
                       style: TextStyle(
-                        color: Colors.grey.shade600,
+                        color: isDark
+                          ? Colors.grey.shade400
+                          : Colors.grey.shade600,
                         fontSize: 12,
                       ),
                     ),
@@ -885,7 +933,7 @@ class _TransactionTileState extends State<_TransactionTile> {
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
-                  color: Colors.red.shade600,
+                  color: tileColor,
                 ),
               ),
             ],
@@ -1411,8 +1459,28 @@ class _HistoryTransactionTile extends StatefulWidget {
 class _HistoryTransactionTileState extends State<_HistoryTransactionTile> {
   bool _isPressed = false;
 
+  // Use same color palette as main transactions
+  static const List<Color> _transactionColors = [
+    Color(0xFFFF6B6B), // Red
+    Color(0xFF4ECDC4), // Teal
+    Color(0xFFFFE66D), // Yellow
+    Color(0xFF95E1D3), // Mint
+    Color(0xFFF38181), // Pink
+    Color(0xFFAA96DA), // Purple
+    Color(0xFFFCBD49), // Gold
+    Color(0xFF5DADE2), // Blue
+  ];
+
+  Color _getColorByHash() {
+    final hash = widget.transaction['time'].hashCode;
+    return _transactionColors[hash.abs() % _transactionColors.length];
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final tileColor = _getColorByHash();
+    
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) => setState(() => _isPressed = false),
@@ -1424,11 +1492,17 @@ class _HistoryTransactionTileState extends State<_HistoryTransactionTile> {
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: isDark
+                ? tileColor.withOpacity(0.15)
+                : tileColor.withOpacity(0.08),
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: tileColor.withOpacity(isDark ? 0.3 : 0.15),
+              width: 1,
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -1439,12 +1513,12 @@ class _HistoryTransactionTileState extends State<_HistoryTransactionTile> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.red.shade50,
+                  color: tileColor.withOpacity(isDark ? 0.3 : 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   Icons.arrow_downward,
-                  color: Colors.red.shade600,
+                  color: tileColor,
                   size: 20,
                 ),
               ),
@@ -1455,9 +1529,12 @@ class _HistoryTransactionTileState extends State<_HistoryTransactionTile> {
                   children: [
                     Text(
                       widget.transaction['message'] ?? 'Expense',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
+                        color: isDark 
+                          ? Colors.white
+                          : Colors.grey.shade900,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -1468,7 +1545,9 @@ class _HistoryTransactionTileState extends State<_HistoryTransactionTile> {
                         DateTime.parse(widget.transaction['time'].toString()),
                       ),
                       style: TextStyle(
-                        color: Colors.grey.shade600,
+                        color: isDark
+                          ? Colors.grey.shade400
+                          : Colors.grey.shade600,
                         fontSize: 12,
                       ),
                     ),
@@ -1480,7 +1559,7 @@ class _HistoryTransactionTileState extends State<_HistoryTransactionTile> {
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
-                  color: Colors.red.shade600,
+                  color: tileColor,
                 ),
               ),
             ],

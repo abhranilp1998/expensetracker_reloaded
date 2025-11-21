@@ -211,8 +211,17 @@ class AppConstants {
 
   // ==================== REGEX PATTERNS ====================
   
-  /// SMS parsing pattern
-  static const String smsAmountPattern = r'(?:rs\.?|inr)\s*([0-9,]+\.?[0-9]*)';
+  /// SMS parsing pattern - matches currency symbols and amounts
+  static const String smsAmountPattern = r'(?:rs\.?|inr|₹)\s*([0-9,]+\.?[0-9]*)';
+  
+  /// Transaction keywords - matches debit, credit, paid, charged, etc
+  static const String transactionKeywordsPattern = 
+      r'(?:debited|credited|paid|charged|spent|transferred|withdrawn|deposited|refunded)';
+  
+  /// Extended amount pattern with transaction context
+  /// Matches: "debited for ₹500" or "paid INR 1000" or "charged Rs.200"
+  static const String extendedSmsPattern = 
+      r'(?:debited|credited|paid|charged|spent|transferred|withdrawn|deposited|refunded)(?:\s+(?:for|of|by))?\s*(?:rs\.?|inr|₹)?\s*([0-9,]+\.?[0-9]*)';
   
   /// Validation patterns
   static const String emailPattern = 

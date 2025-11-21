@@ -33,12 +33,18 @@ void main() async {
 
 @pragma('vm:entry-point')
 Future<void> backgroundMessageHandler(SmsMessage message) async {
+  debugPrint('🔔 Background SMS Handler triggered');
+  debugPrint('📨 Message: ${message.body}');
+  
   if (message.body != null) {
     final regex = RegExp(r'(?:rs\.?|inr)\s*([0-9,]+\.?[0-9]*)', caseSensitive: false);
     final match = regex.firstMatch(message.body!);
+    
     if (match != null) {
       try {
         final amount = double.parse(match.group(1)!.replaceAll(',', ''));
+        debugPrint('💰 Expense detected: ₹$amount');
+        
         final prefs = await SharedPreferences.getInstance();
         final currentTotal = prefs.getDouble('todayTotal') ?? 0.0;
         final newTotal = currentTotal + amount;
@@ -63,9 +69,13 @@ Future<void> backgroundMessageHandler(SmsMessage message) async {
           '₹${amount.toStringAsFixed(2)} spent\nDaily total: ₹${newTotal.toStringAsFixed(2)}',
           platformChannelSpecifics,
         );
+        
+        debugPrint('✅ Background handler completed successfully');
       } catch (e) {
-        debugPrint('Error in background handler: $e');
+        debugPrint('❌ Error in background handler: $e');
       }
+    } else {
+      debugPrint('⚠️ No expense amount found in message');
     }
   }
 }

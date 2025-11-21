@@ -4,6 +4,7 @@ import 'package:expensetracker_reloaded/services/theme_service.dart';
 import 'package:expensetracker_reloaded/services/event_logger_service.dart';
 import 'package:expensetracker_reloaded/routes/animation_preferences.dart';
 import 'package:expensetracker_reloaded/routes/animation_variants.dart';
+import 'package:expensetracker_reloaded/routes/app_routes.dart';
 import 'package:expensetracker_reloaded/main.dart' show ExpenseTrackerApp;
 
 class ComprehensiveSettingsPage extends StatefulWidget {
@@ -244,6 +245,77 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                 value: _preferences['animations_enabled'] ?? true,
                 color: Colors.lightBlue,
                 onChanged: (value) => _updatePreference('animations_enabled', value),
+              ),
+              const SizedBox(height: 16),
+              // Animation Preview Button
+              GestureDetector(
+                onTap: () {
+                  Navigator.of(context).pushNamed(AppRoutes.animationShowcase);
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.purple.shade400,
+                        Colors.pink.shade400,
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.purple.withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.slideshow,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Animation Showcase',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Preview all animation types',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.white.withOpacity(0.8),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(
+                        Icons.arrow_forward_ios,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                    ],
+                  ),
+                ),
               ),
               const SizedBox(height: 24),
 
