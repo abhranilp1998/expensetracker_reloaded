@@ -214,41 +214,36 @@ class AnimationVariants {
       transitionDuration: const Duration(milliseconds: 400),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        // Create custom curve with stops at 22% and 77% for smooth effect
-        final customCurve = Interval(0.0, 1.0, curve: Curves.easeOutQuad);
-        
-        final slideTween = Tween(begin: const Offset(0.3, 0.0), end: Offset.zero)
-            .chain(CurveTween(curve: customCurve));
-        
-        // Fade with smooth stops - quick fade at 22%, holds, then final push at 77%
-        final fadeTween = Tween(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOut));
+      final slideTween = Tween(begin: const Offset(0.3, 0.0), end: Offset.zero)
+        .chain(CurveTween(curve: Curves.easeOutQuad));
+      
+      final fadeTween = Tween(begin: 0.0, end: 1.0)
+        .chain(CurveTween(curve: Curves.easeOut));
 
-        // Get animation value and apply custom timing for smooth stops effect
-        final progress = animation.value;
-        
-        // Smooth acceleration/deceleration at key points (22% and 77%)
-        double smoothedProgress = progress;
-        if (progress < 0.22) {
-          // Acceleration phase: 0% to 22%
-          smoothedProgress = (progress / 0.22) * 0.22;
-        } else if (progress < 0.77) {
-          // Holding phase: 22% to 77% (smooth mid-point)
-          smoothedProgress = 0.22 + ((progress - 0.22) / 0.55) * 0.55;
-        } else {
-          // Final push phase: 77% to 100%
-          smoothedProgress = 0.77 + ((progress - 0.77) / 0.23) * 0.23;
-        }
+      final progress = animation.value;
+      
+      // Slow phase: 0% to 15%, quick phase: 15% to 85%, rest: 85% to 100%
+      double smoothedProgress = progress;
+      if (progress < 0.15) {
+        // Slow acceleration phase: 0% to 15%
+        smoothedProgress = (progress / 0.15) * 0.15;
+      } else if (progress < 0.85) {
+        // Quick animation phase: 15% to 85%
+        smoothedProgress = 0.15 + ((progress - 0.15) / 0.70) * 0.70;
+      } else {
+        // Resting phase: 85% to 100%
+        smoothedProgress = 0.85 + ((progress - 0.85) / 0.15) * 0.15;
+      }
 
-        final smoothAnimation = AlwaysStoppedAnimation<double>(smoothedProgress);
+      final smoothAnimation = AlwaysStoppedAnimation<double>(smoothedProgress);
 
-        return FadeTransition(
-          opacity: animation.drive(fadeTween),
-          child: SlideTransition(
-            position: smoothAnimation.drive(slideTween),
-            child: child,
-          ),
-        );
+      return FadeTransition(
+        opacity: animation.drive(fadeTween),
+        child: SlideTransition(
+        position: smoothAnimation.drive(slideTween),
+        child: child,
+        ),
+      );
       },
     );
   }
