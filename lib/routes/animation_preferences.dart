@@ -57,6 +57,18 @@ class AnimationPreferencesService {
         return 'Quick slide from right - playful alternative';
       case AnimationType.scaleRotate:
         return 'Scale and rotate - fun and eye-catching';
+      case AnimationType.morphing:
+        return 'Morphing blob effect - smooth scale and rotate';
+      case AnimationType.bouncy:
+        return 'Bouncy scale animation - playful and energetic';
+      case AnimationType.liquid:
+        return 'Liquid swipe transition - smooth and modern';
+      case AnimationType.staggered:
+        return 'Staggered cascade - complex multi-layer animation';
+      case AnimationType.kaleidoscope:
+        return 'Kaleidoscope rotation - stunning visual effect';
+      case AnimationType.elasticBounce:
+        return 'Elastic bounce - physics-based spring animation';
     }
   }
 }

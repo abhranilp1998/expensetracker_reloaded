@@ -973,7 +973,10 @@ class TodayTotalDetailPage extends StatelessWidget {
               margin: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.green.shade400, Colors.green.shade700],
+                  colors: [
+                    Theme.of(context).primaryColor,
+                    Theme.of(context).primaryColor.withOpacity(0.6),
+                  ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -1059,7 +1062,10 @@ class AppDrawer extends StatelessWidget {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           gradient: LinearGradient(
-                            colors: [Colors.green.shade400, Colors.green.shade700],
+                            colors: [
+                              primaryColor,
+                              primaryColor.withOpacity(0.6),
+                            ],
                           ),
                         ),
                         child: const Icon(

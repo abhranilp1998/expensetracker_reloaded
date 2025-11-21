@@ -30,7 +30,7 @@ class _AnimationPreviewState extends State<AnimationPreview> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Animation Preview'),
-        backgroundColor: Colors.green.shade600,
+        backgroundColor: Theme.of(context).primaryColor,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -90,7 +90,7 @@ class AnimationCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: isActive ? Colors.green.shade600 : Colors.grey.shade300,
+          color: isActive ? Theme.of(context).primaryColor : Colors.grey.shade300,
           width: isActive ? 2 : 1,
         ),
       ),
@@ -116,7 +116,7 @@ class AnimationCard extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.green.shade600,
+                      color: Theme.of(context).primaryColor,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Text(
@@ -140,7 +140,7 @@ class AnimationCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            _buildAnimationPreview(type),
+            _buildAnimationPreview(context, type),
             const SizedBox(height: 12),
             Row(
               children: [
@@ -148,7 +148,7 @@ class AnimationCard extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: onSelect,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: isActive ? Colors.green.shade600 : Colors.grey.shade400,
+                      backgroundColor: isActive ? Theme.of(context).primaryColor : Colors.grey.shade400,
                       minimumSize: const Size(double.infinity, 44),
                     ),
                     child: Text(
@@ -181,17 +181,17 @@ class AnimationCard extends StatelessWidget {
     );
   }
 
-  Widget _buildAnimationPreview(AnimationType type) {
+  Widget _buildAnimationPreview(BuildContext context, AnimationType type) {
+    final primaryColor = Theme.of(context).primaryColor;
+    final accentColor = primaryColor.withOpacity(0.6);
+    
     switch (type) {
       case AnimationType.fadeSlide:
         return Container(
           height: 80,
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                Colors.green.shade300,
-                Colors.green.shade600,
-              ],
+              colors: [primaryColor.withOpacity(0.4), primaryColor],
             ),
             borderRadius: BorderRadius.circular(8),
           ),
@@ -215,7 +215,7 @@ class AnimationCard extends StatelessWidget {
           height: 80,
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.blue.shade300, Colors.blue.shade600],
+              colors: [accentColor.withOpacity(0.4), accentColor],
             ),
             borderRadius: BorderRadius.circular(8),
           ),
@@ -239,7 +239,7 @@ class AnimationCard extends StatelessWidget {
           height: 80,
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.purple.shade300, Colors.purple.shade600],
+              colors: [primaryColor.withOpacity(0.3), primaryColor.withOpacity(0.8)],
             ),
             borderRadius: BorderRadius.circular(8),
           ),
@@ -263,7 +263,7 @@ class AnimationCard extends StatelessWidget {
           height: 80,
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.orange.shade300, Colors.orange.shade600],
+              colors: [primaryColor.withOpacity(0.5), primaryColor.withOpacity(0.9)],
             ),
             borderRadius: BorderRadius.circular(8),
           ),
@@ -275,6 +275,150 @@ class AnimationCard extends StatelessWidget {
                 SizedBox(height: 4),
                 Text(
                   'Scales & rotates',
+                  style: TextStyle(color: Colors.white, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        );
+      
+      case AnimationType.morphing:
+        return Container(
+          height: 80,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [primaryColor.withOpacity(0.35), primaryColor.withOpacity(0.7)],
+            ),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.bubble_chart, color: Colors.white, size: 24),
+                SizedBox(height: 4),
+                Text(
+                  'Morphing blob',
+                  style: TextStyle(color: Colors.white, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        );
+      
+      case AnimationType.bouncy:
+        return Container(
+          height: 80,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [accentColor.withOpacity(0.3), accentColor.withOpacity(0.8)],
+            ),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.sports_basketball, color: Colors.white, size: 24),
+                SizedBox(height: 4),
+                Text(
+                  'Bouncy scale',
+                  style: TextStyle(color: Colors.white, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        );
+      
+      case AnimationType.liquid:
+        return Container(
+          height: 80,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [primaryColor.withOpacity(0.25), primaryColor.withOpacity(0.75)],
+            ),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.water, color: Colors.white, size: 24),
+                SizedBox(height: 4),
+                Text(
+                  'Liquid swipe',
+                  style: TextStyle(color: Colors.white, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        );
+      
+      case AnimationType.staggered:
+        return Container(
+          height: 80,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [accentColor.withOpacity(0.2), accentColor],
+            ),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.layers, color: Colors.white, size: 24),
+                SizedBox(height: 4),
+                Text(
+                  'Staggered cascade',
+                  style: TextStyle(color: Colors.white, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        );
+      
+      case AnimationType.kaleidoscope:
+        return Container(
+          height: 80,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [primaryColor.withOpacity(0.4), primaryColor.withOpacity(0.85)],
+            ),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.dashboard, color: Colors.white, size: 24),
+                SizedBox(height: 4),
+                Text(
+                  'Kaleidoscope',
+                  style: TextStyle(color: Colors.white, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+        );
+      
+      case AnimationType.elasticBounce:
+        return Container(
+          height: 80,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [primaryColor.withOpacity(0.3), primaryColor.withOpacity(0.8)],
+            ),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.toys, color: Colors.white, size: 24),
+                SizedBox(height: 4),
+                Text(
+                  'Elastic bounce',
                   style: TextStyle(color: Colors.white, fontSize: 12),
                 ),
               ],
@@ -294,6 +438,18 @@ class AnimationCard extends StatelessWidget {
         return 'Quick slide from right - playful alternative';
       case AnimationType.scaleRotate:
         return 'Scale and rotate - fun and eye-catching';
+      case AnimationType.morphing:
+        return 'Morphing blob effect - smooth scale and rotate';
+      case AnimationType.bouncy:
+        return 'Bouncy scale animation - playful and energetic';
+      case AnimationType.liquid:
+        return 'Liquid swipe transition - smooth and modern';
+      case AnimationType.staggered:
+        return 'Staggered cascade - complex multi-layer animation';
+      case AnimationType.kaleidoscope:
+        return 'Kaleidoscope rotation - stunning visual effect';
+      case AnimationType.elasticBounce:
+        return 'Elastic bounce - physics-based spring animation';
     }
   }
 
@@ -323,7 +479,7 @@ class AnimationPreviewPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Animation Preview'),
-        backgroundColor: Colors.green.shade600,
+        backgroundColor: Theme.of(context).primaryColor,
       ),
       body: Center(
         child: Column(
@@ -335,7 +491,7 @@ class AnimationPreviewPage extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: LinearGradient(
-                  colors: [Colors.green.shade400, Colors.green.shade600],
+                  colors: [Theme.of(context).primaryColor, Theme.of(context).primaryColor.withOpacity(0.6)],
                 ),
               ),
               child: const Icon(
@@ -354,7 +510,7 @@ class AnimationPreviewPage extends StatelessWidget {
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green.shade600,
+                backgroundColor: Theme.of(context).primaryColor,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 32,
                   vertical: 12,
