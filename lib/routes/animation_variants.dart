@@ -135,78 +135,15 @@ class AnimationVariants {
   }
 
   /// ============================================================
-  /// ANIMATION 4: Scale + Rotate (playful, modern)
+  /// ANIMATION 4: Smooth Expand In (modern, subtle)
   /// ============================================================
   static Route<dynamic> _scaleRotateRoute(Widget page) {
     return PageRouteBuilder(
-      transitionDuration: const Duration(milliseconds: 500),
+      transitionDuration: const Duration(milliseconds: 450),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        // Scale animation: start from 0.8, end at 1.0
-        final scaleTween = Tween(begin: 0.8, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOutCubic));
-
-        // Rotation animation: start from -0.05, end at 0.0
-        final rotateTween = Tween(begin: -0.05, end: 0.0)
-            .chain(CurveTween(curve: Curves.easeOutCubic));
-
-        // Fade animation for opacity
-        final fadeTween = Tween(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOut));
-
-        return FadeTransition(
-          opacity: animation.drive(fadeTween),
-          child: ScaleTransition(
-            scale: animation.drive(scaleTween),
-            child: Transform.rotate(
-              angle: animation.drive(rotateTween).value * 3.14159,
-              child: child,
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  /// ============================================================
-  /// ANIMATION 5: Morphing Blob (modern, organic)
-  /// ============================================================
-  static Route<dynamic> _morphingRoute(Widget page) {
-    return PageRouteBuilder(
-      transitionDuration: const Duration(milliseconds: 600),
-      pageBuilder: (context, animation, secondaryAnimation) => page,
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final scaleTween = Tween(begin: 0.6, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOutCubic));
-        final fadeTween = Tween(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOut));
-        final rotateTween = Tween(begin: 0.2, end: 0.0)
-            .chain(CurveTween(curve: Curves.easeOutCubic));
-
-        return FadeTransition(
-          opacity: animation.drive(fadeTween),
-          child: Transform.rotate(
-            angle: animation.drive(rotateTween).value * 3.14159,
-            child: ScaleTransition(
-              scale: animation.drive(scaleTween),
-              child: child,
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  /// ============================================================
-  /// ANIMATION 6: Bouncy Scale (playful, springy)
-  /// ============================================================
-  static Route<dynamic> _bouncyRoute(Widget page) {
-    return PageRouteBuilder(
-      transitionDuration: const Duration(milliseconds: 650),
-      pageBuilder: (context, animation, secondaryAnimation) => page,
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final scaleTween = Tween(begin: 0.5, end: 1.0)
-            .chain(CurveTween(curve: Curves.elasticOut));
+        final scaleTween = Tween(begin: 0.85, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeOutQuad));
         final fadeTween = Tween(begin: 0.0, end: 1.0)
             .chain(CurveTween(curve: Curves.easeOut));
 
@@ -222,57 +159,23 @@ class AnimationVariants {
   }
 
   /// ============================================================
-  /// ANIMATION 7: Liquid Swipe (sleek, modern effect)
+  /// ANIMATION 5: Smooth Vertical Swipe (modern, fluid)
   /// ============================================================
-  static Route<dynamic> _liquidRoute(Widget page) {
+  static Route<dynamic> _morphingRoute(Widget page) {
     return PageRouteBuilder(
-      transitionDuration: const Duration(milliseconds: 700),
+      transitionDuration: const Duration(milliseconds: 500),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final slideTween = Tween(begin: const Offset(1.0, 0.0), end: Offset.zero)
-            .chain(CurveTween(curve: Curves.easeInOutQuad));
-        final fadeTween = Tween(begin: 0.3, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOut));
-        final rotateTween = Tween(begin: -0.1, end: 0.0)
-            .chain(CurveTween(curve: Curves.easeOutCubic));
-
-        return FadeTransition(
-          opacity: animation.drive(fadeTween),
-          child: Transform.rotate(
-            angle: animation.drive(rotateTween).value * 3.14159,
-            child: SlideTransition(
-              position: animation.drive(slideTween),
-              child: child,
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  /// ============================================================
-  /// ANIMATION 8: Staggered Cascade (elegant, flowing)
-  /// ============================================================
-  static Route<dynamic> _staggeredRoute(Widget page) {
-    return PageRouteBuilder(
-      transitionDuration: const Duration(milliseconds: 800),
-      pageBuilder: (context, animation, secondaryAnimation) => page,
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final slideYTween = Tween(begin: const Offset(0.0, 0.3), end: Offset.zero)
-            .chain(CurveTween(curve: Curves.easeOutCubic));
-        final slideXTween = Tween(begin: const Offset(-0.2, 0.0), end: Offset.zero)
-            .chain(CurveTween(curve: Curves.easeOutCubic));
+        final slideTween = Tween(begin: const Offset(0.0, 0.15), end: Offset.zero)
+            .chain(CurveTween(curve: Curves.easeOutQuad));
         final fadeTween = Tween(begin: 0.0, end: 1.0)
             .chain(CurveTween(curve: Curves.easeOut));
 
         return FadeTransition(
           opacity: animation.drive(fadeTween),
           child: SlideTransition(
-            position: animation.drive(slideYTween),
-            child: Transform.translate(
-              offset: slideXTween.evaluate(animation) * 100,
-              child: child,
-            ),
+            position: animation.drive(slideTween),
+            child: child,
           ),
         );
       },
@@ -280,28 +183,23 @@ class AnimationVariants {
   }
 
   /// ============================================================
-  /// ANIMATION 9: Kaleidoscope (vibrant, rotating spiral)
+  /// ANIMATION 6: Slide + Fade Left (sleek, modern)
   /// ============================================================
-  static Route<dynamic> _kaleidoscopeRoute(Widget page) {
+  static Route<dynamic> _bouncyRoute(Widget page) {
     return PageRouteBuilder(
-      transitionDuration: const Duration(milliseconds: 750),
+      transitionDuration: const Duration(milliseconds: 400),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final scaleTween = Tween(begin: 1.5, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOutCubic));
-        final rotateTween = Tween(begin: 1.0, end: 0.0)
-            .chain(CurveTween(curve: Curves.easeOutCubic));
+        final slideTween = Tween(begin: const Offset(-0.3, 0.0), end: Offset.zero)
+            .chain(CurveTween(curve: Curves.easeOutQuad));
         final fadeTween = Tween(begin: 0.0, end: 1.0)
             .chain(CurveTween(curve: Curves.easeOut));
 
         return FadeTransition(
           opacity: animation.drive(fadeTween),
-          child: Transform.rotate(
-            angle: animation.drive(rotateTween).value * 3.14159 * 2,
-            child: ScaleTransition(
-              scale: animation.drive(scaleTween),
-              child: child,
-            ),
+          child: SlideTransition(
+            position: animation.drive(slideTween),
+            child: child,
           ),
         );
       },
@@ -309,22 +207,117 @@ class AnimationVariants {
   }
 
   /// ============================================================
-  /// ANIMATION 10: Elastic Bounce (energetic, snappy)
+  /// ANIMATION 7: Slide + Fade Right (smooth, modern)
   /// ============================================================
-  static Route<dynamic> _elasticBounceRoute(Widget page) {
+  static Route<dynamic> _liquidRoute(Widget page) {
     return PageRouteBuilder(
-      transitionDuration: const Duration(milliseconds: 700),
+      transitionDuration: const Duration(milliseconds: 400),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final scaleTween = Tween(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.elasticOut));
+        // Create custom curve with stops at 22% and 77% for smooth effect
+        final customCurve = Interval(0.0, 1.0, curve: Curves.easeOutQuad);
+        
+        final slideTween = Tween(begin: const Offset(0.3, 0.0), end: Offset.zero)
+            .chain(CurveTween(curve: customCurve));
+        
+        // Fade with smooth stops - quick fade at 22%, holds, then final push at 77%
         final fadeTween = Tween(begin: 0.0, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeOut));
+
+        // Get animation value and apply custom timing for smooth stops effect
+        final progress = animation.value;
+        
+        // Smooth acceleration/deceleration at key points (22% and 77%)
+        double smoothedProgress = progress;
+        if (progress < 0.22) {
+          // Acceleration phase: 0% to 22%
+          smoothedProgress = (progress / 0.22) * 0.22;
+        } else if (progress < 0.77) {
+          // Holding phase: 22% to 77% (smooth mid-point)
+          smoothedProgress = 0.22 + ((progress - 0.22) / 0.55) * 0.55;
+        } else {
+          // Final push phase: 77% to 100%
+          smoothedProgress = 0.77 + ((progress - 0.77) / 0.23) * 0.23;
+        }
+
+        final smoothAnimation = AlwaysStoppedAnimation<double>(smoothedProgress);
+
+        return FadeTransition(
+          opacity: animation.drive(fadeTween),
+          child: SlideTransition(
+            position: smoothAnimation.drive(slideTween),
+            child: child,
+          ),
+        );
+      },
+    );
+  }
+
+  /// ============================================================
+  /// ANIMATION 8: Smooth Diagonal Swipe (flowing, elegant)
+  /// ============================================================
+  static Route<dynamic> _staggeredRoute(Widget page) {
+    return PageRouteBuilder(
+      transitionDuration: const Duration(milliseconds: 500),
+      pageBuilder: (context, animation, secondaryAnimation) => page,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        final slideTween = Tween(begin: const Offset(-0.15, 0.1), end: Offset.zero)
+            .chain(CurveTween(curve: Curves.easeOutQuad));
+        final fadeTween = Tween(begin: 0.0, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeOut));
+
+        return FadeTransition(
+          opacity: animation.drive(fadeTween),
+          child: SlideTransition(
+            position: animation.drive(slideTween),
+            child: child,
+          ),
+        );
+      },
+    );
+  }
+
+  /// ============================================================
+  /// ANIMATION 9: Smooth Scale Bloom (modern, bright entry)
+  /// ============================================================
+  static Route<dynamic> _kaleidoscopeRoute(Widget page) {
+    return PageRouteBuilder(
+      transitionDuration: const Duration(milliseconds: 450),
+      pageBuilder: (context, animation, secondaryAnimation) => page,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        final scaleTween = Tween(begin: 0.9, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeOutQuad));
+        final fadeTween = Tween(begin: 0.7, end: 1.0)
             .chain(CurveTween(curve: Curves.easeOut));
 
         return FadeTransition(
           opacity: animation.drive(fadeTween),
           child: ScaleTransition(
             scale: animation.drive(scaleTween),
+            child: child,
+          ),
+        );
+      },
+    );
+  }
+
+  /// ============================================================
+  /// ANIMATION 10: Smooth Tilt Entry (sophisticated, modern)
+  /// ============================================================
+  static Route<dynamic> _elasticBounceRoute(Widget page) {
+    return PageRouteBuilder(
+      transitionDuration: const Duration(milliseconds: 500),
+      pageBuilder: (context, animation, secondaryAnimation) => page,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        final slideTween = Tween(begin: const Offset(0.15, -0.1), end: Offset.zero)
+            .chain(CurveTween(curve: Curves.easeOutQuad));
+        final fadeTween = Tween(begin: 0.0, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeOut));
+
+        return FadeTransition(
+          opacity: animation.drive(fadeTween),
+          child: SlideTransition(
+            position: animation.drive(slideTween),
             child: child,
           ),
         );
@@ -380,65 +373,11 @@ class CustomAnimationRoute {
   /// Create scale + rotate route
   static Route<T> scaleRotate<T>(Widget page) {
     return PageRouteBuilder<T>(
-      transitionDuration: const Duration(milliseconds: 500),
+      transitionDuration: const Duration(milliseconds: 450),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final scaleTween = Tween(begin: 0.8, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOutCubic));
-        final rotateTween = Tween(begin: -0.05, end: 0.0)
-            .chain(CurveTween(curve: Curves.easeOutCubic));
-        final fadeTween = Tween(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOut));
-
-        return FadeTransition(
-          opacity: animation.drive(fadeTween),
-          child: ScaleTransition(
-            scale: animation.drive(scaleTween),
-            child: Transform.rotate(
-              angle: animation.drive(rotateTween).value * 3.14159,
-              child: child,
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  /// Create morphing blob route
-  static Route<T> morphing<T>(Widget page) {
-    return PageRouteBuilder<T>(
-      transitionDuration: const Duration(milliseconds: 600),
-      pageBuilder: (context, animation, secondaryAnimation) => page,
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final scaleTween = Tween(begin: 0.6, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOutCubic));
-        final fadeTween = Tween(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOut));
-        final rotateTween = Tween(begin: 0.2, end: 0.0)
-            .chain(CurveTween(curve: Curves.easeOutCubic));
-
-        return FadeTransition(
-          opacity: animation.drive(fadeTween),
-          child: Transform.rotate(
-            angle: animation.drive(rotateTween).value * 3.14159,
-            child: ScaleTransition(
-              scale: animation.drive(scaleTween),
-              child: child,
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  /// Create bouncy scale route
-  static Route<T> bouncy<T>(Widget page) {
-    return PageRouteBuilder<T>(
-      transitionDuration: const Duration(milliseconds: 650),
-      pageBuilder: (context, animation, secondaryAnimation) => page,
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final scaleTween = Tween(begin: 0.5, end: 1.0)
-            .chain(CurveTween(curve: Curves.elasticOut));
+        final scaleTween = Tween(begin: 0.85, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeOutQuad));
         final fadeTween = Tween(begin: 0.0, end: 1.0)
             .chain(CurveTween(curve: Curves.easeOut));
 
@@ -453,27 +392,89 @@ class CustomAnimationRoute {
     );
   }
 
-  /// Create liquid swipe route
-  static Route<T> liquid<T>(Widget page) {
+  /// Create morphing blob route
+  static Route<T> morphing<T>(Widget page) {
     return PageRouteBuilder<T>(
-      transitionDuration: const Duration(milliseconds: 700),
+      transitionDuration: const Duration(milliseconds: 500),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final slideTween = Tween(begin: const Offset(1.0, 0.0), end: Offset.zero)
-            .chain(CurveTween(curve: Curves.easeInOutQuad));
-        final fadeTween = Tween(begin: 0.3, end: 1.0)
+        final slideTween = Tween(begin: const Offset(0.0, 0.15), end: Offset.zero)
+            .chain(CurveTween(curve: Curves.easeOutQuad));
+        final fadeTween = Tween(begin: 0.0, end: 1.0)
             .chain(CurveTween(curve: Curves.easeOut));
-        final rotateTween = Tween(begin: -0.1, end: 0.0)
-            .chain(CurveTween(curve: Curves.easeOutCubic));
 
         return FadeTransition(
           opacity: animation.drive(fadeTween),
-          child: Transform.rotate(
-            angle: animation.drive(rotateTween).value * 3.14159,
-            child: SlideTransition(
-              position: animation.drive(slideTween),
-              child: child,
-            ),
+          child: SlideTransition(
+            position: animation.drive(slideTween),
+            child: child,
+          ),
+        );
+      },
+    );
+  }
+
+  /// Create bouncy scale route
+  static Route<T> bouncy<T>(Widget page) {
+    return PageRouteBuilder<T>(
+      transitionDuration: const Duration(milliseconds: 400),
+      pageBuilder: (context, animation, secondaryAnimation) => page,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        final slideTween = Tween(begin: const Offset(-0.3, 0.0), end: Offset.zero)
+            .chain(CurveTween(curve: Curves.easeOutQuad));
+        final fadeTween = Tween(begin: 0.0, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeOut));
+
+        return FadeTransition(
+          opacity: animation.drive(fadeTween),
+          child: SlideTransition(
+            position: animation.drive(slideTween),
+            child: child,
+          ),
+        );
+      },
+    );
+  }
+
+  /// Create liquid swipe route
+  static Route<T> liquid<T>(Widget page) {
+    return PageRouteBuilder<T>(
+      transitionDuration: const Duration(milliseconds: 400),
+      pageBuilder: (context, animation, secondaryAnimation) => page,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        // Create custom curve with stops at 22% and 77% for smooth effect
+        final customCurve = Interval(0.0, 1.0, curve: Curves.easeOutQuad);
+        
+        final slideTween = Tween(begin: const Offset(0.3, 0.0), end: Offset.zero)
+            .chain(CurveTween(curve: customCurve));
+        
+        // Fade with smooth stops - quick fade at 22%, holds, then final push at 77%
+        final fadeTween = Tween(begin: 0.0, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeOut));
+
+        // Get animation value and apply custom timing for smooth stops effect
+        final progress = animation.value;
+        
+        // Smooth acceleration/deceleration at key points (22% and 77%)
+        double smoothedProgress = progress;
+        if (progress < 0.22) {
+          // Acceleration phase: 0% to 22%
+          smoothedProgress = (progress / 0.22) * 0.22;
+        } else if (progress < 0.77) {
+          // Holding phase: 22% to 77% (smooth mid-point)
+          smoothedProgress = 0.22 + ((progress - 0.22) / 0.55) * 0.55;
+        } else {
+          // Final push phase: 77% to 100%
+          smoothedProgress = 0.77 + ((progress - 0.77) / 0.23) * 0.23;
+        }
+
+        final smoothAnimation = AlwaysStoppedAnimation<double>(smoothedProgress);
+
+        return FadeTransition(
+          opacity: animation.drive(fadeTween),
+          child: SlideTransition(
+            position: smoothAnimation.drive(slideTween),
+            child: child,
           ),
         );
       },
@@ -483,24 +484,19 @@ class CustomAnimationRoute {
   /// Create staggered cascade route
   static Route<T> staggered<T>(Widget page) {
     return PageRouteBuilder<T>(
-      transitionDuration: const Duration(milliseconds: 800),
+      transitionDuration: const Duration(milliseconds: 500),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final slideYTween = Tween(begin: const Offset(0.0, 0.3), end: Offset.zero)
-            .chain(CurveTween(curve: Curves.easeOutCubic));
-        final slideXTween = Tween(begin: const Offset(-0.2, 0.0), end: Offset.zero)
-            .chain(CurveTween(curve: Curves.easeOutCubic));
+        final slideTween = Tween(begin: const Offset(-0.15, 0.1), end: Offset.zero)
+            .chain(CurveTween(curve: Curves.easeOutQuad));
         final fadeTween = Tween(begin: 0.0, end: 1.0)
             .chain(CurveTween(curve: Curves.easeOut));
 
         return FadeTransition(
           opacity: animation.drive(fadeTween),
           child: SlideTransition(
-            position: animation.drive(slideYTween),
-            child: Transform.translate(
-              offset: slideXTween.evaluate(animation) * 100,
-              child: child,
-            ),
+            position: animation.drive(slideTween),
+            child: child,
           ),
         );
       },
@@ -510,24 +506,19 @@ class CustomAnimationRoute {
   /// Create kaleidoscope route
   static Route<T> kaleidoscope<T>(Widget page) {
     return PageRouteBuilder<T>(
-      transitionDuration: const Duration(milliseconds: 750),
+      transitionDuration: const Duration(milliseconds: 450),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final scaleTween = Tween(begin: 1.5, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOutCubic));
-        final rotateTween = Tween(begin: 1.0, end: 0.0)
-            .chain(CurveTween(curve: Curves.easeOutCubic));
-        final fadeTween = Tween(begin: 0.0, end: 1.0)
+        final scaleTween = Tween(begin: 0.9, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeOutQuad));
+        final fadeTween = Tween(begin: 0.7, end: 1.0)
             .chain(CurveTween(curve: Curves.easeOut));
 
         return FadeTransition(
           opacity: animation.drive(fadeTween),
-          child: Transform.rotate(
-            angle: animation.drive(rotateTween).value * 3.14159 * 2,
-            child: ScaleTransition(
-              scale: animation.drive(scaleTween),
-              child: child,
-            ),
+          child: ScaleTransition(
+            scale: animation.drive(scaleTween),
+            child: child,
           ),
         );
       },
@@ -537,18 +528,18 @@ class CustomAnimationRoute {
   /// Create elastic bounce route
   static Route<T> elasticBounce<T>(Widget page) {
     return PageRouteBuilder<T>(
-      transitionDuration: const Duration(milliseconds: 700),
+      transitionDuration: const Duration(milliseconds: 500),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final scaleTween = Tween(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.elasticOut));
+        final slideTween = Tween(begin: const Offset(0.15, -0.1), end: Offset.zero)
+            .chain(CurveTween(curve: Curves.easeOutQuad));
         final fadeTween = Tween(begin: 0.0, end: 1.0)
             .chain(CurveTween(curve: Curves.easeOut));
 
         return FadeTransition(
           opacity: animation.drive(fadeTween),
-          child: ScaleTransition(
-            scale: animation.drive(scaleTween),
+          child: SlideTransition(
+            position: animation.drive(slideTween),
             child: child,
           ),
         );

@@ -431,25 +431,25 @@ class AnimationCard extends StatelessWidget {
   String _getAnimationDescription(AnimationType type) {
     switch (type) {
       case AnimationType.fadeSlide:
-        return 'Smooth fade and slide from bottom - elegant and subtle';
+        return 'Smooth fade and slide from bottom - elegant entry';
       case AnimationType.slideLeft:
         return 'Quick slide from left - modern and direct';
       case AnimationType.slideRight:
         return 'Quick slide from right - playful alternative';
       case AnimationType.scaleRotate:
-        return 'Scale and rotate - fun and eye-catching';
+        return 'Smooth expand in - subtle and refined';
       case AnimationType.morphing:
-        return 'Morphing blob effect - smooth scale and rotate';
+        return 'Vertical swipe - fluid and smooth';
       case AnimationType.bouncy:
-        return 'Bouncy scale animation - playful and energetic';
+        return 'Slide from left - sleek transition';
       case AnimationType.liquid:
-        return 'Liquid swipe transition - smooth and modern';
+        return 'Slide from right - smooth modern';
       case AnimationType.staggered:
-        return 'Staggered cascade - complex multi-layer animation';
+        return 'Diagonal swipe - flowing and elegant';
       case AnimationType.kaleidoscope:
-        return 'Kaleidoscope rotation - stunning visual effect';
+        return 'Scale bloom - modern bright entry';
       case AnimationType.elasticBounce:
-        return 'Elastic bounce - physics-based spring animation';
+        return 'Tilt entry - sophisticated transition';
     }
   }
 
