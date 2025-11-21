@@ -838,7 +838,7 @@ class _TransactionTileState extends State<_TransactionTile> {
   static const List<Color> _transactionColors = [
     Color(0xFFFF6B6B), // Red
     Color(0xFF4ECDC4), // Teal
-    Color(0xFFFFE66D), // Yellow
+    Color.fromARGB(255, 214, 190, 67), // Yellow
     Color(0xFF95E1D3), // Mint
     Color(0xFFF38181), // Pink
     Color(0xFFAA96DA), // Purple
