@@ -91,11 +91,16 @@ class _PermissionsPageState extends State<PermissionsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.grey.shade900;
+    final subtleColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+    final bgColor = Theme.of(context).scaffoldBackgroundColor;
+    
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: bgColor,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         title: const Text(
           'Permissions',
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -112,12 +117,19 @@ class _PermissionsPageState extends State<PermissionsPage> {
                 children: [
                   Text(
                     'App Permissions',
-                    style: Theme.of(context).textTheme.titleLarge,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: textColor,
+                      fontWeight: FontWeight.bold,
+                    ) ?? TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Manage permissions required for SMS expense tracking',
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                    style: TextStyle(color: subtleColor, fontSize: 14),
                   ),
                   const SizedBox(height: 24),
                   _buildPermissionCard(
@@ -126,6 +138,7 @@ class _PermissionsPageState extends State<PermissionsPage> {
                     description: 'Required to read incoming SMS for automatic expense detection',
                     status: _permissionStatuses['SMS']!,
                     onTap: _requestSmsPermission,
+                    context: context,
                   ),
                   const SizedBox(height: 12),
                   _buildPermissionCard(
@@ -137,6 +150,7 @@ class _PermissionsPageState extends State<PermissionsPage> {
                       await Permission.contacts.request();
                       await _loadPermissions();
                     },
+                    context: context,
                   ),
                   const SizedBox(height: 12),
                   _buildPermissionCard(
@@ -148,11 +162,12 @@ class _PermissionsPageState extends State<PermissionsPage> {
                       await Permission.phone.request();
                       await _loadPermissions();
                     },
+                    context: context,
                   ),
                   const SizedBox(height: 32),
-                  _buildStatusLegend(),
+                  _buildStatusLegend(context),
                   const SizedBox(height: 32),
-                  _buildInfoCard(),
+                  _buildInfoCard(context),
                 ],
               ),
             ),
@@ -165,17 +180,37 @@ class _PermissionsPageState extends State<PermissionsPage> {
     required String description,
     required PermissionStatus status,
     required VoidCallback onTap,
+    required BuildContext context,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.grey.shade900;
+    final subtleColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+    final cardBgColor = Theme.of(context).cardColor;
+    
     final isGranted = status.isGranted;
     final isPermanentlyDenied = status.isPermanentlyDenied;
 
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
+    final statusColor = isGranted 
+      ? Colors.green 
+      : isPermanentlyDenied
+      ? Colors.red
+      : Colors.orange;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: cardBgColor,
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: isGranted ? Colors.green.shade300 : Colors.orange.shade300,
+        border: Border.all(
+          color: statusColor.withOpacity(isDark ? 0.3 : 0.2),
+          width: 1,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -187,12 +222,12 @@ class _PermissionsPageState extends State<PermissionsPage> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: isGranted ? Colors.green.shade100 : Colors.orange.shade100,
+                    color: statusColor.withOpacity(isDark ? 0.15 : 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
                     icon,
-                    color: isGranted ? Colors.green.shade600 : Colors.orange.shade600,
+                    color: statusColor,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -202,9 +237,10 @@ class _PermissionsPageState extends State<PermissionsPage> {
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
+                          color: textColor,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -212,7 +248,7 @@ class _PermissionsPageState extends State<PermissionsPage> {
                         description,
                         style: TextStyle(
                           fontSize: 13,
-                          color: Colors.grey.shade600,
+                          color: subtleColor,
                         ),
                       ),
                     ],
@@ -221,11 +257,7 @@ class _PermissionsPageState extends State<PermissionsPage> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: isGranted 
-                      ? Colors.green.shade100 
-                      : isPermanentlyDenied
-                      ? Colors.red.shade100
-                      : Colors.orange.shade100,
+                    color: statusColor.withOpacity(isDark ? 0.15 : 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -237,11 +269,7 @@ class _PermissionsPageState extends State<PermissionsPage> {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: isGranted 
-                        ? Colors.green.shade600 
-                        : isPermanentlyDenied
-                        ? Colors.red.shade600
-                        : Colors.orange.shade600,
+                      color: statusColor,
                     ),
                   ),
                 ),
@@ -255,9 +283,7 @@ class _PermissionsPageState extends State<PermissionsPage> {
                   child: ElevatedButton(
                     onPressed: onTap,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: isPermanentlyDenied
-                        ? Colors.red.shade600
-                        : Colors.orange.shade600,
+                      backgroundColor: statusColor,
                       foregroundColor: Colors.white,
                     ),
                     child: Text(
@@ -272,13 +298,19 @@ class _PermissionsPageState extends State<PermissionsPage> {
     );
   }
 
-  Widget _buildStatusLegend() {
+  Widget _buildStatusLegend(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.grey.shade900;
+    
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.blue.shade50,
+        color: Theme.of(context).primaryColor.withOpacity(isDark ? 0.12 : 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue.shade200),
+        border: Border.all(
+          color: Theme.of(context).primaryColor.withOpacity(isDark ? 0.25 : 0.15),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -288,21 +320,25 @@ class _PermissionsPageState extends State<PermissionsPage> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: Colors.blue.shade900,
+              color: Theme.of(context).primaryColor,
             ),
           ),
           const SizedBox(height: 12),
-          _buildStatusRow('Granted', 'Permission is active', Colors.green),
+          _buildStatusRow('Granted', 'Permission is active', Colors.green, context),
           const SizedBox(height: 8),
-          _buildStatusRow('Denied', 'Permission was denied', Colors.orange),
+          _buildStatusRow('Denied', 'Permission was denied', Colors.orange, context),
           const SizedBox(height: 8),
-          _buildStatusRow('Blocked', 'Permission permanently denied', Colors.red),
+          _buildStatusRow('Blocked', 'Permission permanently denied', Colors.red, context),
         ],
       ),
     );
   }
 
-  Widget _buildStatusRow(String label, String description, Color color) {
+  Widget _buildStatusRow(String label, String description, Color color, BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final subtleColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+    final textColor = isDark ? Colors.white : Colors.grey.shade900;
+    
     return Row(
       children: [
         Container(
@@ -320,13 +356,17 @@ class _PermissionsPageState extends State<PermissionsPage> {
             children: [
               Text(
                 label,
-                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                style: TextStyle(
+                  fontWeight: FontWeight.w600, 
+                  fontSize: 13,
+                  color: textColor,
+                ),
               ),
               Text(
                 description,
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey.shade600,
+                  color: subtleColor,
                 ),
               ),
             ],
@@ -336,27 +376,34 @@ class _PermissionsPageState extends State<PermissionsPage> {
     );
   }
 
-  Widget _buildInfoCard() {
+  Widget _buildInfoCard(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accentColor = Colors.amber;
+    final textColor = isDark ? Colors.white : Colors.grey.shade900;
+    
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.amber.shade50,
+        color: accentColor.withOpacity(isDark ? 0.12 : 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.amber.shade200),
+        border: Border.all(
+          color: accentColor.withOpacity(isDark ? 0.25 : 0.15),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.info, color: Colors.amber.shade700),
+              Icon(Icons.info, color: accentColor),
               const SizedBox(width: 8),
               Text(
                 'Why We Need SMS Permission',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Colors.amber.shade900,
+                  color: accentColor,
                 ),
               ),
             ],
@@ -370,7 +417,7 @@ class _PermissionsPageState extends State<PermissionsPage> {
             '• All data stays on your device (no internet required)',
             style: TextStyle(
               fontSize: 13,
-              color: Colors.amber.shade900,
+              color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
               height: 1.6,
             ),
           ),
