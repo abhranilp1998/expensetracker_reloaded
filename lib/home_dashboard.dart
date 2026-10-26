@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:expensetracker_reloaded/services/notification_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:expensetracker_reloaded/providers/providers.dart';
+import 'package:expensetracker_reloaded/services/storage_service.dart';
 import 'package:expensetracker_reloaded/services/sms_service.dart';
 import 'package:expensetracker_reloaded/services/permission_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:expensetracker_reloaded/routes/app_routes.dart' show createRoute, AppRoutes;
 import 'package:expensetracker_reloaded/services/theme_service.dart';
-import 'package:expensetracker_reloaded/main.dart' show ExpenseTrackerApp;
 import 'dart:async';
-import 'dart:convert';
 
 
 
@@ -194,20 +193,16 @@ class WelcomeScreen extends StatelessWidget {
   }
 }
 
-class HomeDashboard extends StatefulWidget {
+class HomeDashboard extends ConsumerStatefulWidget {
   const HomeDashboard({super.key});
 
   @override
-  State<HomeDashboard> createState() => _HomeDashboardState();
+  ConsumerState<HomeDashboard> createState() => _HomeDashboardState();
 }
 
-class _HomeDashboardState extends State<HomeDashboard>
+class _HomeDashboardState extends ConsumerState<HomeDashboard>
     with WidgetsBindingObserver, TickerProviderStateMixin {
-  double todayTotal = 0.0;
-  List<Map<String, dynamic>> transactions = [];
-  Timer? _midnightTimer;
   bool _hasPermission = false;
-  SharedPreferences? _prefs;
   late AnimationController _totalAnimController;
   late Animation<double> _totalScaleAnim;
 
@@ -227,46 +222,14 @@ class _HomeDashboardState extends State<HomeDashboard>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _midnightTimer?.cancel();
     _totalAnimController.dispose();
     super.dispose();
   }
 
   Future<void> _initializeApp() async {
     WidgetsBinding.instance.addObserver(this);
-    _prefs = await SharedPreferences.getInstance();
-    todayTotal = _prefs?.getDouble('todayTotal') ?? 0.0;
-
-    final savedTransactions = _prefs?.getStringList('transactions') ?? [];
-    setState(() {
-      transactions = savedTransactions
-          .map((json) => Map<String, dynamic>.from(jsonDecode(json)))
-          .toList();
-    });
-
     await _requestPermissions();
-    _setupMidnightReset();
     if (_hasPermission) _listenForSMS();
-  }
-
-  Future<void> _showNotification(String title, String body) =>
-      NotificationService.show(title, body);
-
-  void _setupMidnightReset() {
-    final now = DateTime.now();
-    final tomorrow = DateTime(now.year, now.month, now.day + 1);
-    final timeUntilMidnight = tomorrow.difference(now);
-
-    _midnightTimer = Timer(timeUntilMidnight, () {
-      setState(() {
-        todayTotal = 0.0;
-        transactions.clear();
-        _prefs?.setDouble('todayTotal', 0.0);
-        _showNotification('Daily Reset',
-            'Your expense tracking has been reset for the new day.');
-        _setupMidnightReset();
-      });
-    });
   }
 
   Future<void> _requestPermissions() async {
@@ -296,6 +259,7 @@ class _HomeDashboardState extends State<HomeDashboard>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      ref.invalidate(currentDayProvider);
       _checkAndUpdatePermissions();
     }
   }
@@ -310,6 +274,19 @@ class _HomeDashboardState extends State<HomeDashboard>
 
   @override
   Widget build(BuildContext context) {
+    final summary = ref.watch(todaySummaryProvider);
+    final week = ref.watch(weekSummaryProvider);
+    final month = ref.watch(monthSummaryProvider);
+    final todayTotal = summary.spent;
+    final transactions = (ref.watch(todayTransactionsProvider).value ?? const [])
+        .reversed
+        .map(txnToMap)
+        .toList();
+    ref.listen(todaySummaryProvider, (prev, next) {
+      if (prev != null && next.count > prev.count) {
+        _totalAnimController.forward(from: 0);
+      }
+    });
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -465,7 +442,16 @@ class _HomeDashboardState extends State<HomeDashboard>
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Income ₹${summary.income.toStringAsFixed(2)}  ·  Net ${summary.netMinor < 0 ? '-' : '+'}₹${summary.net.abs().toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -617,18 +603,14 @@ class _HomeDashboardState extends State<HomeDashboard>
                       const Divider(height: 24),
                       _SummaryRow(
                         label: 'This Week',
-                        amount: _calculateTotal(
-                          DateTime.now().subtract(const Duration(days: 7)),
-                        ),
+                        amount: week.spent,
                         icon: Icons.calendar_view_week,
                         color: Colors.blue,
                       ),
                       const Divider(height: 24),
                       _SummaryRow(
                         label: 'This Month',
-                        amount: _calculateTotal(
-                          DateTime.now().subtract(const Duration(days: 30)),
-                        ),
+                        amount: month.spent,
                         icon: Icons.calendar_month,
                         color: Colors.purple,
                       ),
@@ -644,37 +626,9 @@ class _HomeDashboardState extends State<HomeDashboard>
     );
   }
 
-  void _fakeAddExpense() {
-    final now = DateTime.now();
-    final transaction = {
-      'amount': 50.0,
-      'time': now.toIso8601String(),
-      'message': 'Manual expense'
-    };
-    setState(() {
-      transactions.add(Map<String, dynamic>.from(transaction));
-      todayTotal += 50.0;
-      _prefs?.setDouble('todayTotal', todayTotal);
-
-      final List<String> savedTransactions = 
-          _prefs?.getStringList('transactions') ?? [];
-      savedTransactions.add(jsonEncode(transaction));
-      _prefs?.setStringList('transactions', savedTransactions);
-    });
-    
-    _totalAnimController.forward(from: 0);
-  }
-
-  double _calculateTotal(DateTime since) {
-    return transactions
-        .where((t) {
-          try {
-            return DateTime.parse(t['time'].toString()).isAfter(since);
-          } catch (e) {
-            return false;
-          }
-        })
-        .fold(0.0, (sum, t) => sum + (t['amount'] as num).toDouble());
+  Future<void> _fakeAddExpense() async {
+    await StorageService.addManual(amount: 50.0, note: 'Manual expense');
+    if (mounted) unawaited(_totalAnimController.forward(from: 0));
   }
 }
 
@@ -865,7 +819,7 @@ class _TransactionTileState extends State<_TransactionTile> {
                 ),
               ),
               Text(
-                '-₹${widget.transaction['amount'].toStringAsFixed(2)}',
+                '${widget.transaction['type'] == 'credit' ? '+' : '-'}₹${widget.transaction['amount'].toStringAsFixed(2)}',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -1225,15 +1179,8 @@ class _DrawerTileState extends State<_DrawerTile> {
 class HistoryPage extends StatelessWidget {
   const HistoryPage({super.key});
 
-  Future<List<Map<String, dynamic>>> _loadTransactions() async {
-    final prefs = await SharedPreferences.getInstance();
-    final List<String>? transactionJsonList = prefs.getStringList('transactions');
-    if (transactionJsonList == null) return [];
-    
-    return transactionJsonList
-        .map((json) => Map<String, dynamic>.from(jsonDecode(json)))
-        .toList();
-  }
+  Future<List<Map<String, dynamic>>> _loadTransactions() =>
+      StorageService.getTransactions();
 
   @override
   Widget build(BuildContext context) {
@@ -1307,7 +1254,7 @@ class HistoryPage extends StatelessWidget {
               final dayTransactions = groupedTransactions[date]!;
               final total = dayTransactions.fold<double>(
                 0.0,
-                (sum, t) => sum + (t['amount'] as num).toDouble(),
+                (sum, t) => t['type'] == 'credit' ? sum : sum + (t['amount'] as num).toDouble(),
               );
 
               return Column(
@@ -1491,7 +1438,7 @@ class _HistoryTransactionTileState extends State<_HistoryTransactionTile> {
                 ),
               ),
               Text(
-                '-₹${widget.transaction['amount'].toStringAsFixed(2)}',
+                '${widget.transaction['type'] == 'credit' ? '+' : '-'}₹${widget.transaction['amount'].toStringAsFixed(2)}',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
@@ -1659,7 +1606,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           onChanged: (value) {
                             if (value != null) {
                               setState(() => _currentTheme = value);
-                              ExpenseTrackerApp.of(context)?.setTheme(value);
+                              ProviderScope.containerOf(context).read(themeControllerProvider.notifier).setTheme(value);
                             }
                           },
                         ),
@@ -1670,7 +1617,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           onChanged: (value) {
                             if (value != null) {
                               setState(() => _currentTheme = value);
-                              ExpenseTrackerApp.of(context)?.setTheme(value);
+                              ProviderScope.containerOf(context).read(themeControllerProvider.notifier).setTheme(value);
                             }
                           },
                         ),
@@ -1681,7 +1628,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           onChanged: (value) {
                             if (value != null) {
                               setState(() => _currentTheme = value);
-                              ExpenseTrackerApp.of(context)?.setTheme(value);
+                              ProviderScope.containerOf(context).read(themeControllerProvider.notifier).setTheme(value);
                             }
                           },
                         ),
@@ -1716,8 +1663,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           return GestureDetector(
                             onTap: () {
                               setState(() => _currentAccentColor = color);
-                              ExpenseTrackerApp.of(context)
-                                  ?.setAccentColor(color);
+                              ProviderScope.containerOf(context).read(themeControllerProvider.notifier).setAccentColor(color);
                             },
                             child: AnimatedScale(
                               scale: isSelected ? 1.1 : 1.0,
@@ -1788,8 +1734,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     initialValue: _currentTheme == ThemeMode.system,
                     onChanged: (value) {
                       if (value) {
-                        ExpenseTrackerApp.of(context)
-                            ?.setTheme(ThemeMode.system);
+                        ProviderScope.containerOf(context).read(themeControllerProvider.notifier).setTheme(ThemeMode.system);
                       }
                     },
                   ),
@@ -2289,31 +2234,18 @@ class _DemoPageState extends State<DemoPage> with SingleTickerProviderStateMixin
 
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
-    final prefs = await SharedPreferences.getInstance();
     final now = DateTime.now();
-    
-    final samples = [
-      {'amount': 120.5, 'time': now.toIso8601String(), 'message': 'Demo: Coffee at Starbucks'},
-      {'amount': 550.0, 'time': now.subtract(const Duration(hours: 1)).toIso8601String(), 'message': 'Demo: Lunch at restaurant'},
-      {'amount': 79.0, 'time': now.subtract(const Duration(hours: 6)).toIso8601String(), 'message': 'Demo: Taxi ride'},
-      {'amount': 320.0, 'time': now.subtract(const Duration(days: 1)).toIso8601String(), 'message': 'Demo: Groceries'},
-      {'amount': 1500.0, 'time': now.subtract(const Duration(days: 7)).toIso8601String(), 'message': 'Demo: Monthly rent'}
+    final samples = <(double, Duration, String)>[
+      (120.5, Duration.zero, 'Demo: Coffee at Starbucks'),
+      (550.0, const Duration(hours: 1), 'Demo: Lunch at restaurant'),
+      (79.0, const Duration(hours: 6), 'Demo: Taxi ride'),
+      (320.0, const Duration(days: 1), 'Demo: Groceries'),
+      (1500.0, const Duration(days: 7), 'Demo: Monthly rent'),
     ];
-
-    final List<String> saved = prefs.getStringList('transactions') ?? [];
-    for (final t in samples) {
-      saved.add(jsonEncode(t));
+    for (final (amount, ago, note) in samples) {
+      await StorageService.addManual(
+          amount: amount, note: note, at: now.subtract(ago));
     }
-    await prefs.setStringList('transactions', saved);
-
-    double todayTotal = prefs.getDouble('todayTotal') ?? 0.0;
-    for (final t in samples) {
-      final dt = DateTime.parse(t['time'].toString());
-      if (dt.year == now.year && dt.month == now.month && dt.day == now.day) {
-        todayTotal += (t['amount'] as num).toDouble();
-      }
-    }
-    await prefs.setDouble('todayTotal', todayTotal);
 
     _controller.stop();
     _controller.reset();
@@ -2362,9 +2294,7 @@ class _DemoPageState extends State<DemoPage> with SingleTickerProviderStateMixin
     );
 
     if (confirmed == true) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('transactions');
-      await prefs.setDouble('todayTotal', 0.0);
+      await StorageService.resetAllData();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
