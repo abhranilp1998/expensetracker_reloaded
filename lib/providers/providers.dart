@@ -117,3 +117,9 @@ class ThemeController extends Notifier<ThemeState> {
 final themeControllerProvider = NotifierProvider<ThemeController, ThemeState>(
   ThemeController.new,
 );
+
+final reviewQueueProvider = StreamProvider<List<TxnRow>>(
+    (ref) => ref.watch(transactionRepositoryProvider).watchReviewQueue());
+
+final learnedRulesProvider = StreamProvider<List<RuleRow>>(
+    (ref) => ref.watch(transactionRepositoryProvider).watchRules());
