@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../services/permission_service.dart';
 import 'package:expensetracker_reloaded/services/event_logger_service.dart';
 
 /// Permissions management page
@@ -24,21 +25,20 @@ class _PermissionsPageState extends State<PermissionsPage> {
     setState(() => _isLoading = true);
     
     final smsStatus = await Permission.sms.status;
-    final contactsStatus = await Permission.contacts.status;
-    final phoneStatus = await Permission.phone.status;
+    final notifStatus = await Permission.notification.status;
 
+    if (!mounted) return;
     setState(() {
       _permissionStatuses = {
         'SMS': smsStatus,
-        'Contacts': contactsStatus,
-        'Phone': phoneStatus,
+        'Notifications': notifStatus,
       };
       _isLoading = false;
     });
   }
 
   Future<void> _requestSmsPermission() async {
-    final status = await Permission.sms.request();
+    final status = await PermissionService.request(AppPermission.sms);
     
     await EventLoggerService.logEvent(
       type: status.isGranted ? EventType.permissionGranted : EventType.permissionDenied,
@@ -142,24 +142,14 @@ class _PermissionsPageState extends State<PermissionsPage> {
                   ),
                   const SizedBox(height: 12),
                   _buildPermissionCard(
-                    icon: Icons.contacts,
-                    title: 'Contacts',
-                    description: 'Optional - for sender identification',
-                    status: _permissionStatuses['Contacts']!,
+                    icon: Icons.notifications_active,
+                    title: 'Notifications',
+                    description:
+                        'Alerts when a transaction is detected (Android 13+)',
+                    status: _permissionStatuses['Notifications']!,
                     onTap: () async {
-                      await Permission.contacts.request();
-                      await _loadPermissions();
-                    },
-                    context: context,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildPermissionCard(
-                    icon: Icons.phone,
-                    title: 'Phone State',
-                    description: 'Optional - for advanced SMS handling',
-                    status: _permissionStatuses['Phone']!,
-                    onTap: () async {
-                      await Permission.phone.request();
+                      await PermissionService.request(
+                          AppPermission.notifications);
                       await _loadPermissions();
                     },
                     context: context,
