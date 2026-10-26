@@ -59,13 +59,13 @@ class _ProfilePageState extends State<ProfilePage> {
                             shape: BoxShape.circle,
                             gradient: LinearGradient(
                               colors: [
-                                primaryColor.withOpacity(0.6),
+                                primaryColor.withValues(alpha: 0.6),
                                 primaryColor,
                               ],
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: primaryColor.withOpacity(0.3),
+                                color: primaryColor.withValues(alpha: 0.3),
                                 blurRadius: 20,
                                 spreadRadius: 5,
                               ),
@@ -86,13 +86,13 @@ class _ProfilePageState extends State<ProfilePage> {
                         shape: BoxShape.circle,
                         gradient: LinearGradient(
                           colors: [
-                            primaryColor.withOpacity(0.6),
+                            primaryColor.withValues(alpha: 0.6),
                             primaryColor,
                           ],
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: primaryColor.withOpacity(0.3),
+                            color: primaryColor.withValues(alpha: 0.3),
                             blurRadius: 20,
                             spreadRadius: 5,
                           ),
@@ -232,7 +232,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   boxShadow: isSelected
                                       ? [
                                           BoxShadow(
-                                            color: color.withOpacity(0.4),
+                                            color: color.withValues(alpha: 0.4),
                                             blurRadius: 12,
                                             spreadRadius: 2,
                                           ),

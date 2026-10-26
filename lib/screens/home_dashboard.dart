@@ -126,7 +126,7 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
                   gradient: LinearGradient(
                     colors: [
                       Theme.of(context).primaryColor,
-                      Theme.of(context).primaryColor.withOpacity(0.6),
+                      Theme.of(context).primaryColor.withValues(alpha: 0.6),
                     ],
                   ),
                 ),
@@ -192,7 +192,7 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
                           gradient: LinearGradient(
                             colors: [
                               Theme.of(context).primaryColor,
-                              Theme.of(context).primaryColor.withOpacity(0.6),
+                              Theme.of(context).primaryColor.withValues(alpha: 0.6),
                             ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
@@ -200,7 +200,7 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: Theme.of(context).primaryColor.withOpacity(0.3),
+                              color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
                               blurRadius: 15,
                               offset: const Offset(0, 8),
                             ),
@@ -227,7 +227,7 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
                                     vertical: 6,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
+                                    color: Colors.white.withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: const Row(
@@ -427,7 +427,7 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),

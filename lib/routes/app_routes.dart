@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:expensetracker_reloaded/routes/animation_showcase.dart';
 import 'package:flutter/material.dart';
 import 'package:expensetracker_reloaded/screens/welcome_screen.dart';
@@ -53,11 +54,11 @@ Route<dynamic> onGenerateRoute(RouteSettings settings) {
       return createRoute(const ComprehensiveSettingsPage());
     case AppRoutes.history:
       return createRoute(const HistoryPage());
-    case AppRoutes.demo:
+    case AppRoutes.demo when kDebugMode:
       return createRoute(const DemoPage());
     case AppRoutes.profile:
       return createRoute(const ProfilePage());
-    case AppRoutes.animationShowcase:
+    case AppRoutes.animationShowcase when kDebugMode:
       return createRoute(const AnimationPreview());
     case AppRoutes.permissions:
       return createRoute(const PermissionsPage());

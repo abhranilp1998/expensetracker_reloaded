@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:expensetracker_reloaded/routes/app_routes.dart' show AppRoutes;
 import 'package:expensetracker_reloaded/widgets/drawer_tile.dart';
@@ -18,12 +19,12 @@ class AppDrawer extends StatelessWidget {
             end: Alignment.bottomCenter,
             colors: isDark
                 ? [
-                    primaryColor.withOpacity(0.1),
-                    primaryColor.withOpacity(0.05),
+                    primaryColor.withValues(alpha: 0.1),
+                    primaryColor.withValues(alpha: 0.05),
                   ]
                 : [
-                    primaryColor.withOpacity(0.05),
-                    primaryColor.withOpacity(0.02),
+                    primaryColor.withValues(alpha: 0.05),
+                    primaryColor.withValues(alpha: 0.02),
                   ],
           ),
         ),
@@ -44,7 +45,7 @@ class AppDrawer extends StatelessWidget {
                           gradient: LinearGradient(
                             colors: [
                               primaryColor,
-                              primaryColor.withOpacity(0.6),
+                              primaryColor.withValues(alpha: 0.6),
                             ],
                           ),
                         ),
@@ -106,6 +107,7 @@ class AppDrawer extends StatelessWidget {
                       color: Colors.blue,
                       onTap: () => Navigator.of(context).pushNamed('/profile'),
                     ),
+                    if (kDebugMode) ...[
                     DrawerTile(
                       icon: Icons.bug_report,
                       title: 'Demo',
@@ -118,6 +120,7 @@ class AppDrawer extends StatelessWidget {
                       color: Colors.red,
                       onTap: () => Navigator.of(context).pushNamed(AppRoutes.animationShowcase),
                     ),
+                    ],
                     DrawerTile(
                       icon: Icons.trending_up,
                       title: 'Till Now',

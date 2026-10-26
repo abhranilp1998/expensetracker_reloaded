@@ -70,15 +70,15 @@ class _AnimationPreviewState extends State<AnimationPreview>
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    primaryColor.withOpacity(0.08),
-                    primaryColor.withOpacity(0.02),
+                    primaryColor.withValues(alpha: 0.08),
+                    primaryColor.withValues(alpha: 0.02),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: primaryColor.withOpacity(0.15),
+                  color: primaryColor.withValues(alpha: 0.15),
                   width: 1,
                 ),
               ),
@@ -166,7 +166,7 @@ class _AnimationPreviewState extends State<AnimationPreview>
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Divider(
-                color: primaryColor.withOpacity(0.1),
+                color: primaryColor.withValues(alpha: 0.1),
               ),
             ),
 
@@ -217,22 +217,21 @@ class _AnimationPreviewState extends State<AnimationPreview>
 
   Widget _buildLargePreview(BuildContext context, AnimationType type) {
     final primaryColor = Theme.of(context).primaryColor;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       height: 140,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            primaryColor.withOpacity(0.15),
-            primaryColor.withOpacity(0.05),
+            primaryColor.withValues(alpha: 0.15),
+            primaryColor.withValues(alpha: 0.05),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: primaryColor.withOpacity(0.2),
+          color: primaryColor.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
@@ -414,18 +413,18 @@ class _AnimationTileState extends State<AnimationTile> {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: widget.isSelected
-                ? primaryColor.withOpacity(isDark ? 0.15 : 0.08)
+                ? primaryColor.withValues(alpha: isDark ? 0.15 : 0.08)
                 : Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: widget.isSelected
-                  ? primaryColor.withOpacity(0.4)
-                  : primaryColor.withOpacity(0.1),
+                  ? primaryColor.withValues(alpha: 0.4)
+                  : primaryColor.withValues(alpha: 0.1),
               width: widget.isSelected ? 2 : 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -437,7 +436,7 @@ class _AnimationTileState extends State<AnimationTile> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: primaryColor.withOpacity(0.1),
+                  color: primaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
@@ -533,7 +532,7 @@ class _AnimationTileState extends State<AnimationTile> {
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: primaryColor.withOpacity(0.1),
+                    color: primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
@@ -624,12 +623,12 @@ class AnimationPreviewPage extends StatelessWidget {
                 gradient: LinearGradient(
                   colors: [
                     primaryColor,
-                    primaryColor.withOpacity(0.6),
+                    primaryColor.withValues(alpha: 0.6),
                   ],
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: primaryColor.withOpacity(0.3),
+                    color: primaryColor.withValues(alpha: 0.3),
                     blurRadius: 20,
                     spreadRadius: 5,
                   ),
