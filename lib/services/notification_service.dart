@@ -1,86 +1,40 @@
-// Notification service placeholder.
-// The project currently uses a global `flutterLocalNotificationsPlugin` in
-// `main.dart` and `home_dashboard.dart`. To centralize notification logic,
-// move initialization and show methods into this service.
-
-// Example API:
-// class NotificationService {
-//   Future<void> initialize();
-//   Future<void> showExpenseNotification(double amount, double total, {bool background = false});
-// }
-
-
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import '../utils/constants.dart';
-import '../main.dart';
 
+/// Single notification entry point. Safe to call from the background SMS
+/// isolate: it lazily initializes the plugin per isolate.
 class NotificationService {
-  static Future<void> showExpenseNotification(
-    double amount,
-    double dailyTotal,
-  ) async {
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      AppConstants.notificationChannelId,
-      AppConstants.notificationChannelName,
-      channelDescription: 'Notifications for expense tracking',
-      importance: Importance.max,
+  static final FlutterLocalNotificationsPlugin _plugin =
+      FlutterLocalNotificationsPlugin();
+  static bool _initialized = false;
+
+  static const _details = NotificationDetails(
+    android: AndroidNotificationDetails(
+      'expense_tracker',
+      'Expense Notifications',
+      channelDescription: 'Notifications for detected transactions',
+      importance: Importance.high,
       priority: Priority.high,
-    );
+    ),
+  );
 
-    const NotificationDetails details = NotificationDetails(
-      android: androidDetails,
+  static Future<void> initialize() async {
+    if (_initialized) return;
+    await _plugin.initialize(
+      const InitializationSettings(
+        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+      ),
     );
-
-    await flutterLocalNotificationsPlugin.show(
-      0,
-      'New Expense Detected',
-      '₹${amount.toStringAsFixed(2)} spent — Daily: ₹${dailyTotal.toStringAsFixed(2)}',
-      details,
-    );
+    _initialized = true;
   }
 
-  static Future<void> showDailyResetNotification() async {
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      AppConstants.notificationChannelId,
-      AppConstants.notificationChannelName,
-      channelDescription: 'Notifications for expense tracking',
-      importance: Importance.max,
-      priority: Priority.high,
-    );
-
-    const NotificationDetails details = NotificationDetails(
-      android: androidDetails,
-    );
-
-    await flutterLocalNotificationsPlugin.show(
-      1,
-      'Daily Reset',
-      'Your expense tracking has been reset for the new day.',
-      details,
-    );
-  }
-
-  static Future<void> showCustomNotification(
-    String title,
-    String body,
-  ) async {
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      AppConstants.notificationChannelId,
-      AppConstants.notificationChannelName,
-      channelDescription: 'Notifications for expense tracking',
-      importance: Importance.max,
-      priority: Priority.high,
-    );
-
-    const NotificationDetails details = NotificationDetails(
-      android: androidDetails,
-    );
-
-    await flutterLocalNotificationsPlugin.show(
-      2,
-      title,
-      body,
-      details,
-    );
+  /// [key] makes the id stable per transaction so notifications stack
+  /// instead of overwriting each other.
+  static Future<void> show(String title, String body, {String? key}) async {
+    await initialize();
+    final id =
+        (key ?? '$title$body${DateTime.now().microsecondsSinceEpoch}')
+            .hashCode &
+        0x7fffffff;
+    await _plugin.show(id, title, body, _details);
   }
 }

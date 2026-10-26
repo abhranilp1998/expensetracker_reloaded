@@ -1,18 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:another_telephony/telephony.dart';
-import 'package:expensetracker_reloaded/domain/sms/parsed_sms.dart';
-import 'package:expensetracker_reloaded/domain/sms/sms_parser.dart';
+import 'package:expensetracker_reloaded/services/notification_service.dart';
+import 'package:expensetracker_reloaded/services/sms_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:expensetracker_reloaded/routes/app_routes.dart' show createRoute, AppRoutes;
 import 'package:expensetracker_reloaded/services/theme_service.dart';
 import 'package:expensetracker_reloaded/main.dart' show ExpenseTrackerApp;
 import 'dart:async';
 import 'dart:convert';
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-    FlutterLocalNotificationsPlugin();
 
 
 
@@ -206,7 +202,6 @@ class HomeDashboard extends StatefulWidget {
 
 class _HomeDashboardState extends State<HomeDashboard>
     with WidgetsBindingObserver, TickerProviderStateMixin {
-  final Telephony telephony = Telephony.instance;
   double todayTotal = 0.0;
   List<Map<String, dynamic>> transactions = [];
   Timer? _midnightTimer;
@@ -253,23 +248,8 @@ class _HomeDashboardState extends State<HomeDashboard>
     if (_hasPermission) _listenForSMS();
   }
 
-  Future<void> _showNotification(String title, String body) async {
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(
-      'expense_tracker',
-      'Expense Notifications',
-      channelDescription: 'Notifications for expense tracking',
-      importance: Importance.max,
-      priority: Priority.high,
-    );
-
-    const NotificationDetails platformChannelSpecifics =
-        NotificationDetails(android: androidPlatformChannelSpecifics);
-
-    await flutterLocalNotificationsPlugin.show(
-      0, title, body, platformChannelSpecifics,
-    );
-  }
+  Future<void> _showNotification(String title, String body) =>
+      NotificationService.show(title, body);
 
   void _setupMidnightReset() {
     final now = DateTime.now();
@@ -306,53 +286,9 @@ class _HomeDashboardState extends State<HomeDashboard>
   }
 
   void _listenForSMS() {
-    debugPrint('📱 Starting SMS listener...');
-    
-    // Listen for incoming SMS
-    telephony.listenIncomingSms(
-      onNewMessage: (SmsMessage message) {
-        if (message.body != null) {
-          _parseMessage(message.body!);
-        }
-      },
-    );
-    
-    debugPrint('✅ SMS listener started');
-  }
-
-  void _parseMessage(String text) {
-    try {
-      final parsed = const SmsParser()
-          .parse(body: text, sender: '', receivedAt: DateTime.now());
-      if (parsed != null && parsed.type == TxnType.debit) {
-        final amount = parsed.amount;
-        final now = DateTime.now();
-        final transaction = {
-          'amount': amount,
-          'time': now.toIso8601String(),
-          'message': text
-        };
-
-        setState(() {
-          todayTotal += amount;
-          transactions.add(Map<String, dynamic>.from(transaction));
-        });
-
-        _totalAnimController.forward(from: 0);
-
-        _prefs?.setDouble('todayTotal', todayTotal);
-        
-        final List<String> savedTransactions = 
-            _prefs?.getStringList('transactions') ?? [];
-        savedTransactions.add(jsonEncode(transaction));
-        _prefs?.setStringList('transactions', savedTransactions);
-
-        _showNotification('New Expense Detected',
-            '₹${amount.toStringAsFixed(2)} spent — Daily: ₹${todayTotal.toStringAsFixed(2)}');
-      }
-    } catch (e) {
-      debugPrint('Error parsing message: $e');
-    }
+    // Single process-wide listener; inserts go to SQLite (UI rewired in P6).
+    unawaited(SmsService.start());
+    unawaited(SmsService.importInboxOnce());
   }
 
   @override

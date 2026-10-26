@@ -1,49 +1,90 @@
 import 'package:another_telephony/telephony.dart';
+import 'package:flutter/widgets.dart';
 import 'package:permission_handler/permission_handler.dart';
-import '../domain/sms/parsed_sms.dart';
-import '../domain/sms/sms_parser.dart';
-import '../models/transaction_model.dart';
-// import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../data/db/db_instance.dart';
+import '../data/repositories/transaction_repository.dart';
+import 'notification_service.dart';
+import 'sms_ingest.dart';
+
+/// Background entry point. Must stay top-level with the pragma.
+/// Runs in a separate isolate with its own DB connection. Never logs bodies.
+@pragma('vm:entry-point')
+Future<void> smsBackgroundHandler(SmsMessage message) async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SmsService.handle(message);
+}
 
 class SmsService {
   static final Telephony _telephony = Telephony.instance;
+  static bool _listening = false;
+  static const importDoneKey = 'smsInboxImportV1';
+  static const importWindow = Duration(days: 180);
 
-  static Future<bool> requestPermission() async {
-    final status = await Permission.sms.request();
-    return status.isGranted;
+  static Future<bool> hasPermission() => Permission.sms.isGranted;
+
+  static Future<void> handle(SmsMessage m) async {
+    final body = m.body;
+    if (body == null || body.isEmpty) return;
+    try {
+      final p = await ingestSms(
+        TransactionRepository(appDatabase),
+        body: body,
+        sender: m.address ?? '',
+        receivedAt: m.date != null
+            ? DateTime.fromMillisecondsSinceEpoch(m.date!)
+            : DateTime.now(),
+      );
+      if (p != null) {
+        await NotificationService.show(
+          'Transaction detected',
+          describe(p),
+          key: p.dedupeHash,
+        );
+      }
+    } catch (_) {
+      // Swallow: a bad SMS must never crash the receiver.
+    }
   }
 
-  static Future<bool> checkPermission() async {
-    final status = await Permission.sms.status;
-    return status.isGranted;
-  }
-
-  static void listenForSms(Function(TransactionModel) onTransactionDetected) {
+  /// Register the foreground + background listener once per process.
+  static Future<void> start() async {
+    if (_listening || !await hasPermission()) return;
     _telephony.listenIncomingSms(
-      onNewMessage: (SmsMessage message) {
-        if (message.body != null) {
-          final transaction =
-              _parseMessage(message.body!, sender: message.address ?? '');
-          if (transaction != null) {
-            onTransactionDetected(transaction);
-          }
-        }
-      },
+      onNewMessage: handle,
+      onBackgroundMessage: smsBackgroundHandler,
+      listenInBackground: true,
     );
+    _listening = true;
   }
 
-  static TransactionModel? _parseMessage(String text, {String sender = ''}) {
-    final parsed = const SmsParser()
-        .parse(body: text, sender: sender, receivedAt: DateTime.now());
-    if (parsed == null || parsed.type != TxnType.debit) return null;
-    return TransactionModel(
-      amount: parsed.amount,
-      time: parsed.receivedAt,
-      message: text,
+  /// One-time import of inbox SMS from the last [importWindow], through the
+  /// same parser + dedupe. Returns number of new rows, or null if skipped.
+  static Future<int?> importInboxOnce() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(importDoneKey) ?? false) return null;
+    if (!await hasPermission()) return null;
+    final since = DateTime.now().subtract(importWindow).millisecondsSinceEpoch;
+    final msgs = await _telephony.getInboxSms(
+      columns: const [SmsColumn.ADDRESS, SmsColumn.BODY, SmsColumn.DATE],
+      filter: SmsFilter.where(SmsColumn.DATE).greaterThan('$since'),
     );
-  }
-
-  static TransactionModel? parseManualMessage(String text) {
-    return _parseMessage(text);
+    final repo = TransactionRepository(appDatabase);
+    var added = 0;
+    for (final m in msgs) {
+      final body = m.body;
+      if (body == null) continue;
+      final p = await ingestSms(
+        repo,
+        body: body,
+        sender: m.address ?? '',
+        receivedAt: DateTime.fromMillisecondsSinceEpoch(m.date ?? 0),
+        source: 'import',
+      );
+      if (p != null) added++;
+    }
+    await prefs.setBool(importDoneKey, true);
+    return added;
   }
 }
