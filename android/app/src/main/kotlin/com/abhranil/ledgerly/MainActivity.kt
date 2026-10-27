@@ -1,4 +1,4 @@
-package com.example.expensetracker_reloaded
+package com.abhranil.ledgerly
 
 import io.flutter.embedding.android.FlutterActivity
 

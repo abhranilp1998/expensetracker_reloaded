@@ -9,6 +9,7 @@ import 'package:expensetracker_reloaded/screens/demo_page.dart';
 import 'package:expensetracker_reloaded/screens/profile_page.dart';
 import 'package:expensetracker_reloaded/routes/animation_variants.dart';
 import 'package:expensetracker_reloaded/screens/permissions_page.dart';
+import 'package:expensetracker_reloaded/screens/onboarding_permissions_page.dart';
 import 'package:expensetracker_reloaded/screens/event_logs_page.dart';
 import 'package:expensetracker_reloaded/screens/till_now_page.dart';
 import 'package:expensetracker_reloaded/screens/review_queue_page.dart';
@@ -28,6 +29,7 @@ class AppRoutes {
   static const String profile = '/profile';
   static const String animationShowcase = '/animation-showcase';
   static const String permissions = '/permissions';
+  static const String onboardingPermissions = '/onboarding-permissions';
   static const String eventLogs = '/event-logs';
   static const String tillNow = '/till-now';
   static const String review = '/review';
@@ -62,6 +64,8 @@ Route<dynamic> onGenerateRoute(RouteSettings settings) {
       return createRoute(const AnimationPreview());
     case AppRoutes.permissions:
       return createRoute(const PermissionsPage());
+    case AppRoutes.onboardingPermissions:
+      return createRoute(const OnboardingPermissionsPage());
     case AppRoutes.eventLogs:
       return createRoute(const EventLogsPage());
     case AppRoutes.tillNow:

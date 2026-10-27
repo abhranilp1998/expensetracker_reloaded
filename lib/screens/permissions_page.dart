@@ -38,31 +38,32 @@ class _PermissionsPageState extends State<PermissionsPage> {
   }
 
   Future<void> _requestSmsPermission() async {
-    final status = await PermissionService.request(AppPermission.sms);
-    
+    final outcome = await PermissionService.request(AppPermission.sms);
+
     await EventLoggerService.logEvent(
-      type: status.isGranted ? EventType.permissionGranted : EventType.permissionDenied,
-      message: 'SMS permission request: ${status.isDenied ? 'denied' : status.isGranted ? 'granted' : status.isPermanentlyDenied ? 'permanently denied' : 'unknown'}',
+      type: outcome == PermissionOutcome.granted
+          ? EventType.permissionGranted
+          : EventType.permissionDenied,
+      message: 'SMS permission request: $outcome',
     );
 
     await _loadPermissions();
-    
+
     if (mounted) {
+      final granted = outcome == PermissionOutcome.granted;
+      final restricted = outcome == PermissionOutcome.needsRestrictedSettings;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(status.isGranted 
-            ? 'SMS Permission Granted! 🎉' 
-            : status.isPermanentlyDenied
-            ? 'Permission permanently denied. Open app settings to enable.'
-            : 'SMS Permission Denied'),
-          backgroundColor: status.isGranted ? Colors.green : Colors.orange,
+          content: Text(granted
+              ? 'SMS Permission Granted!'
+              : restricted
+                  ? 'SMS blocked (Restricted settings). Open Settings → ⋮ → Allow restricted settings, then enable SMS.'
+                  : 'SMS Permission Denied'),
+          backgroundColor: granted ? Colors.green : Colors.orange,
           duration: const Duration(seconds: 3),
         ),
       );
-
-      if (status.isPermanentlyDenied) {
-        _showOpenSettingsDialog();
-      }
+      if (restricted) _showOpenSettingsDialog();
     }
   }
 
@@ -71,7 +72,7 @@ class _PermissionsPageState extends State<PermissionsPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Permission Required'),
-        content: const Text('SMS permission is permanently denied. Would you like to open app settings to enable it?'),
+        content: const Text('Android blocked SMS (common for sideloaded apps on Android 15+). Open Settings → ⋮ → Allow restricted settings, then Permissions → SMS → Allow.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),

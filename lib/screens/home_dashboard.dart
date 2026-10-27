@@ -54,20 +54,17 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
   }
 
   Future<void> _requestPermissions() async {
-    await PermissionService.requestAll();
+    final outcome = await PermissionService.requestAll();
     final smsStatus = await Permission.sms.status;
-    
     setState(() {
       _hasPermission = smsStatus.isGranted;
     });
-    
-    // Log the permission request result
     if (_hasPermission) {
-      debugPrint('✅ SMS Permission GRANTED');
-    } else if (smsStatus.isPermanentlyDenied) {
-      debugPrint('❌ SMS Permission PERMANENTLY DENIED');
+      debugPrint('SMS permission granted');
+    } else if (outcome == PermissionOutcome.needsRestrictedSettings) {
+      debugPrint('SMS blocked by Restricted settings (sideload)');
     } else {
-      debugPrint('❌ SMS Permission DENIED');
+      debugPrint('SMS permission denied');
     }
   }
 
