@@ -1,18 +1,20 @@
-import 'package:expensetracker_reloaded/data/txn_view.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:expensetracker_reloaded/providers/providers.dart';
-import 'package:expensetracker_reloaded/widgets/add_transaction_sheet.dart';
-import 'package:expensetracker_reloaded/services/sms_service.dart';
-import 'package:expensetracker_reloaded/services/permission_service.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:expensetracker_reloaded/routes/app_routes.dart' show createRoute, AppRoutes;
-import 'dart:async';
-import 'package:expensetracker_reloaded/widgets/action_card.dart';
-import 'package:expensetracker_reloaded/widgets/transaction_tile.dart';
-import 'package:expensetracker_reloaded/widgets/summary_row.dart';
-import 'package:expensetracker_reloaded/screens/today_total_detail_page.dart';
+
+import 'package:expensetracker_reloaded/data/txn_view.dart';
+import 'package:expensetracker_reloaded/providers/providers.dart';
+import 'package:expensetracker_reloaded/routes/app_routes.dart';
+import 'package:expensetracker_reloaded/screens/today_insights_page.dart';
+import 'package:expensetracker_reloaded/services/sms_service.dart';
+import 'package:expensetracker_reloaded/services/user_prefs_service.dart';
+import 'package:expensetracker_reloaded/utils/constants.dart';
+import 'package:expensetracker_reloaded/widgets/add_transaction_sheet.dart';
 import 'package:expensetracker_reloaded/widgets/app_drawer.dart';
+import 'package:expensetracker_reloaded/widgets/summary_row.dart';
+import 'package:expensetracker_reloaded/widgets/transaction_tile.dart';
 
 class HomeDashboard extends ConsumerStatefulWidget {
   const HomeDashboard({super.key});
@@ -23,9 +25,9 @@ class HomeDashboard extends ConsumerStatefulWidget {
 
 class _HomeDashboardState extends ConsumerState<HomeDashboard>
     with WidgetsBindingObserver, TickerProviderStateMixin {
-  bool _hasPermission = false;
   late AnimationController _totalAnimController;
   late Animation<double> _totalScaleAnim;
+  String _userName = 'User';
 
   @override
   void initState() {
@@ -37,7 +39,19 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
     _totalScaleAnim = Tween<double>(begin: 1.0, end: 1.15).animate(
       CurvedAnimation(parent: _totalAnimController, curve: Curves.elasticOut),
     );
-    _initializeApp();
+    WidgetsBinding.instance.addObserver(this);
+    UserPrefsService.getUserName().then((n) {
+      if (mounted) setState(() => _userName = n);
+    });
+    _softStartSms();
+  }
+
+  Future<void> _softStartSms() async {
+    // Do NOT call requestAll on every launch — permissions live in onboarding/Settings.
+    if (await Permission.sms.isGranted) {
+      unawaited(SmsService.start());
+      unawaited(SmsService.importInboxOnce());
+    }
   }
 
   @override
@@ -47,56 +61,29 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
     super.dispose();
   }
 
-  Future<void> _initializeApp() async {
-    WidgetsBinding.instance.addObserver(this);
-    await _requestPermissions();
-    if (_hasPermission) _listenForSMS();
-  }
-
-  Future<void> _requestPermissions() async {
-    final outcome = await PermissionService.requestAll();
-    final smsStatus = await Permission.sms.status;
-    setState(() {
-      _hasPermission = smsStatus.isGranted;
-    });
-    if (_hasPermission) {
-      debugPrint('SMS permission granted');
-    } else if (outcome == PermissionOutcome.needsRestrictedSettings) {
-      debugPrint('SMS blocked by Restricted settings (sideload)');
-    } else {
-      debugPrint('SMS permission denied');
-    }
-  }
-
-  void _listenForSMS() {
-    // Single process-wide listener; inserts go to SQLite (UI rewired in P6).
-    unawaited(SmsService.start());
-    unawaited(SmsService.importInboxOnce());
-  }
-
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       ref.invalidate(currentDayProvider);
-      _checkAndUpdatePermissions();
+      _softStartSms();
     }
   }
 
-  Future<void> _checkAndUpdatePermissions() async {
-    final status = await Permission.sms.status;
-    setState(() {
-      _hasPermission = status.isGranted;
-    });
-    if (_hasPermission) _listenForSMS();
+  String get _greeting {
+    final h = DateTime.now().hour;
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    return 'Good evening';
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     final summary = ref.watch(todaySummaryProvider);
     final week = ref.watch(weekSummaryProvider);
     final month = ref.watch(monthSummaryProvider);
     final todayTotal = summary.spent;
-    final pendingReview = ref.watch(reviewQueueProvider).value?.length ?? 0;
     final transactions = (ref.watch(todayTransactionsProvider).value ?? const [])
         .reversed
         .map(txnToMap)
@@ -106,359 +93,238 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
         _totalAnimController.forward(from: 0);
       }
     });
+
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
-        title: Row(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Hero(
-              tag: 'app-logo',
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [
-                      Theme.of(context).primaryColor,
-                      Theme.of(context).primaryColor.withValues(alpha: 0.6),
-                    ],
-                  ),
-                ),
-                child: Icon(
-                  Icons.account_balance_wallet_rounded,
-                  color: Theme.of(context).brightness == Brightness.dark 
-                    ? const Color(0xFF121212) 
-                    : Colors.white,
-                  size: 20,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
             Text(
-              'Expense Tracker',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ) ?? const TextStyle(fontWeight: FontWeight.bold),
+              AppConstants.appName,
+              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            Text(
+              '$_greeting, $_userName',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
         centerTitle: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.fireplace_outlined),
-            tooltip: 'Animation Showcase',
-            onPressed: () {
-              Navigator.of(context).pushNamed(AppRoutes.animationShowcase);
-            },
-          ),
-        ],
       ),
       drawer: const AppDrawer(),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _addTransaction,
+        icon: const Icon(Icons.add),
+        label: const Text('Add'),
+      ),
       body: RefreshIndicator(
         onRefresh: () async {
-          await Future.delayed(const Duration(milliseconds: 500));
-          setState(() {});
+          ref.invalidate(currentDayProvider);
+          await Future<void>.delayed(const Duration(milliseconds: 300));
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Today's Total Card with Hero animation
-                GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).push(createRoute(
-                      TodayTotalDetailPage(total: todayTotal),
-                    ));
-                  },
-                  child: Hero(
-                    tag: 'today-total-card',
-                    child: Material(
-                      color: Colors.transparent,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Theme.of(context).primaryColor,
-                              Theme.of(context).primaryColor.withValues(alpha: 0.6),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                    createRoute(const TodayInsightsPage()),
+                  );
+                },
+                child: Hero(
+                  tag: 'today-total-card',
+                  child: Material(
+                    color: Colors.transparent,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            cs.primary,
+                            cs.primary.withValues(alpha: 0.65),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: cs.primary.withValues(alpha: 0.3),
+                            blurRadius: 15,
+                            offset: const Offset(0, 8),
                           ),
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Theme.of(context).primaryColor.withValues(alpha: 0.3),
-                              blurRadius: 15,
-                              offset: const Offset(0, 8),
-                            ),
-                          ],
-                        ),
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  "Today's Total",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.white70,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: const Row(
-                                    children: [
-                                      Icon(
-                                        Icons.trending_up,
-                                        color: Colors.white,
-                                        size: 16,
-                                      ),
-                                      SizedBox(width: 4),
-                                      Text(
-                                        'Live',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            ScaleTransition(
-                              scale: _totalScaleAnim,
-                              child: Text(
-                                '₹${todayTotal.toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                  fontSize: 42,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                  letterSpacing: -1,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              'Income ₹${summary.income.toStringAsFixed(2)}  ·  Net ${summary.netMinor < 0 ? '-' : '+'}₹${summary.net.abs().toStringAsFixed(2)}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  '${transactions.length} transactions',
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                const Icon(
-                                  Icons.arrow_forward_ios,
-                                  color: Colors.white70,
-                                  size: 16,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                        ],
                       ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // Quick Actions
-                Row(
-                  children: [
-                    Expanded(
-                      child: ActionCard(
-                        icon: Icons.add_circle_outline,
-                        label: 'Add Expense',
-                        color: Colors.blue,
-                        onTap: _addTransaction,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ActionCard(
-                        icon: Icons.history,
-                        label: 'History',
-                        color: Colors.purple,
-                        onTap: () => Navigator.of(context).pushNamed('/history'),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ActionCard(
-                        icon: Icons.settings,
-                        label: 'Settings',
-                        color: Colors.orange,
-                        onTap: () => Navigator.of(context).pushNamed(AppRoutes.comprehensiveSettings),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 32),
-
-                if (pendingReview > 0) ...[
-                  Card(
-                    color: Colors.orange.shade50,
-                    child: ListTile(
-                      leading: const Icon(Icons.rule, color: Colors.deepOrange),
-                      title: Text(
-                        '$pendingReview SMS need${pendingReview == 1 ? 's' : ''} review',
-                        style: const TextStyle(color: Colors.black87),
-                      ),
-                      subtitle: const Text(
-                        'Tap Expense, Income or Ignore. Not counted until you decide.',
-                        style: TextStyle(color: Colors.black54),
-                      ),
-                      trailing: const Icon(Icons.chevron_right, color: Colors.black54),
-                      onTap: () => Navigator.of(context).pushNamed('/review'),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-
-                // Recent Transactions
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Recent Transactions',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pushNamed('/history'),
-                      child: const Text('View All'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-
-                if (transactions.isEmpty)
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(32.0),
+                      padding: const EdgeInsets.all(24),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
-                            Icons.receipt_long_outlined,
-                            size: 64,
-                            color: Colors.grey.shade400,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Today's spend",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: cs.onPrimary.withValues(alpha: 0.8),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Icon(Icons.insights, color: cs.onPrimary.withValues(alpha: 0.9), size: 20),
+                            ],
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'No transactions yet',
-                            style: TextStyle(
-                              color: Colors.grey.shade600,
-                              fontSize: 16,
+                          const SizedBox(height: 12),
+                          ScaleTransition(
+                            scale: _totalScaleAnim,
+                            child: Text(
+                              '₹${todayTotal.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                fontSize: 42,
+                                fontWeight: FontWeight.bold,
+                                color: cs.onPrimary,
+                                letterSpacing: -1,
+                              ),
                             ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Income ₹${summary.income.toStringAsFixed(2)}  ·  '
+                            'Net ${summary.netMinor < 0 ? '-' : '+'}₹${summary.net.abs().toStringAsFixed(2)}',
+                            style: TextStyle(
+                              color: cs.onPrimary,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                '${transactions.length} transactions · tap for insights',
+                                style: TextStyle(
+                                  color: cs.onPrimary.withValues(alpha: 0.75),
+                                  fontSize: 13,
+                                ),
+                              ),
+                              Icon(Icons.arrow_forward_ios,
+                                  color: cs.onPrimary.withValues(alpha: 0.75), size: 14),
+                            ],
                           ),
                         ],
                       ),
                     ),
-                  )
-                else
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: transactions.length > 5 ? 5 : transactions.length,
-                    itemBuilder: (context, index) {
-                      final t = transactions[transactions.length - 1 - index];
-                      return TransactionTile(
-                        transaction: t,
-                        index: index,
-                      );
-                    },
-                  ),
-
-                const SizedBox(height: 32),
-
-                // Summary Card
-                const Text(
-                  'Summary',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 12),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: _MiniStat(
+                      label: 'This week',
+                      amount: week.spent,
+                      icon: Icons.calendar_view_week,
+                    ),
                   ),
-                  padding: const EdgeInsets.all(20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _MiniStat(
+                      label: 'This month',
+                      amount: month.spent,
+                      icon: Icons.calendar_month,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 28),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Recent',
+                    style: theme.textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      // Activity is tab index 1; push history route as fallback.
+                      Navigator.of(context).pushNamed(AppRoutes.history);
+                    },
+                    child: const Text('See all'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              if (transactions.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Icon(Icons.receipt_long_outlined,
+                            size: 56, color: cs.outline),
+                        const SizedBox(height: 12),
+                        Text('No transactions yet',
+                            style: theme.textTheme.bodyLarge),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: transactions.length > 5 ? 5 : transactions.length,
+                  itemBuilder: (context, index) {
+                    final t = transactions[transactions.length - 1 - index];
+                    return TransactionTile(transaction: t, index: index);
+                  },
+                ),
+              const SizedBox(height: 24),
+              Text(
+                'Balance snapshot',
+                style: theme.textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
                       SummaryRow(
-                        label: 'Today',
+                        label: 'Today spent',
                         amount: todayTotal,
                         icon: Icons.today,
-                        color: Colors.green,
+                        color: cs.primary,
                       ),
                       const Divider(height: 24),
                       SummaryRow(
-                        label: 'This Week',
-                        amount: week.spent,
-                        icon: Icons.calendar_view_week,
-                        color: Colors.blue,
+                        label: 'Today income',
+                        amount: summary.income,
+                        icon: Icons.south_west,
+                        color: cs.tertiary,
                       ),
                       const Divider(height: 24),
                       SummaryRow(
-                        label: 'This Month',
-                        amount: month.spent,
-                        icon: Icons.calendar_month,
-                        color: Colors.purple,
+                        label: 'Net today',
+                        amount: summary.net.abs(),
+                        icon: Icons.account_balance_wallet_outlined,
+                        color: summary.netMinor < 0 ? cs.error : cs.primary,
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 80),
-              ],
-            ),
+              ),
+              const SizedBox(height: 88),
+            ],
           ),
         ),
       ),
@@ -474,5 +340,42 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
           note: entry.note,
         );
     if (mounted) unawaited(_totalAnimController.forward(from: 0));
+  }
+}
+
+class _MiniStat extends StatelessWidget {
+  const _MiniStat({
+    required this.label,
+    required this.amount,
+    required this.icon,
+  });
+  final String label;
+  final double amount;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: cs.primary),
+          const SizedBox(height: 8),
+          Text(label, style: theme.textTheme.labelMedium),
+          const SizedBox(height: 4),
+          Text(
+            '₹${amount.toStringAsFixed(0)}',
+            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
   }
 }

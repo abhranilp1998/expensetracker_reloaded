@@ -4,16 +4,20 @@ import 'package:intl/intl.dart';
 
 import '../data/db/app_database.dart';
 import '../providers/providers.dart';
+import '../widgets/app_drawer.dart';
 
 /// Uncertain SMS waiting for a decision. Each decision is learned as a rule.
 class ReviewQueuePage extends ConsumerWidget {
-  const ReviewQueuePage({super.key});
+  const ReviewQueuePage({super.key, this.asTab = false});
+
+  final bool asTab;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final queue = ref.watch(reviewQueueProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('Needs review')),
+      drawer: asTab ? const AppDrawer() : null,
       body: queue.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => const Center(child: Text('Could not load the queue')),
