@@ -43,7 +43,7 @@ class ExpenseTrackerApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = ref.watch(themeControllerProvider);
     return MaterialApp(
-      title: 'No Lean',
+      title: 'Ledgerly',
       theme: AppThemeData.lightTheme(theme.accent),
       darkTheme: AppThemeData.darkTheme(theme.accent),
       themeMode: theme.mode,

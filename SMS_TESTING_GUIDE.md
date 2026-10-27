@@ -19,7 +19,7 @@
 
 ### Test 2: Check Permissions UI ✅
 
-1. Open ExpenseTracker app
+1. Open Ledgerly app
 2. Go to **Settings → Permissions**
 3. You should see **THREE** permission cards:
 
@@ -38,7 +38,7 @@
 
 ### Test 3: Send Test SMS (App Open) ✅
 
-1. **Keep ExpenseTracker OPEN in foreground**
+1. **Keep Ledgerly OPEN in foreground**
 2. **Send yourself an SMS**:
    ```
    Test expense ₹500 for testing
@@ -133,7 +133,7 @@ Your UPI balance: ₹0
 ### Problem: Permissions Show "Blocked"
 **Cause**: Permission was denied permanently  
 **Solution**: 
-1. Go to **Settings → Apps → ExpenseTracker → Permissions**
+1. Go to **Settings → Apps → Ledgerly → Permissions**
 2. Manually enable SMS permission
 3. Restart app
 4. Go to **Settings → Permissions** in app
@@ -150,7 +150,7 @@ Your UPI balance: ₹0
 ### Problem: Notification Doesn't Show
 **Cause**: Notifications disabled for app  
 **Solution**:
-1. Go to **Settings → Apps → ExpenseTracker → Notifications**
+1. Go to **Settings → Apps → Ledgerly → Notifications**
 2. Enable notifications
 3. Send test SMS
 4. Notification should appear

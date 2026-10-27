@@ -10,7 +10,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _open());
 
   static QueryExecutor _open() => driftDatabase(
-    name: 'no_lean',
+    name: 'ledgerly',
     // Background SMS isolate and UI share the file; drift_flutter enables WAL.
     native: const DriftNativeOptions(shareAcrossIsolates: true),
   );
