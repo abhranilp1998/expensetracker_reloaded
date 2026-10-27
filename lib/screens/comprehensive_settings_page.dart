@@ -7,9 +7,13 @@ import 'package:expensetracker_reloaded/services/event_logger_service.dart';
 import 'package:expensetracker_reloaded/routes/animation_preferences.dart';
 import 'package:expensetracker_reloaded/routes/animation_variants.dart';
 import 'package:expensetracker_reloaded/routes/app_routes.dart';
+import 'package:expensetracker_reloaded/widgets/app_drawer.dart';
+import 'package:expensetracker_reloaded/widgets/permissions_section.dart';
 
 class ComprehensiveSettingsPage extends StatefulWidget {
-  const ComprehensiveSettingsPage({super.key});
+  const ComprehensiveSettingsPage({super.key, this.asTab = false});
+
+  final bool asTab;
 
   @override
   State<ComprehensiveSettingsPage> createState() => _ComprehensiveSettingsPageState();
@@ -62,10 +66,11 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
       appBar: AppBar(
         elevation: 0,
         title: const Text(
-          'All Settings',
+          'Settings',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
+      drawer: widget.asTab ? const AppDrawer() : null,
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -335,6 +340,22 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                     ],
                   ),
                 ),
+              ),
+              const SizedBox(height: 24),
+
+              // SMS & Permissions
+              _SectionHeader(
+                icon: Icons.lock_open,
+                title: 'SMS & Permissions',
+                color: Colors.indigo,
+              ),
+              const SizedBox(height: 12),
+              _SettingsCard(
+                title: 'Device access',
+                subtitle: 'SMS and notifications for auto-tracking',
+                icon: Icons.security,
+                color: Colors.indigo,
+                child: const PermissionsSection(),
               ),
               const SizedBox(height: 24),
 
@@ -708,11 +729,11 @@ class _SettingsCardState extends State<_SettingsCard>
         position: _slideAnimation,
         child: ScaleTransition(
           scale: _scaleAnimation,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
+          child: Material(
+            color: Theme.of(context).cardColor,
+            shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: borderColor, width: 0.5),
+              side: BorderSide(color: borderColor, width: 0.5),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

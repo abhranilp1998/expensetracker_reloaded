@@ -1,69 +1,63 @@
-import 'package:flutter/foundation.dart';
-import 'package:expensetracker_reloaded/routes/animation_showcase.dart';
 import 'package:flutter/material.dart';
-import 'package:expensetracker_reloaded/screens/welcome_screen.dart';
-import 'package:expensetracker_reloaded/screens/home_dashboard.dart';
-import 'package:expensetracker_reloaded/screens/settings_page.dart';
-import 'package:expensetracker_reloaded/screens/history_page.dart';
+import 'package:expensetracker_reloaded/routes/animation_showcase.dart';
+import 'package:expensetracker_reloaded/routes/animation_variants.dart';
+import 'package:expensetracker_reloaded/screens/main_shell.dart';
+import 'package:expensetracker_reloaded/screens/onboarding/onboarding_flow.dart';
 import 'package:expensetracker_reloaded/screens/demo_page.dart';
 import 'package:expensetracker_reloaded/screens/profile_page.dart';
-import 'package:expensetracker_reloaded/routes/animation_variants.dart';
-import 'package:expensetracker_reloaded/screens/permissions_page.dart';
-import 'package:expensetracker_reloaded/screens/onboarding_permissions_page.dart';
 import 'package:expensetracker_reloaded/screens/event_logs_page.dart';
 import 'package:expensetracker_reloaded/screens/till_now_page.dart';
 import 'package:expensetracker_reloaded/screens/review_queue_page.dart';
 import 'package:expensetracker_reloaded/screens/learned_rules_page.dart';
-import 'package:expensetracker_reloaded/screens/comprehensive_settings_page.dart' show ComprehensiveSettingsPage;
+import 'package:expensetracker_reloaded/screens/comprehensive_settings_page.dart';
+import 'package:expensetracker_reloaded/screens/history_page.dart';
+import 'package:expensetracker_reloaded/screens/today_insights_page.dart';
+import 'package:expensetracker_reloaded/screens/debug_hub_page.dart';
+import 'package:expensetracker_reloaded/screens/onboarding_permissions_page.dart';
+import 'package:expensetracker_reloaded/services/user_prefs_service.dart';
 
-/// Global route constants
 class AppRoutes {
   AppRoutes._();
 
   static const String welcome = '/';
+  static const String onboarding = '/onboarding';
   static const String home = '/home';
-  static const String settings = '/settings';
   static const String comprehensiveSettings = '/settings-comprehensive';
   static const String history = '/history';
   static const String demo = '/demo';
   static const String profile = '/profile';
   static const String animationShowcase = '/animation-showcase';
-  static const String permissions = '/permissions';
   static const String onboardingPermissions = '/onboarding-permissions';
   static const String eventLogs = '/event-logs';
   static const String tillNow = '/till-now';
   static const String review = '/review';
   static const String learnedRules = '/learned-rules';
+  static const String todayInsights = '/today-insights';
+  static const String debugHub = '/debug-hub';
 }
 
-/// Creates an animated route using the currently selected animation variant
-/// This respects the global AnimationVariants.currentType setting
 Route<dynamic> createRoute(Widget page) {
   return AnimationVariants.createRoute(page);
 }
 
-/// Centralized route generator used by `MaterialApp.onGenerateRoute`.
-/// This is the single source of truth for all app navigation.
 Route<dynamic> onGenerateRoute(RouteSettings settings) {
   switch (settings.name) {
     case AppRoutes.welcome:
-      return createRoute(const WelcomeScreen());
+      return createRoute(const _BootstrapGate());
+    case AppRoutes.onboarding:
+      return createRoute(const OnboardingFlow());
     case AppRoutes.home:
-      return createRoute(const HomeDashboard());
-    case AppRoutes.settings:
-      return createRoute(const SettingsPage());
+      return createRoute(const MainShell());
     case AppRoutes.comprehensiveSettings:
       return createRoute(const ComprehensiveSettingsPage());
     case AppRoutes.history:
       return createRoute(const HistoryPage());
-    case AppRoutes.demo when kDebugMode:
+    case AppRoutes.demo:
       return createRoute(const DemoPage());
     case AppRoutes.profile:
       return createRoute(const ProfilePage());
-    case AppRoutes.animationShowcase when kDebugMode:
+    case AppRoutes.animationShowcase:
       return createRoute(const AnimationPreview());
-    case AppRoutes.permissions:
-      return createRoute(const PermissionsPage());
     case AppRoutes.onboardingPermissions:
       return createRoute(const OnboardingPermissionsPage());
     case AppRoutes.eventLogs:
@@ -74,7 +68,42 @@ Route<dynamic> onGenerateRoute(RouteSettings settings) {
       return createRoute(const ReviewQueuePage());
     case AppRoutes.learnedRules:
       return createRoute(const LearnedRulesPage());
+    case AppRoutes.todayInsights:
+      return createRoute(const TodayInsightsPage());
+    case AppRoutes.debugHub:
+      return createRoute(const DebugHubPage());
     default:
-      return createRoute(const WelcomeScreen());
+      return createRoute(const _BootstrapGate());
+  }
+}
+
+/// Routes `/` to onboarding or home based on persisted flag.
+class _BootstrapGate extends StatefulWidget {
+  const _BootstrapGate();
+
+  @override
+  State<_BootstrapGate> createState() => _BootstrapGateState();
+}
+
+class _BootstrapGateState extends State<_BootstrapGate> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _go());
+  }
+
+  Future<void> _go() async {
+    final done = await UserPrefsService.isOnboardingCompleted();
+    if (!mounted) return;
+    Navigator.of(context).pushReplacementNamed(
+      done ? AppRoutes.home : AppRoutes.onboarding,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator()),
+    );
   }
 }

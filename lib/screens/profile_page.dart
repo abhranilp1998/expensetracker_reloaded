@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:expensetracker_reloaded/providers/providers.dart';
-import 'package:expensetracker_reloaded/services/theme_service.dart';
-import 'package:expensetracker_reloaded/widgets/preference_card.dart';
+
+import 'package:expensetracker_reloaded/routes/app_routes.dart';
+import 'package:expensetracker_reloaded/services/user_prefs_service.dart';
+import 'package:expensetracker_reloaded/utils/constants.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -12,301 +12,118 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  late ThemeMode _currentTheme;
-  late MaterialColor _currentAccentColor;
+  final _nameCtrl = TextEditingController();
+  String _currency = 'INR';
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _currentTheme = ThemeService.getCurrentTheme();
-    _currentAccentColor = ThemeService.getCurrentAccentColor();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final name = await UserPrefsService.getUserName();
+    final currency = await UserPrefsService.getCurrency();
+    if (!mounted) return;
+    setState(() {
+      _nameCtrl.text = name == 'User' ? '' : name;
+      _currency = currency;
+      _loading = false;
+    });
+  }
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    await UserPrefsService.setUserName(_nameCtrl.text);
+    await UserPrefsService.setCurrency(_currency);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Profile saved')),
+    );
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = Theme.of(context).primaryColor;
+    final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
+    final displayName =
+        _nameCtrl.text.trim().isEmpty ? 'User' : _nameCtrl.text.trim();
 
     return Scaffold(
       appBar: AppBar(
-        elevation: 0,
-        title: const Text(
-          'Profile & Preferences',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: const Text('Profile', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Profile Header
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 32.0),
-              child: Column(
-                children: [
-                  Hero(
-                    tag: 'app-logo',
-                    flightShuttleBuilder: (flightContext, animation,
-                        flightDirection, fromContext, toContext) {
-                      return ScaleTransition(
-                        scale: animation.drive(
-                          Tween(begin: 0.5, end: 1.5).chain(
-                            CurveTween(curve: Curves.easeInOutCubic),
-                          ),
-                        ),
-                        child: Container(
-                          width: 100,
-                          height: 100,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: [
-                                primaryColor.withValues(alpha: 0.6),
-                                primaryColor,
-                              ],
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: primaryColor.withValues(alpha: 0.3),
-                                blurRadius: 20,
-                                spreadRadius: 5,
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.person,
-                            size: 50,
-                            color: Colors.white,
-                          ),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: [
-                            primaryColor.withValues(alpha: 0.6),
-                            primaryColor,
-                          ],
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: primaryColor.withValues(alpha: 0.3),
-                            blurRadius: 20,
-                            spreadRadius: 5,
-                          ),
-                        ],
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
+              padding: const EdgeInsets.all(24),
+              children: [
+                Center(
+                  child: CircleAvatar(
+                    radius: 48,
+                    backgroundColor: primary,
+                    child: Icon(Icons.person,
+                        size: 48, color: theme.colorScheme.onPrimary),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  displayName,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${AppConstants.appName} user',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                TextField(
+                  controller: _nameCtrl,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: const InputDecoration(
+                    labelText: 'Display name',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.badge_outlined),
+                  ),
+                  onChanged: (_) => setState(() {}),
+                ),
+                const SizedBox(height: 16),
+                Text('Currency', style: theme.textTheme.titleSmall),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    for (final c in ['INR', 'USD', 'EUR', 'GBP', 'AED'])
+                      ChoiceChip(
+                        label: Text(c),
+                        selected: _currency == c,
+                        onSelected: (_) => setState(() => _currency = c),
                       ),
-                      child: const Icon(
-                        Icons.person,
-                        size: 50,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Abhranil Paul',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Expense Tracker User',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                FilledButton(onPressed: _save, child: const Text('Save')),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () => Navigator.of(context)
+                      .pushNamed(AppRoutes.comprehensiveSettings),
+                  icon: const Icon(Icons.palette_outlined),
+                  label: const Text('Appearance is in Settings'),
+                ),
+              ],
             ),
-            const Divider(),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Theme Settings
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
-                    child: Text(
-                      'Appearance',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  // Theme Mode Selection
-                  PreferenceCard(
-                    icon: Icons.brightness_4,
-                    title: 'Theme Mode',
-                    subtitle: 'Choose your preferred theme',
-                    color: Colors.blue,
-                    child: Column(
-                      children: [
-                        RadioListTile<ThemeMode>(
-                          title: const Text('Light'),
-                          value: ThemeMode.light,
-                          groupValue: _currentTheme,
-                          onChanged: (value) {
-                            if (value != null) {
-                              setState(() => _currentTheme = value);
-                              ProviderScope.containerOf(context).read(themeControllerProvider.notifier).setTheme(value);
-                            }
-                          },
-                        ),
-                        RadioListTile<ThemeMode>(
-                          title: const Text('Dark'),
-                          value: ThemeMode.dark,
-                          groupValue: _currentTheme,
-                          onChanged: (value) {
-                            if (value != null) {
-                              setState(() => _currentTheme = value);
-                              ProviderScope.containerOf(context).read(themeControllerProvider.notifier).setTheme(value);
-                            }
-                          },
-                        ),
-                        RadioListTile<ThemeMode>(
-                          title: const Text('System'),
-                          value: ThemeMode.system,
-                          groupValue: _currentTheme,
-                          onChanged: (value) {
-                            if (value != null) {
-                              setState(() => _currentTheme = value);
-                              ProviderScope.containerOf(context).read(themeControllerProvider.notifier).setTheme(value);
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Accent Color Selection
-                  PreferenceCard(
-                    icon: Icons.palette,
-                    title: 'Accent Color',
-                    subtitle: 'Customize app colors',
-                    color: Colors.purple,
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 5,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                        ),
-                        itemCount: ThemeService.availableColors.length,
-                        itemBuilder: (context, index) {
-                          final colorName = ThemeService.availableColors.keys
-                              .toList()[index];
-                          final color = ThemeService.availableColors[colorName]!;
-                          final isSelected = _currentAccentColor == color;
-
-                          return GestureDetector(
-                            onTap: () {
-                              setState(() => _currentAccentColor = color);
-                              ProviderScope.containerOf(context).read(themeControllerProvider.notifier).setAccentColor(color);
-                            },
-                            child: AnimatedScale(
-                              scale: isSelected ? 1.1 : 1.0,
-                              duration: const Duration(milliseconds: 200),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: color.shade600,
-                                  shape: BoxShape.circle,
-                                  border: isSelected
-                                      ? Border.all(
-                                          color: Colors.white,
-                                          width: 3,
-                                        )
-                                      : null,
-                                  boxShadow: isSelected
-                                      ? [
-                                          BoxShadow(
-                                            color: color.withValues(alpha: 0.4),
-                                            blurRadius: 12,
-                                            spreadRadius: 2,
-                                          ),
-                                        ]
-                                      : null,
-                                ),
-                                child: isSelected
-                                    ? const Icon(
-                                        Icons.check,
-                                        color: Colors.white,
-                                        size: 20,
-                                      )
-                                    : null,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  // User Preferences
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
-                    child: Text(
-                      'Preferences',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  SwitchPreferenceCard(
-                    icon: Icons.notifications,
-                    title: 'Notifications',
-                    subtitle: 'Receive expense alerts',
-                    color: Colors.orange,
-                    initialValue: true,
-                    onChanged: (value) {
-                      // Handle notifications setting
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  SwitchPreferenceCard(
-                    icon: Icons.security,
-                    title: 'Dark Mode Auto-Switch',
-                    subtitle: 'Follow system theme',
-                    color: Colors.blue,
-                    initialValue: _currentTheme == ThemeMode.system,
-                    onChanged: (value) {
-                      if (value) {
-                        ProviderScope.containerOf(context).read(themeControllerProvider.notifier).setTheme(ThemeMode.system);
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  SwitchPreferenceCard(
-                    icon: Icons.vibration,
-                    title: 'Haptic Feedback',
-                    subtitle: 'Vibrations on interactions',
-                    color: Colors.green,
-                    initialValue: true,
-                    onChanged: (value) {
-                      // Handle haptic feedback setting
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
