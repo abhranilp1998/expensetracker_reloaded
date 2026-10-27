@@ -3,6 +3,7 @@
     <uses-permission android:name="android.permission.READ_SMS"/>
     <uses-permission android:name="android.permission.RECEIVE_SMS"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
     <!-- another_telephony merges ACCESS_COARSE_LOCATION for cell-info APIs we never call.
          Strip it so Play Protect / install prompts stay focused on SMS + notifications. -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" tools:node="remove"/>
