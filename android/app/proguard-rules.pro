@@ -14,3 +14,6 @@
 
 # flutter_local_notifications
 -keep class com.dexterous.flutterlocalnotifications.** { *; }
+
+# Optional Play Core (deferred components) — not shipped; ignore if minify on.
+-dontwarn com.google.android.play.core.**

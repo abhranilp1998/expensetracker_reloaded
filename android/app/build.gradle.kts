@@ -58,7 +58,10 @@ android {
             } else {
                 signingConfigs.getByName("debug")
             }
-            // Keep rules ready; minify stays off (Flutter default) unless enabled later.
+            // Explicitly off: AGP/Flutter may otherwise run R8 and fail on optional
+            // Play Core deferred-component stubs. Keep rules remain for when enabled.
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
