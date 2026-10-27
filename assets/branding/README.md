@@ -1,15 +1,14 @@
 # Ledgerly branding
 
-Faithful to `source_concept.jpg` (L + long rising stroke + tip dot; not a freehand vector redraw).
+Pixel-faithful to `source_concept.jpg` (no redraw).
 
-- `icon_full.png` — indigo/violet bg + centered glyph + soft violet tip glow (legacy launcher)
-- `icon_fg.png` — glyph + soft violet halo on transparency (adaptive FG, ~58% of canvas / ~55–60% safe zone)
-- `icon_bg.png` — indigo `#1E1B7A` → violet `#5B2BC4` diagonal gradient
-- `icon_mono.png` — solid silhouette (L + rising stroke + tip)
-- `splash_glyph.png` — same glyph+glow, larger for Android 12 splash
+- `icon_full.png` — concept image (Lanczos), glyph bbox centered (~translate), edge fill = corner gradient
+- `icon_fg.png` — same full-bleed image (adaptive FG 108dp layer)
+- `icon_bg.png` — matching indigo→violet corner gradient
+- `icon_mono.png` — solid silhouette (unchanged)
+- `splash_glyph.png` — center crop of glyph+glow from concept
 
-Centering is by the visual bounding box of L+stroke+dot (glow excluded).
-Glow is a soft multi-gaussian violet (`#8B5CF6`) halo (~2× tip radius, ~35–45% opacity), not a hard white blob.
+Glyph+glow fits within central ~66% safe zone.
 
 ```bash
 dart run flutter_launcher_icons

@@ -114,17 +114,17 @@ flutter_launcher_icons:
   min_sdk_android: 24
 
 flutter_native_splash:
-  color: "#1E1B7A"
+  color: "#2F2890"
   image: assets/branding/splash_glyph.png
-  color_dark: "#1E1B7A"
+  color_dark: "#2F2890"
   image_dark: assets/branding/splash_glyph.png
   android: true
   ios: false
   web: false
   android_12:
-    color: "#1E1B7A"
+    color: "#2F2890"
     image: assets/branding/splash_glyph.png
-    color_dark: "#1E1B7A"
+    color_dark: "#2F2890"
     image_dark: assets/branding/splash_glyph.png
   android_gravity: center
   fullscreen: false
