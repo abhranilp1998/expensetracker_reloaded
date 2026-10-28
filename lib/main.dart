@@ -24,6 +24,8 @@ void main() async {
   }
 
   await NotificationService.initialize();
+  // Opened by tapping a 'tap to review' notification? MainShell routes it.
+  await NotificationService.checkLaunchDetails();
 
   // One-time legacy SharedPreferences -> SQLite migration.
   await PrefsMigration.run(

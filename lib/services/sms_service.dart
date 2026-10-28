@@ -55,6 +55,9 @@ class SmsService {
               : 'Transaction detected',
           describe(p),
           key: p.dedupeHash,
+          payload: p.decision == Decision.review
+              ? NotificationService.reviewPayload
+              : null,
         );
       }
     } catch (_) {
