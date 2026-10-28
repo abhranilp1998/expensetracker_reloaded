@@ -46,8 +46,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
   Future<void> _save() async {
     // A name is required here; don't silently save "User" (bug #6).
-    if (_nameCtrl.text.trim().isEmpty) {
-      setState(() => _nameError = 'Enter a name');
+    final nameError = validateDisplayName(_nameCtrl.text);
+    if (nameError != null) {
+      setState(() => _nameError = nameError);
       return;
     }
     await ref.read(userNameProvider.notifier).set(_nameCtrl.text);

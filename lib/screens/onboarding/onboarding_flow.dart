@@ -24,6 +24,7 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
   static const _pageCount = 6;
 
   final _nameCtrl = TextEditingController();
+  String? _nameError;
   String _currency = 'INR';
   ThemeMode _theme = ThemeMode.system;
   MaterialColor _accent = Colors.indigo;
@@ -65,6 +66,13 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
         curve: Curves.easeOutCubic,
       );
     }
+  }
+
+  /// "About you" page: same name rule as Profile (Codex 10/10).
+  Future<void> _nextFromName() async {
+    final err = validateDisplayName(_nameCtrl.text);
+    if (err != null) return setState(() => _nameError = err);
+    await _next();
   }
 
   bool _finishing = false;
@@ -330,11 +338,16 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
           TextField(
             controller: _nameCtrl,
             textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(
+            key: const Key('onboardingName'),
+            decoration: InputDecoration(
               labelText: 'Your name',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.person_outline),
+              border: const OutlineInputBorder(),
+              prefixIcon: const Icon(Icons.person_outline),
+              errorText: _nameError,
             ),
+            onChanged: (_) {
+              if (_nameError != null) setState(() => _nameError = null);
+            },
           ),
           const SizedBox(height: 20),
           Text('Currency', style: theme.textTheme.titleSmall),
@@ -353,7 +366,7 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
           const SizedBox(height: 6),
           Text(currencySymbolNote, style: theme.textTheme.bodySmall),
           const Spacer(),
-          FilledButton(onPressed: _next, child: const Text('Continue')),
+          FilledButton(onPressed: _nextFromName, child: const Text('Continue')),
         ],
       ),
     );

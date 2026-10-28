@@ -56,3 +56,9 @@ class UserPrefsService {
     }
   }
 }
+
+/// Shared rule for the display name (Profile and onboarding): null when OK,
+/// else the inline error. Empty names are rejected rather than saved as
+/// "User".
+String? validateDisplayName(String name) =>
+    name.trim().isEmpty ? 'Enter a name' : null;
