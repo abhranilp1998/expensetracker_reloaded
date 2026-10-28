@@ -6,6 +6,8 @@ import 'package:expensetracker_reloaded/services/debug_unlock_service.dart';
 import 'package:expensetracker_reloaded/services/sms_import.dart';
 import 'package:expensetracker_reloaded/services/sms_ingest.dart';
 import 'package:expensetracker_reloaded/utils/money.dart';
+import 'package:expensetracker_reloaded/widgets/debug_pin_dialog.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -91,4 +93,31 @@ void main() {
       expect(summary.errors + summary.skipped, 1);
     },
   );
+
+  testWidgets('A5 old alphanumeric PIN can still be entered after upgrade', (
+    t,
+  ) async {
+    const legacyPin = 'ab12';
+    const legacySalt = '1730000000000000';
+    SharedPreferences.setMockInitialValues({
+      'debugPinSaltV1': legacySalt,
+      'debugPinHashV1': DebugUnlockService.hashPin(legacyPin, legacySalt),
+    });
+    expect(await DebugUnlockService.hasPin(), isTrue);
+    expect(await DebugUnlockService.verifyPin(legacyPin), isTrue);
+    await t.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(body: DebugPinDialog(mode: PinDialogMode.verifyCurrent)),
+      ),
+    );
+    await t.enterText(find.byKey(const Key('pinField')), legacyPin);
+    final field = t.widget<TextField>(find.byKey(const Key('pinField')));
+    expect(field.controller!.text, legacyPin);
+    expect(await DebugUnlockService.isLegacyPin(), isTrue);
+    expect(await DebugUnlockService.attemptPin(legacyPin), PinResult.ok);
+    expect(await DebugUnlockService.isLegacyPin(), isTrue);
+    await DebugUnlockService.setPin('1234');
+    expect(await DebugUnlockService.isLegacyPin(), isFalse);
+    expect(DebugUnlockService.validatePin('ab12'), isNotNull);
+  });
 }

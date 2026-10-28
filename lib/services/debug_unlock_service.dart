@@ -24,6 +24,14 @@ class DebugUnlockService {
   static const _levelKey = 'debugPinLockLevel';
   static const _untilKey = 'debugPinLockedUntilMs';
 
+  /// True once the stored PIN is known to be in the current 4-6 digit
+  /// format. PINs saved by older builds have no flag and may contain letters
+  /// or more digits; they still unlock, then the user is asked to change.
+  static const _formatKey = 'debugPinFormatV2';
+
+  /// Longest PIN accepted when typing an existing (possibly legacy) PIN.
+  static const maxLegacyLength = 32;
+
   static const maxAttempts = 5;
   static const cooldowns = [
     Duration(seconds: 30),
@@ -65,6 +73,7 @@ class DebugUnlockService {
     final prefs = await _p;
     await prefs.setString(_pinSaltKey, salt);
     await prefs.setString(_pinHashKey, hashPin(pin, salt));
+    await prefs.setBool(_formatKey, true);
     await _clearLockout(prefs);
   }
 
@@ -72,8 +81,17 @@ class DebugUnlockService {
     final prefs = await _p;
     await prefs.remove(_pinSaltKey);
     await prefs.remove(_pinHashKey);
+    await prefs.remove(_formatKey);
     await _clearLockout(prefs);
     sessionUnlocked = false;
+  }
+
+  /// Stored PIN was saved by an older build and is not (yet) known to be
+  /// 4-6 digits. Entry fields then accept any characters.
+  static Future<bool> isLegacyPin() async {
+    final prefs = await _p;
+    return prefs.getString(_pinHashKey) != null &&
+        prefs.getBool(_formatKey) != true;
   }
 
   /// Pure hash check; does not count attempts.
@@ -98,6 +116,8 @@ class DebugUnlockService {
     final prefs = await _p;
     if (await verifyPin(pin)) {
       await _clearLockout(prefs);
+      // A pre-flag PIN that already fits the new rules needs no upgrade.
+      if (validatePin(pin) == null) await prefs.setBool(_formatKey, true);
       return PinResult.ok;
     }
     final fails = (prefs.getInt(_failsKey) ?? 0) + 1;

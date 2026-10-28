@@ -42,7 +42,37 @@ Future<bool> unlockDebug(BuildContext context) async {
     has ? PinDialogMode.unlock : PinDialogMode.setup,
   );
   if (ok) DebugUnlockService.sessionUnlocked = true;
+  if (ok && context.mounted) await offerLegacyPinUpgrade(context);
   return ok;
+}
+
+/// After unlocking with an old-format PIN, asks the user to pick a new
+/// 4-6 digit PIN. "Later" keeps the old PIN working.
+Future<void> offerLegacyPinUpgrade(BuildContext context) async {
+  if (!await DebugUnlockService.isLegacyPin() || !context.mounted) return;
+  final change = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('Update your Debug PIN'),
+      content: const Text(
+        'Your PIN uses an older format. Please change it to a 4-6 digit PIN.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, false),
+          child: const Text('Later'),
+        ),
+        FilledButton(
+          key: const Key('pinUpgradeNow'),
+          onPressed: () => Navigator.pop(ctx, true),
+          child: const Text('Change PIN'),
+        ),
+      ],
+    ),
+  );
+  if (change == true && context.mounted) {
+    await showDebugPinDialog(context, PinDialogMode.setup);
+  }
 }
 
 class DebugPinDialog extends StatefulWidget {
@@ -63,10 +93,18 @@ class _DebugPinDialogState extends State<DebugPinDialog> {
 
   bool get _isSetup => widget.mode == PinDialogMode.setup;
 
+  /// Existing PIN is in the old format: show a text keyboard.
+  bool _legacy = false;
+
   @override
   void initState() {
     super.initState();
-    if (!_isSetup) _refreshLock();
+    if (!_isSetup) {
+      _refreshLock();
+      DebugUnlockService.isLegacyPin().then((v) {
+        if (mounted && v) setState(() => _legacy = true);
+      });
+    }
   }
 
   @override
@@ -109,7 +147,11 @@ class _DebugPinDialogState extends State<DebugPinDialog> {
 
   Future<void> _submit() async {
     final pin = _pin.text;
-    final err = DebugUnlockService.validatePin(pin);
+    // New PINs must follow the 4-6 digit rule; an existing PIN is simply
+    // checked against the hash, so older formats keep working.
+    final err = _isSetup
+        ? DebugUnlockService.validatePin(pin)
+        : (pin.isEmpty ? 'Enter your PIN' : null);
     if (err != null) return setState(() => _error = err);
 
     if (_isSetup) {
@@ -148,11 +190,21 @@ class _DebugPinDialogState extends State<DebugPinDialog> {
     controller: c,
     obscureText: true,
     enabled: _locked == Duration.zero,
-    keyboardType: TextInputType.number,
-    inputFormatters: [
-      FilteringTextInputFormatter.digitsOnly,
-      LengthLimitingTextInputFormatter(6),
-    ],
+    keyboardType: _legacy
+        ? TextInputType.visiblePassword
+        : TextInputType.number,
+    // Only a NEW PIN is restricted while typing; entering an existing one
+    // must allow legacy PINs (letters, >6 digits).
+    inputFormatters: _isSetup
+        ? [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(6),
+          ]
+        : [
+            LengthLimitingTextInputFormatter(
+              DebugUnlockService.maxLegacyLength,
+            ),
+          ],
     decoration: InputDecoration(
       labelText: label,
       border: const OutlineInputBorder(),
