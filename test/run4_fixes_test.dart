@@ -3,7 +3,6 @@ import 'package:expensetracker_reloaded/data/db/app_database.dart';
 import 'package:expensetracker_reloaded/data/repositories/transaction_repository.dart';
 import 'package:expensetracker_reloaded/data/txn_view.dart';
 import 'package:expensetracker_reloaded/providers/providers.dart';
-import 'package:expensetracker_reloaded/screens/home_dashboard.dart';
 import 'package:expensetracker_reloaded/screens/profile_page.dart';
 import 'package:expensetracker_reloaded/services/debug_unlock_service.dart';
 import 'package:expensetracker_reloaded/utils/money.dart';
