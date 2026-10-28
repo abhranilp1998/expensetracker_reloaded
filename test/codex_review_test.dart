@@ -3,6 +3,7 @@ import 'package:expensetracker_reloaded/data/db/app_database.dart';
 import 'package:expensetracker_reloaded/data/repositories/transaction_repository.dart';
 import 'package:expensetracker_reloaded/domain/sms/sms_parser.dart';
 import 'package:expensetracker_reloaded/providers/providers.dart';
+import 'package:expensetracker_reloaded/screens/review_queue_page.dart';
 import 'package:expensetracker_reloaded/screens/today_insights_page.dart';
 import 'package:expensetracker_reloaded/services/debug_unlock_service.dart';
 import 'package:expensetracker_reloaded/services/sms_import.dart';
@@ -96,6 +97,28 @@ void main() {
       expect(summary.errors + summary.skipped, 1);
     },
   );
+
+  testWidgets('A4 Review card fits a 360 logical pixel phone', (t) async {
+    t.view.physicalSize = const Size(360, 800);
+    t.view.devicePixelRatio = 1;
+    addTearDown(t.view.reset);
+    final row = txn(
+      'review',
+      DateTime(2026, 10, 28, 23, 30),
+      12050,
+      status: 'review',
+    );
+    await t.pumpWidget(
+      ProviderScope(
+        overrides: [
+          reviewQueueProvider.overrideWith((ref) => Stream.value([row])),
+        ],
+        child: const MaterialApp(home: ReviewQueuePage()),
+      ),
+    );
+    await t.pumpAndSettle();
+    expect(t.takeException(), isNull);
+  });
 
   testWidgets('A5 old alphanumeric PIN can still be entered after upgrade', (
     t,

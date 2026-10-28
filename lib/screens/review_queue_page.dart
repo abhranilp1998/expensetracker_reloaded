@@ -79,14 +79,21 @@ class _ReviewCard extends ConsumerWidget {
           children: [
             Row(
               children: [
+                // Narrow phones (360dp): the meta text shrinks with an
+                // ellipsis instead of overflowing the row.
                 Text(
                   Money.minor(row.amountMinor),
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
-                const Spacer(),
-                Text(
-                  '${row.sender ?? ''} · $when',
-                  style: Theme.of(context).textTheme.bodySmall,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    '${row.sender ?? ''} · $when',
+                    style: Theme.of(context).textTheme.bodySmall,
+                    textAlign: TextAlign.end,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),
