@@ -26,6 +26,10 @@ Fixes from the Codex code review. Each one has a regression test that failed bef
   when the app was closed.
 - **Onboarding:** an empty name is rejected ("Enter a name") instead of being saved as
   "User".
+- **Onboarding → Skip setup:** asks for your name first (same rule as Profile) instead of
+  silently saving "User". Cancel stays on onboarding.
+- **About → App Version:** read from the installed package (`package_info_plus`) and shown
+  as "versionName (build versionCode)", e.g. "1.0.1 (build 2002)". It was hard-coded "1.0.0".
 
 ### Changed
 - Version bumped to 1.0.1+2. The arm64 split APK reports versionCode 2002.

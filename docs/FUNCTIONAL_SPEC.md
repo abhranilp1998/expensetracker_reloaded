@@ -36,7 +36,7 @@ can't be swiped; you move with the buttons.
 
 | # | Page | Content / controls |
 |---|---|---|
-| 1 | Welcome | Time-of-day greeting ("Good morning" before 12:00, "Good afternoon" before 17:00, otherwise "Good evening"), "Welcome to Ledgerly". **Continue**, or **Skip setup** (finishes straight away with the defaults). |
+| 1 | Welcome | Time-of-day greeting ("Good morning" before 12:00, "Good afternoon" before 17:00, otherwise "Good evening"), "Welcome to Ledgerly". **Continue**, or **Skip setup** first asks for your name (same rule as Profile: empty shows "Enter a name"; Cancel stays here), then finishes with the defaults for everything else. |
 | 2 | What Ledgerly does | Four points: reads bank & UPI SMS, tracks spend & income, learns from your reviews, stays on your phone. |
 | 3 | About you | **Your name** (required; an empty name shows "Enter a name" and blocks Continue). **Currency** chips: INR, USD, EUR, GBP, AED. Note: "Changes the symbol only; amounts are not converted." |
 | 4 | Your setup | Theme (Light / Dark / System), accent colour, **Import past SMS** switch (default on), **Notifications** switch (default on). |
@@ -104,7 +104,7 @@ Jump chips at the top lead to these sections:
   Delete removes the rule, and future matching SMS go back to Review.
 - **Feature Settings:** Notifications, Haptic Feedback, Activity log.
 - **About:**
-  - App Version, Platform, Storage Info.
+  - App Version (read from the installed package as "versionName (build versionCode)", e.g. "1.0.1 (build 2002)" on the arm64 APK), Platform, Storage Info.
   - **Clear All Preferences** resets the feature toggles only.
   - **Reset to Defaults** resets theme, accent, animation and the feature toggles; the page
     then shows the defaults straight away.
@@ -338,9 +338,6 @@ the app explains how to allow it. See `docs/SIDELOAD_ANDROID.md`.
 
 ## 8. Known limitations
 
-- **Skip setup** on onboarding page 1 finishes with the defaults, so the name is saved as
-  "User". It can be changed in Profile.
-- About → *App Version* is hard-coded to "1.0.0"; it does not read 1.0.1 from the build.
 - Categories in Insights are labels based on merchant or sender. There are no user
   categories or budgets.
 - Currency is symbol-only. There is no conversion and no per-transaction currency.

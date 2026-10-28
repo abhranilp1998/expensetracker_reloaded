@@ -13,7 +13,7 @@ cd expensetracker_reloaded
 git checkout feat/p15-trustworthy-records
 flutter pub get
 flutter analyze      # expect 0 errors (about 44 info-level lints)
-flutter test         # expect 167 passing
+flutter test         # expect 170 passing
 flutter run -d <device-id>
 ```
 
@@ -166,7 +166,7 @@ Toolchain (current): Gradle 8.14, AGP 8.11.1, Kotlin 2.2.20, JDK 17, compileSdk 
 
 ## 5. Tests
 
-`flutter test` runs **167 tests**. All pass on 1.0.1+2. Run one file with
+`flutter test` runs **170 tests**. All pass on 1.0.1+2. Run one file with
 `flutter test test/<file>.dart`.
 
 | File | Covers |
@@ -238,8 +238,6 @@ flutter build apk --release --split-per-abi --target-platform android-arm64
 - **Static services:** `UserPrefsService`, `DebugUnlockService`, `PermissionService`,
   `ThemeService`, `AppSettings` and `NotificationService` are static, which makes them
   harder to fake. Move them behind providers.
-- About → App Version is hard-coded "1.0.0". Read it from `package_info_plus` or similar.
-- Onboarding's *Skip setup* saves the default name "User".
 - The event log lives in SharedPreferences; consider a Drift table.
 - About 44 analyzer info-level lints remain, mostly the `Radio` `groupValue` deprecation and
   `use_build_context_synchronously`.
