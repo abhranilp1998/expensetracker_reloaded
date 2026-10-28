@@ -20,10 +20,17 @@ class ComprehensiveSettingsPage extends StatefulWidget {
 }
 
 class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
+  final Map<String, GlobalKey> _sectionKeys = {
+    'Appearance': GlobalKey(),
+    'SMS & Permissions': GlobalKey(),
+    'Learned rules': GlobalKey(),
+    'About': GlobalKey(),
+  };
+
   late ThemeMode _currentTheme;
   late MaterialColor _currentAccentColor;
   late AnimationType _currentAnimation;
-  late Map<String, bool> _preferences;
+  Map<String, bool> _preferences = {};
 
   @override
   void initState() {
@@ -61,7 +68,7 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -77,18 +84,41 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    for (final name in _sectionKeys.keys)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ActionChip(
+                          label: Text(name),
+                          onPressed: () {
+                            final ctx = _sectionKeys[name]!.currentContext;
+                            if (ctx != null) {
+                              Scrollable.ensureVisible(ctx,
+                                  duration: const Duration(milliseconds: 300));
+                            }
+                          },
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
               // Theme Settings Section
               _SectionHeader(
+                key: _sectionKeys['Appearance'],
                 icon: Icons.palette,
                 title: 'Appearance Settings',
-                color: Colors.purple,
+                color: cs.primary,
               ),
               const SizedBox(height: 12),
               _SettingsCard(
                 title: 'Theme Mode',
                 subtitle: 'Choose your preferred theme',
                 icon: Icons.brightness_4,
-                color: Colors.blue,
+                color: cs.primary,
                 child: Column(
                   children: [
                     RadioListTile<ThemeMode>(
@@ -144,7 +174,7 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                 title: 'Accent Color',
                 subtitle: 'Customize app colors',
                 icon: Icons.palette_outlined,
-                color: Colors.orange,
+                color: cs.primary,
                 child: Padding(
                   padding: const EdgeInsets.all(12.0),
                   child: GridView.builder(
@@ -206,14 +236,14 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
               _SectionHeader(
                 icon: Icons.animation,
                 title: 'Animation Settings',
-                color: Colors.teal,
+                color: cs.primary,
               ),
               const SizedBox(height: 12),
               _SettingsCard(
                 title: 'Route Animations',
                 subtitle: 'Choose page transition style',
                 icon: Icons.flash_on,
-                color: Colors.amber,
+                color: cs.primary,
                 child: Column(
                   children: [
                     for (final animType in AnimationType.values)
@@ -247,7 +277,7 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                 title: 'Enable Animations',
                 subtitle: 'Show page transition animations',
                 value: _preferences['animations_enabled'] ?? true,
-                color: Colors.lightBlue,
+                color: cs.primary,
                 onChanged: (value) => _updatePreference('animations_enabled', value),
               ),
               const SizedBox(height: 16),
@@ -281,14 +311,14 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        Colors.purple.shade400,
-                        Colors.pink.shade400,
+                        cs.primary,
+                        cs.tertiary,
                       ],
                     ),
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.purple.withValues(alpha: 0.3),
+                        color: cs.primary.withValues(alpha: 0.3),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -299,12 +329,12 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: cs.onPrimary.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.slideshow,
-                          color: Colors.white,
+                          color: cs.primary,
                           size: 24,
                         ),
                       ),
@@ -313,12 +343,12 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Animation Showcase',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: cs.primary,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -326,15 +356,15 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                               'Preview all animation types',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.white.withValues(alpha: 0.8),
+                                color: cs.onPrimary.withValues(alpha: 0.8),
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const Icon(
+                      Icon(
                         Icons.arrow_forward_ios,
-                        color: Colors.white,
+                        color: cs.primary,
                         size: 16,
                       ),
                     ],
@@ -345,17 +375,37 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
 
               // SMS & Permissions
               _SectionHeader(
+                key: _sectionKeys['SMS & Permissions'],
                 icon: Icons.lock_open,
                 title: 'SMS & Permissions',
-                color: Colors.indigo,
+                color: cs.primary,
               ),
               const SizedBox(height: 12),
               _SettingsCard(
                 title: 'Device access',
                 subtitle: 'SMS and notifications for auto-tracking',
                 icon: Icons.security,
-                color: Colors.indigo,
+                color: cs.primary,
                 child: const PermissionsSection(),
+              ),
+              const SizedBox(height: 24),
+
+              // Learned rules
+              _SectionHeader(
+                key: _sectionKeys['Learned rules'],
+                icon: Icons.auto_fix_high,
+                title: 'Learned rules',
+                color: cs.primary,
+              ),
+              const SizedBox(height: 12),
+              Card(
+                child: ListTile(
+                  leading: Icon(Icons.rule, color: cs.primary),
+                  title: const Text('Manage learned rules'),
+                  subtitle: const Text('Senders and patterns learned from your reviews'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Navigator.of(context).pushNamed(AppRoutes.learnedRules),
+                ),
               ),
               const SizedBox(height: 24),
 
@@ -363,7 +413,7 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
               _SectionHeader(
                 icon: Icons.settings,
                 title: 'Feature Settings',
-                color: Colors.green,
+                color: cs.primary,
               ),
               const SizedBox(height: 12),
               _PreferenceToggle(
@@ -371,7 +421,7 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                 title: 'Notifications',
                 subtitle: 'Receive expense alerts and reminders',
                 value: _preferences['notifications'] ?? true,
-                color: Colors.red,
+                color: cs.primary,
                 onChanged: (value) => _updatePreference('notifications', value),
               ),
               const SizedBox(height: 12),
@@ -380,7 +430,7 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                 title: 'Haptic Feedback',
                 subtitle: 'Vibrations on button interactions',
                 value: _preferences['haptic_feedback'] ?? true,
-                color: Colors.pinkAccent,
+                color: cs.primary,
                 onChanged: (value) => _updatePreference('haptic_feedback', value),
               ),
               const SizedBox(height: 12),
@@ -389,7 +439,7 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                 title: 'Event Logging',
                 subtitle: 'Log all app activities for analytics',
                 value: _preferences['event_logging'] ?? true,
-                color: Colors.cyan,
+                color: cs.primary,
                 onChanged: (value) => _updatePreference('event_logging', value),
               ),
               const SizedBox(height: 24),
@@ -398,7 +448,7 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
               _SectionHeader(
                 icon: Icons.tune,
                 title: 'Advanced Settings',
-                color: Colors.indigo,
+                color: cs.primary,
               ),
               const SizedBox(height: 12),
               _PreferenceToggle(
@@ -406,7 +456,7 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                 title: 'Auto Dark Mode',
                 subtitle: 'Switch theme based on time of day',
                 value: _preferences['auto_dark_mode'] ?? false,
-                color: Colors.grey,
+                color: cs.primary,
                 onChanged: (value) {
                   _updatePreference('auto_dark_mode', value);
                   if (value) {
@@ -418,30 +468,31 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
 
               // About & Info Section
               _SectionHeader(
+                key: _sectionKeys['About'],
                 icon: Icons.info,
-                title: 'App Information',
-                color: Colors.blueGrey,
+                title: 'About',
+                color: cs.primary,
               ),
               const SizedBox(height: 12),
               _InfoCard(
                 icon: Icons.info_outline,
                 title: 'App Version',
                 value: '1.0.0',
-                color: Colors.blue,
+                color: cs.primary,
               ),
               const SizedBox(height: 12),
               _InfoCard(
                 icon: Icons.devices,
                 title: 'Platform',
                 value: 'Android',
-                color: Colors.green,
+                color: cs.primary,
               ),
               const SizedBox(height: 12),
               _InfoCard(
                 icon: Icons.memory,
                 title: 'Storage Info',
                 value: 'Preferences synced',
-                color: Colors.purple,
+                color: cs.primary,
               ),
               const SizedBox(height: 24),
 
@@ -451,8 +502,8 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                 label: const Text('Clear All Preferences'),
                 onPressed: () => _showClearPreferencesDialog(context),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange.shade600,
-                  foregroundColor: Colors.white,
+                  backgroundColor: cs.secondary,
+                  foregroundColor: cs.onSecondary,
                   padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   minimumSize: const Size(double.infinity, 48),
@@ -464,8 +515,8 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                 label: const Text('Reset to Defaults'),
                 onPressed: () => _showResetDefaultsDialog(context),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.red.shade600,
-                  side: BorderSide(color: Colors.red.shade600),
+                  foregroundColor: cs.error,
+                  side: BorderSide(color: cs.error),
                   padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   minimumSize: const Size(double.infinity, 48),
@@ -495,7 +546,7 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange.shade600),
+            style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.secondary),
             child: const Text('Clear'),
           ),
         ],
@@ -518,7 +569,7 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('✓ Preferences cleared'),
-            backgroundColor: Colors.orange.shade600,
+            backgroundColor: Theme.of(context).colorScheme.secondary,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -543,7 +594,7 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade600),
+            style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
             child: const Text('Reset'),
           ),
         ],
@@ -575,7 +626,7 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('✓ Settings reset to defaults'),
-            backgroundColor: Colors.red.shade600,
+            backgroundColor: Theme.of(context).colorScheme.error,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -591,6 +642,7 @@ class _SectionHeader extends StatefulWidget {
   final Color color;
 
   const _SectionHeader({
+    super.key,
     required this.icon,
     required this.title,
     required this.color,
@@ -653,10 +705,10 @@ class _SectionHeaderState extends State<_SectionHeader>
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ) ??
-              const TextStyle(
+              TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ],
@@ -721,8 +773,8 @@ class _SettingsCardState extends State<_SettingsCard>
   @override
   Widget build(BuildContext context) {
     final borderColor = Theme.of(context).brightness == Brightness.dark
-        ? Colors.grey.shade700
-        : Colors.grey.shade300;
+        ? Theme.of(context).colorScheme.outlineVariant
+        : Theme.of(context).colorScheme.outlineVariant;
     return FadeTransition(
       opacity: _fadeAnimation,
       child: SlideTransition(
@@ -767,10 +819,10 @@ class _SettingsCardState extends State<_SettingsCard>
                               widget.subtitle,
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: Theme.of(context).brightness == Brightness.dark
-                                  ? Colors.grey.shade400
-                                  : Colors.grey.shade600,
+                                  ? Theme.of(context).colorScheme.onSurfaceVariant
+                                  : Theme.of(context).colorScheme.onSurfaceVariant,
                               ) ??
-                              TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                              TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                             ),
                           ],
                         ),
@@ -852,8 +904,8 @@ class _PreferenceToggleState extends State<_PreferenceToggle>
   @override
   Widget build(BuildContext context) {
     final borderColor = Theme.of(context).brightness == Brightness.dark
-        ? Colors.grey.shade700
-        : Colors.grey.shade300;
+        ? Theme.of(context).colorScheme.outlineVariant
+        : Theme.of(context).colorScheme.outlineVariant;
     
     return GestureDetector(
       onTap: _handleTap,
@@ -940,14 +992,14 @@ class _PreferenceToggleState extends State<_PreferenceToggle>
                         style: (Theme.of(context).textTheme.bodySmall ??
                                 TextStyle(
                                     fontSize: 12,
-                                    color: Colors.grey.shade600))
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant))
                             .copyWith(
                           color: _value
                               ? widget.color.withValues(alpha: 0.7)
                               : (Theme.of(context).brightness ==
                                       Brightness.dark
-                                  ? Colors.grey.shade400
-                                  : Colors.grey.shade600),
+                                  ? Theme.of(context).colorScheme.onSurfaceVariant
+                                  : Theme.of(context).colorScheme.onSurfaceVariant),
                         ),
                         child: Text(widget.subtitle),
                       ),
@@ -1040,14 +1092,14 @@ class _InfoCardState extends State<_InfoCard>
   @override
   Widget build(BuildContext context) {
     final borderColor = Theme.of(context).brightness == Brightness.dark
-        ? Colors.grey.shade700
-        : Colors.grey.shade300;
+        ? Theme.of(context).colorScheme.outlineVariant
+        : Theme.of(context).colorScheme.outlineVariant;
     final subtleTextColor = Theme.of(context).brightness == Brightness.dark
-        ? Colors.grey.shade400
-        : Colors.grey.shade600;
+        ? Theme.of(context).colorScheme.onSurfaceVariant
+        : Theme.of(context).colorScheme.onSurfaceVariant;
     final iconColor = Theme.of(context).brightness == Brightness.dark
-        ? Colors.grey.shade500
-        : Colors.grey.shade400;
+        ? Theme.of(context).colorScheme.onSurfaceVariant
+        : Theme.of(context).colorScheme.onSurfaceVariant;
     
     return FadeTransition(
       opacity: _fadeAnimation,
@@ -1092,7 +1144,7 @@ class _InfoCardState extends State<_InfoCard>
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: subtleTextColor,
                           ) ??
-                          TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                          TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
                         ),
                       ],
                     ),

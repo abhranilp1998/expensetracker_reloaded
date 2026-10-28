@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:expensetracker_reloaded/providers/providers.dart';
+import 'package:expensetracker_reloaded/screens/main_shell.dart';
 
 /// Lightweight stand-in for the four-tab NavigationBar contract.
 class _TabBarProbe extends StatefulWidget {
@@ -49,5 +52,27 @@ void main() {
     await tester.tap(find.text('Activity'));
     await tester.pump();
     expect(find.text('activity-body'), findsOneWidget);
+  });
+
+  testWidgets('real MainShell starts on Home (index 0)', (tester) async {
+    await tester.pumpWidget(ProviderScope(
+      overrides: [
+        reviewQueueProvider.overrideWith((ref) => Stream.value(const [])),
+      ],
+      child: const MaterialApp(
+        home: MainShell(pagesOverride: [
+          Center(child: Text('home-body')),
+          Center(child: Text('activity-body')),
+          Center(child: Text('review-body')),
+          Center(child: Text('settings-body')),
+        ]),
+      ),
+    ));
+    await tester.pump();
+    final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+    expect(bar.selectedIndex, MainShell.homeIndex);
+    expect(MainShell.homeIndex, 0);
+    final stack = tester.widget<IndexedStack>(find.byType(IndexedStack));
+    expect(stack.index, 0);
   });
 }

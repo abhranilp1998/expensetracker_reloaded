@@ -23,7 +23,6 @@ class HistoryPage extends ConsumerStatefulWidget {
 class _HistoryPageState extends ConsumerState<HistoryPage> {
   _ActivityFilter _filter = _ActivityFilter.all;
   final _search = TextEditingController();
-  bool _showSearch = false;
 
   @override
   void dispose() {
@@ -60,11 +59,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     }
     final q = _search.text.trim().toLowerCase();
     if (q.isNotEmpty) {
-      rows = rows.where((t) {
-        final msg = (t['message'] ?? '').toString().toLowerCase();
-        final amt = t['amount'].toString();
-        return msg.contains(q) || amt.contains(q);
-      });
+      rows = rows.where((t) => txnMatchesSearch(t, q));
     }
     return rows.toList();
   }
@@ -80,32 +75,29 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
       appBar: AppBar(
         elevation: 0,
         title: const Text('Activity', style: TextStyle(fontWeight: FontWeight.bold)),
-        actions: [
-          IconButton(
-            icon: Icon(_showSearch ? Icons.close : Icons.search),
-            onPressed: () => setState(() {
-              _showSearch = !_showSearch;
-              if (!_showSearch) _search.clear();
-            }),
-          ),
-        ],
       ),
       drawer: widget.asTab || ModalRoute.of(context)?.canPop != true
           ? const AppDrawer()
           : null,
       body: Column(
         children: [
-          if (_showSearch)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
               child: TextField(
+                key: const ValueKey('activity-search'),
                 controller: _search,
-                autofocus: true,
+                textInputAction: TextInputAction.search,
                 onChanged: (_) => setState(() {}),
-                decoration: const InputDecoration(
-                  hintText: 'Search note, merchant, amount…',
-                  prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  hintText: 'Search merchant, note, amount…',
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: _search.text.isEmpty
+                      ? null
+                      : IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => setState(_search.clear),
+                        ),
+                  border: const OutlineInputBorder(),
                   isDense: true,
                 ),
               ),

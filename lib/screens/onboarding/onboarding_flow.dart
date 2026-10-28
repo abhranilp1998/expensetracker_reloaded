@@ -65,7 +65,11 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
     }
   }
 
+  bool _finishing = false;
+
   Future<void> _finish() async {
+    if (_finishing) return; // ignore double taps while prefs save
+    _finishing = true;
     await UserPrefsService.setUserName(_nameCtrl.text);
     await UserPrefsService.setCurrency(_currency);
     await UserPrefsService.setImportPastSms(_importPast);
@@ -75,7 +79,9 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
     await ref.read(themeControllerProvider.notifier).setAccentColor(_accent);
     await UserPrefsService.setOnboardingCompleted(true);
     if (!mounted) return;
-    Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+    // Clear the onboarding stack and land on the Home tab.
+    Navigator.of(context)
+        .pushNamedAndRemoveUntil(AppRoutes.home, (route) => false);
   }
 
   Future<void> _requestPerms() async {

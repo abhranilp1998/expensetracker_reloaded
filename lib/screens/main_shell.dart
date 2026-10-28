@@ -9,22 +9,21 @@ import 'package:expensetracker_reloaded/screens/review_queue_page.dart';
 
 /// Bottom tabs: Home, Activity, Review, Settings. Side drawer lives on each tab.
 class MainShell extends ConsumerStatefulWidget {
-  const MainShell({super.key, this.initialIndex = 0});
+  const MainShell({super.key, this.pagesOverride});
 
-  final int initialIndex;
+  /// Home is always index 0 and is where every launch lands.
+  static const int homeIndex = 0;
+
+  /// Test hook: replaces the four tab bodies.
+  @visibleForTesting
+  final List<Widget>? pagesOverride;
 
   @override
   ConsumerState<MainShell> createState() => _MainShellState();
 }
 
 class _MainShellState extends ConsumerState<MainShell> {
-  late int _index;
-
-  @override
-  void initState() {
-    super.initState();
-    _index = widget.initialIndex;
-  }
+  int _index = MainShell.homeIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -33,12 +32,13 @@ class _MainShellState extends ConsumerState<MainShell> {
     return Scaffold(
       body: IndexedStack(
         index: _index,
-        children: const [
-          HomeDashboard(),
-          HistoryPage(asTab: true),
-          ReviewQueuePage(asTab: true),
-          ComprehensiveSettingsPage(asTab: true),
-        ],
+        children: widget.pagesOverride ??
+            const [
+              HomeDashboard(),
+              HistoryPage(asTab: true),
+              ReviewQueuePage(asTab: true),
+              ComprehensiveSettingsPage(asTab: true),
+            ],
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,

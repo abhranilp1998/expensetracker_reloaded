@@ -36,7 +36,7 @@ class _SettingsTileState extends State<SettingsTile> {
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surfaceContainerLow,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
@@ -77,7 +77,7 @@ class _SettingsTileState extends State<SettingsTile> {
                       widget.subtitle,
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.grey.shade600,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -86,7 +86,7 @@ class _SettingsTileState extends State<SettingsTile> {
               Icon(
                 Icons.arrow_forward_ios,
                 size: 16,
-                color: Colors.grey.shade400,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ],
           ),

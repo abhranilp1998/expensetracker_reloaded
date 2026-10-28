@@ -128,7 +128,13 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(20),
+          // Clear the extended FAB (56 + margins) and the system inset.
+          padding: EdgeInsets.fromLTRB(
+            20,
+            20,
+            20,
+            20 + 88 + MediaQuery.of(context).padding.bottom,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

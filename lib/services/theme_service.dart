@@ -87,7 +87,11 @@ class AppThemeData {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      primarySwatch: accentColor,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: accentColor,
+        primary: accentColor.shade600,
+        brightness: Brightness.light,
+      ),
       primaryColor: accentColor.shade600,
       scaffoldBackgroundColor: Colors.grey.shade50,
       textTheme: const TextTheme(
@@ -182,7 +186,11 @@ class AppThemeData {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      primarySwatch: accentColor,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: accentColor,
+        primary: accentColor.shade400,
+        brightness: Brightness.dark,
+      ),
       primaryColor: accentColor.shade400,
       scaffoldBackgroundColor: const Color(0xFF121212),
       textTheme: const TextTheme(

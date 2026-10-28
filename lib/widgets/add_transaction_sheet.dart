@@ -13,6 +13,7 @@ Future<ManualEntry?> showAddTransactionSheet(BuildContext context) {
   return showModalBottomSheet<ManualEntry>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (_) => const _AddTransactionSheet(),
   );
 }
@@ -38,6 +39,8 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
   }
 
   void _submit() {
+    // Close the keyboard first so the tap is never swallowed by focus changes.
+    FocusManager.instance.primaryFocus?.unfocus();
     final value = double.tryParse(_amount.text.replaceAll(',', '').trim());
     if (value == null || value <= 0) {
       setState(() => _error = 'Enter an amount greater than 0');
@@ -51,13 +54,11 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        16,
-        16,
-        16,
-        16 + MediaQuery.of(context).viewInsets.bottom,
-      ),
+    return AnimatedPadding(
+      duration: const Duration(milliseconds: 150),
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -81,6 +82,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
             controller: _amount,
             autofocus: true,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            textInputAction: TextInputAction.next,
             decoration: InputDecoration(
               labelText: 'Amount (₹)',
               errorText: _error,
@@ -88,11 +90,18 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
           ),
           TextField(
             controller: _note,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => _submit(),
             decoration: const InputDecoration(labelText: 'Note (optional)'),
           ),
           const SizedBox(height: 16),
-          FilledButton(onPressed: _submit, child: const Text('Save')),
+          FilledButton(
+            key: const Key('saveTxn'),
+            onPressed: _submit,
+            child: const Text('Save'),
+          ),
         ],
+      ),
       ),
     );
   }
