@@ -3,14 +3,18 @@ import 'package:expensetracker_reloaded/data/db/app_database.dart';
 import 'package:expensetracker_reloaded/data/repositories/transaction_repository.dart';
 import 'package:expensetracker_reloaded/domain/sms/sms_parser.dart';
 import 'package:expensetracker_reloaded/providers/providers.dart';
+import 'package:expensetracker_reloaded/routes/animation_variants.dart';
 import 'package:expensetracker_reloaded/screens/review_queue_page.dart';
+import 'package:expensetracker_reloaded/screens/comprehensive_settings_page.dart';
 import 'package:expensetracker_reloaded/screens/today_insights_page.dart';
 import 'package:expensetracker_reloaded/services/debug_unlock_service.dart';
+import 'package:expensetracker_reloaded/services/theme_service.dart';
 import 'package:expensetracker_reloaded/services/sms_import.dart';
 import 'package:expensetracker_reloaded/services/sms_ingest.dart';
 import 'package:expensetracker_reloaded/utils/money.dart';
 import 'package:expensetracker_reloaded/widgets/debug_pin_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -184,6 +188,52 @@ void main() {
     expect(
       find.descendant(of: row, matching: find.textContaining('1300')),
       findsOneWidget,
+    );
+  });
+
+  testWidgets('A8 reset updates the selected theme shown in Settings', (
+    t,
+  ) async {
+    const channel = MethodChannel('flutter.baseflow.com/permissions/methods');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async => 1);
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null),
+    );
+    SharedPreferences.setMockInitialValues({
+      'app_theme_mode': 'dark',
+      'app_accent_color': 'blue',
+      'animationType': AnimationType.slideLeft.toString(),
+    });
+    await ThemeService.initialize();
+    AnimationVariants.setAnimationType(AnimationType.slideLeft);
+    t.view.physicalSize = const Size(800, 1200);
+    t.view.devicePixelRatio = 1;
+    addTearDown(t.view.reset);
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    await t.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(home: ComprehensiveSettingsPage()),
+      ),
+    );
+    await t.pumpAndSettle();
+    await t.ensureVisible(
+      find.widgetWithText(OutlinedButton, 'Reset to Defaults'),
+    );
+    await t.tap(find.widgetWithText(OutlinedButton, 'Reset to Defaults'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Reset'));
+    await t.pumpAndSettle();
+    expect(container.read(themeControllerProvider).mode, ThemeMode.system);
+    final systemTile = find.byWidgetPredicate(
+      (w) => w is RadioListTile<ThemeMode> && w.value == ThemeMode.system,
+    );
+    expect(
+      t.widget<RadioListTile<ThemeMode>>(systemTile).groupValue,
+      ThemeMode.system,
     );
   });
 }

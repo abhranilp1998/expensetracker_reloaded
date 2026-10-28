@@ -46,6 +46,19 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
     _loadPreferences();
   }
 
+  /// Copies theme/accent from [themeControllerProvider] and the animation
+  /// from [AnimationVariants] into the page's selection state.
+  void _syncSelections(BuildContext context) {
+    final theme = ProviderScope.containerOf(
+      context,
+    ).read(themeControllerProvider);
+    setState(() {
+      _currentTheme = theme.mode;
+      _currentAccentColor = theme.accent;
+      _currentAnimation = AnimationVariants.currentType;
+    });
+  }
+
   Future<void> _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -695,6 +708,10 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
         await AnimationPreferencesService.saveAnimationType(
           AnimationType.fadeSlide,
         );
+        // Re-read the selections from the source of truth so the radios and
+        // accent swatch don't keep showing the pre-reset values (Codex A8).
+        if (!context.mounted) return;
+        _syncSelections(context);
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
