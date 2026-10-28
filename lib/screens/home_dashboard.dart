@@ -220,7 +220,7 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                '${plural(transactions.length, 'transaction')} · tap for insights',
+                                '${plural(summary.count, 'transaction')} · tap for insights',
                                 style: TextStyle(
                                   color: cs.onPrimary.withValues(alpha: 0.75),
                                   fontSize: 13,
