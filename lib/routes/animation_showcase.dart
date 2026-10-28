@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'animation_preferences.dart';
 import 'animation_variants.dart';
 
 /// Widget that demonstrates all available animation types with top preview
@@ -35,11 +36,11 @@ class _AnimationPreviewState extends State<AnimationPreview>
     _previewController.forward(from: 0);
   }
 
+  /// Selecting a style in the showcase is a real choice: persist it in the
+  /// same store Settings uses so it survives a restart (Codex A7).
   void _updateAnimation(AnimationType type) {
-    setState(() {
-      _currentAnimation = type;
-      AnimationVariants.setAnimationType(type);
-    });
+    setState(() => _currentAnimation = type);
+    AnimationPreferencesService.saveAnimationType(type);
     _startPreviewAnimation();
   }
 

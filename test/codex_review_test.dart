@@ -3,6 +3,8 @@ import 'package:expensetracker_reloaded/data/db/app_database.dart';
 import 'package:expensetracker_reloaded/data/repositories/transaction_repository.dart';
 import 'package:expensetracker_reloaded/domain/sms/sms_parser.dart';
 import 'package:expensetracker_reloaded/providers/providers.dart';
+import 'package:expensetracker_reloaded/routes/animation_preferences.dart';
+import 'package:expensetracker_reloaded/routes/animation_showcase.dart';
 import 'package:expensetracker_reloaded/routes/animation_variants.dart';
 import 'package:expensetracker_reloaded/screens/review_queue_page.dart';
 import 'package:expensetracker_reloaded/screens/comprehensive_settings_page.dart';
@@ -189,6 +191,28 @@ void main() {
       find.descendant(of: row, matching: find.textContaining('1300')),
       findsOneWidget,
     );
+  });
+
+  testWidgets('A7 Showcase animation selection persists after reload', (
+    t,
+  ) async {
+    AnimationVariants.setAnimationType(AnimationType.fadeSlide);
+    await t.pumpWidget(const MaterialApp(home: AnimationPreview()));
+    await t.pumpAndSettle();
+    final tiles = find.byType(ExpansionTile);
+    expect(tiles, findsNWidgets(10));
+    await t.ensureVisible(tiles.at(1));
+    await t.tap(tiles.at(1));
+    await t.pumpAndSettle();
+    final tile = find.byWidgetPredicate(
+      (w) => w is AnimationTile && w.type == AnimationType.slideLeft,
+    );
+    t.widget<AnimationTile>(tile).onSelect();
+    await t.pumpAndSettle();
+    final selected = AnimationVariants.currentType;
+    expect(selected, isNot(AnimationType.fadeSlide));
+    AnimationVariants.setAnimationType(AnimationType.fadeSlide);
+    expect(await AnimationPreferencesService.loadAnimationType(), selected);
   });
 
   testWidgets('A8 reset updates the selected theme shown in Settings', (
