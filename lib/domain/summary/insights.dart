@@ -47,14 +47,14 @@ DayInsights buildDayInsights({
   required DateTime now,
   required List<TxnRow> todayRows,
   required List<TxnRow> yesterdayRows,
-  required List<TxnRow> weekRows,
+  required List<TxnRow> previous7DaysRows,
 }) {
   final today = summarize(todayRows);
   final yesterday = summarize(yesterdayRows);
 
-  // Daily average spend over the week window (7 days).
-  final week = summarize(weekRows);
-  final dailyAvg = week.spent / 7.0;
+  // Daily average over the 7 complete days before today
+  // (rows from [previous7DaysRange]).
+  final dailyAvg = summarize(previous7DaysRows).spent / 7.0;
 
   final byCat = <String, double>{};
   final byHour = <int, double>{for (var h = 0; h < 24; h++) h: 0.0};
@@ -88,6 +88,13 @@ DayInsights buildDayInsights({
     byHour: byHour,
     topDebits: debits.take(5).toList(),
   );
+}
+
+/// The 7 complete days before today (today excluded, so a half-finished
+/// day never drags the average down). Used for "vs 7-day average".
+DateRange previous7DaysRange(DateTime now) {
+  final today = DateTime(now.year, now.month, now.day);
+  return DateRange(DateTime(today.year, today.month, today.day - 7), today);
 }
 
 DateRange yesterdayRange(DateTime now) {

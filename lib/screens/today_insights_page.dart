@@ -47,16 +47,14 @@ class TodayInsightsPage extends ConsumerWidget {
     final yRange = yesterdayRange(now);
     final yesterdayRows =
         ref.watch(rangeTransactionsProvider(yRange)).value ?? const [];
-    final weekRows =
-        ref
-            .watch(rangeTransactionsProvider(ref.watch(weekRangeProvider)))
-            .value ??
+    final previous7DaysRows =
+        ref.watch(rangeTransactionsProvider(previous7DaysRange(now))).value ??
         const [];
     final insights = buildDayInsights(
       now: now,
       todayRows: todayRows,
       yesterdayRows: yesterdayRows,
-      weekRows: weekRows,
+      previous7DaysRows: previous7DaysRows,
     );
     final cs = theme.colorScheme;
 
@@ -127,7 +125,7 @@ class TodayInsightsPage extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           _CompareRow(
-            label: 'vs 7-day average',
+            label: 'vs avg of previous 7 days',
             other: insights.dailyAverageSpent,
             pct: insights.vsAveragePct,
           ),

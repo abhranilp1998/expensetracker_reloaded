@@ -66,7 +66,7 @@ void main() {
       now: now,
       todayRows: today,
       yesterdayRows: yesterday,
-      weekRows: [...today, ...yesterday],
+      previous7DaysRows: yesterday,
     );
     expect(insights.today.spent, 700);
     expect(insights.today.income, 1000);

@@ -2,12 +2,15 @@ import 'package:drift/native.dart';
 import 'package:expensetracker_reloaded/data/db/app_database.dart';
 import 'package:expensetracker_reloaded/data/repositories/transaction_repository.dart';
 import 'package:expensetracker_reloaded/domain/sms/sms_parser.dart';
+import 'package:expensetracker_reloaded/providers/providers.dart';
+import 'package:expensetracker_reloaded/screens/today_insights_page.dart';
 import 'package:expensetracker_reloaded/services/debug_unlock_service.dart';
 import 'package:expensetracker_reloaded/services/sms_import.dart';
 import 'package:expensetracker_reloaded/services/sms_ingest.dart';
 import 'package:expensetracker_reloaded/utils/money.dart';
 import 'package:expensetracker_reloaded/widgets/debug_pin_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -119,5 +122,45 @@ void main() {
     await DebugUnlockService.setPin('1234');
     expect(await DebugUnlockService.isLegacyPin(), isFalse);
     expect(DebugUnlockService.validatePin('ab12'), isNotNull);
+  });
+  testWidgets('A6 7-day average uses seven complete days before today', (
+    t,
+  ) async {
+    final now = DateTime(2026, 10, 26, 12); // Monday
+    final rows = [
+      txn('today', now, 140000),
+      for (var d = 1; d <= 7; d++)
+        txn('prior-$d', now.subtract(Duration(days: d)), 10000),
+    ];
+    t.view.physicalSize = const Size(800, 1200);
+    t.view.devicePixelRatio = 1;
+    addTearDown(t.view.reset);
+    await t.pumpWidget(
+      ProviderScope(
+        overrides: [
+          clockProvider.overrideWithValue(() => now),
+          rangeTransactionsProvider.overrideWith(
+            (ref, range) => Stream.value(
+              rows
+                  .where(
+                    (r) =>
+                        r.occurredAt >= range.start.millisecondsSinceEpoch &&
+                        r.occurredAt < range.end.millisecondsSinceEpoch,
+                  )
+                  .toList(),
+            ),
+          ),
+        ],
+        child: const MaterialApp(home: TodayInsightsPage()),
+      ),
+    );
+    await t.pumpAndSettle();
+    final label = find.text('vs avg of previous 7 days');
+    final row = find.ancestor(of: label, matching: find.byType(Row)).first;
+    // Previous complete days average 100; today's 1400 is 1300% above it.
+    expect(
+      find.descendant(of: row, matching: find.textContaining('1300')),
+      findsOneWidget,
+    );
   });
 }
