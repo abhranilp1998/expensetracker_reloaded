@@ -11,6 +11,7 @@ import 'package:expensetracker_reloaded/screens/review_queue_page.dart';
 import 'package:expensetracker_reloaded/screens/learned_rules_page.dart';
 import 'package:expensetracker_reloaded/screens/comprehensive_settings_page.dart';
 import 'package:expensetracker_reloaded/screens/history_page.dart';
+import 'package:expensetracker_reloaded/screens/inbox_scan_page.dart';
 import 'package:expensetracker_reloaded/screens/today_insights_page.dart';
 import 'package:expensetracker_reloaded/screens/debug_hub_page.dart';
 import 'package:expensetracker_reloaded/services/user_prefs_service.dart';
@@ -33,6 +34,10 @@ class AppRoutes {
   static const String learnedRules = '/learned-rules';
   static const String todayInsights = '/today-insights';
   static const String debugHub = '/debug-hub';
+
+  /// SMS inbox import (consent, progress, summary). Argument: `true` when
+  /// opened from onboarding.
+  static const String inboxScan = '/inbox-scan';
 }
 
 Route<dynamic> createRoute(Widget page) {
@@ -67,6 +72,10 @@ Route<dynamic> onGenerateRoute(RouteSettings settings) {
       return createRoute(const LearnedRulesPage());
     case AppRoutes.todayInsights:
       return createRoute(const TodayInsightsPage());
+    case AppRoutes.inboxScan:
+      return createRoute(
+        InboxScanPage(fromOnboarding: settings.arguments == true),
+      );
     case AppRoutes.debugHub:
       return createRoute(const DebugHubPage());
     default:

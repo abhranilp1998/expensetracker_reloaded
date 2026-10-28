@@ -70,12 +70,34 @@ class TransactionRepository {
     );
   }
 
-  /// Returns true if inserted, false if a row with the same dedupe hash exists.
+  /// Returns true if inserted, false if the row already exists.
+  ///
+  /// Two duplicate checks (deleted rows count too, so an SMS the user
+  /// ignored or deleted never comes back on a re-scan):
+  /// 1. same [NewTxn.dedupeHash] (bank reference, or sender+amount+body+minute);
+  /// 2. same stable SMS key: sender + exact timestamp + exact body.
   Future<bool> insert(NewTxn t) => _db.transaction(() async {
-    final existing = await (_db.select(
-      _db.transactions,
-    )..where((x) => x.dedupeHash.equals(t.dedupeHash))).getSingleOrNull();
-    if (existing != null) return false;
+    final sameHash =
+        await (_db.select(_db.transactions)
+              ..where((x) => x.dedupeHash.equals(t.dedupeHash))
+              ..limit(1))
+            .getSingleOrNull();
+    if (sameHash != null) return false;
+    if (t.rawBody != null && t.sender != null) {
+      final sameSms =
+          await (_db.select(_db.transactions)
+                ..where(
+                  (x) =>
+                      x.sender.equals(t.sender!) &
+                      x.occurredAt.equals(
+                        t.occurredAt.toUtc().millisecondsSinceEpoch,
+                      ) &
+                      x.rawBody.equals(t.rawBody!),
+                )
+                ..limit(1))
+              .getSingleOrNull();
+      if (sameSms != null) return false;
+    }
     await _db.into(_db.transactions).insert(_companion(t));
     return true;
   });

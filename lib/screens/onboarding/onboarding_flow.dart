@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:expensetracker_reloaded/providers/providers.dart';
 import 'package:expensetracker_reloaded/routes/app_routes.dart';
 import 'package:expensetracker_reloaded/services/permission_service.dart';
+import 'package:expensetracker_reloaded/services/sms_service.dart';
 import 'package:expensetracker_reloaded/services/theme_service.dart';
 import 'package:expensetracker_reloaded/services/user_prefs_service.dart';
 import 'package:expensetracker_reloaded/utils/animations.dart';
@@ -78,7 +79,21 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
     await ref.read(themeControllerProvider.notifier).setTheme(_theme);
     await ref.read(themeControllerProvider.notifier).setAccentColor(_accent);
     await UserPrefsService.setOnboardingCompleted(true);
+    // Offer the inbox scan only if the user kept "Import past SMS" on and
+    // SMS is granted. The scan screen asks again before reading anything.
+    final offerScan =
+        _importPast &&
+        await SmsService.hasPermission() &&
+        !await SmsService.importDone();
     if (!mounted) return;
+    if (offerScan) {
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRoutes.inboxScan,
+        (route) => false,
+        arguments: true,
+      );
+      return;
+    }
     // Clear the onboarding stack and land on the Home tab.
     Navigator.of(
       context,
@@ -406,9 +421,17 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
           const SizedBox(height: 24),
           SwitchListTile(
             title: const Text('Import past SMS'),
-            subtitle: const Text('Last 180 days of bank messages'),
+            subtitle: const Text(
+              'Offer to scan bank messages after setup. You pick the range; '
+              'nothing is read before that.',
+            ),
             value: _importPast,
-            onChanged: (v) => setState(() => _importPast = v),
+            onChanged: (v) {
+              setState(() => _importPast = v);
+              // Save right away so the choice holds even if setup is
+              // interrupted (bug #13).
+              UserPrefsService.setImportPastSms(v);
+            },
           ),
           SwitchListTile(
             title: const Text('Notifications'),

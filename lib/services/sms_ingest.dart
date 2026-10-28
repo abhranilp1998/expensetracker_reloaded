@@ -20,10 +20,44 @@ class IngestResult {
   double get amount => amountMinor / 100;
 }
 
+/// What happened to one SMS during ingest (used for import summaries).
+enum IngestStatus {
+  /// Stored as a confirmed transaction.
+  added,
+
+  /// Stored in the Review queue (uncertain match, not in totals).
+  review,
+
+  /// Already stored earlier (same SMS or same bank reference).
+  duplicate,
+
+  /// Not a transaction (OTP, promo, failed, ignored by a rule...).
+  dropped,
+}
+
 /// Classify one SMS and store it: accepted -> confirmed row, uncertain ->
 /// 'review' row (excluded from totals), spam -> nothing.
 /// Returns null when nothing new was stored (dropped or duplicate).
 Future<IngestResult?> ingestSms(
+  TransactionRepository repo, {
+  required String body,
+  required String sender,
+  required DateTime receivedAt,
+  String source = 'sms',
+  SmsClassifier classifier = const SmsClassifier(),
+  Map<String, String>? rules,
+}) async => (await ingestSmsWithStatus(
+  repo,
+  body: body,
+  sender: sender,
+  receivedAt: receivedAt,
+  source: source,
+  classifier: classifier,
+  rules: rules,
+)).result;
+
+/// Same as [ingestSms] but also says why nothing was stored.
+Future<({IngestStatus status, IngestResult? result})> ingestSmsWithStatus(
   TransactionRepository repo, {
   required String body,
   required String sender,
@@ -44,7 +78,9 @@ Future<IngestResult?> ingestSms(
       _ => null,
     },
   );
-  if (c.decision == Decision.drop || c.amountMinor == null) return null;
+  if (c.decision == Decision.drop || c.amountMinor == null) {
+    return (status: IngestStatus.dropped, result: null);
+  }
   final type = c.type ?? TxnType.debit;
   final inserted = await repo.insert(
     NewTxn(
@@ -61,9 +97,19 @@ Future<IngestResult?> ingestSms(
       confidence: c.confidence,
     ),
   );
-  return inserted
-      ? IngestResult(c.decision, c.amountMinor!, type, c.merchant, c.dedupeHash)
-      : null;
+  if (!inserted) return (status: IngestStatus.duplicate, result: null);
+  return (
+    status: c.decision == Decision.accept
+        ? IngestStatus.added
+        : IngestStatus.review,
+    result: IngestResult(
+      c.decision,
+      c.amountMinor!,
+      type,
+      c.merchant,
+      c.dedupeHash,
+    ),
+  );
 }
 
 String describe(IngestResult p) {

@@ -52,7 +52,7 @@ class SmsClassifier {
     caseSensitive: false,
   );
   static final _offerWords = RegExp(
-    r'\b(get|avail|pre[\s-]?approved|apply\s+now|limit\s+(?:of\s+)?up\s*to|up\s*to|upto|eligible|offer|win|congratulations|claim|instant\s+loan|loan\s+of|click|hurry|limited\s+period|exclusive|unlock)\b',
+    r'\b(get|avail|pre[\s-]?approved|apply\s+now|limit\s+(?:of\s+)?up\s*to|up\s*to|upto|eligible|offer|win|congratulations|claim|instant\s+loan|loan\s+of|click|hurry|limited\s+period|exclusive|unlock|perks?|benefits?|enjoy|free|worth|cashback\s+offer|validity|unlimited|subscribe|membership|recharge\s+now|plans?\s+(?:at|from|starting))\b',
     caseSensitive: false,
   );
   static final _link = RegExp(

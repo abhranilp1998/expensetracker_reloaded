@@ -418,6 +418,20 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                 color: cs.primary,
                 child: const PermissionsSection(),
               ),
+              const SizedBox(height: 12),
+              Card(
+                child: ListTile(
+                  key: const Key('scanInboxTile'),
+                  leading: Icon(Icons.manage_search, color: cs.primary),
+                  title: const Text('Scan SMS inbox'),
+                  subtitle: const Text(
+                    'Find past transactions. Already-added messages are skipped.',
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () =>
+                      Navigator.of(context).pushNamed(AppRoutes.inboxScan),
+                ),
+              ),
               const SizedBox(height: 24),
 
               // Learned rules

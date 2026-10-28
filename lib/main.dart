@@ -7,7 +7,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:expensetracker_reloaded/routes/app_routes.dart';
 import 'package:expensetracker_reloaded/routes/animation_preferences.dart';
 import 'package:expensetracker_reloaded/services/theme_service.dart';
-import 'dart:async';
 import 'package:expensetracker_reloaded/services/notification_service.dart';
 import 'package:expensetracker_reloaded/services/sms_service.dart';
 import 'package:expensetracker_reloaded/data/db/db_instance.dart';
@@ -35,9 +34,9 @@ void main() async {
   // Initialize theme service
   await ThemeService.initialize();
 
-  // Single SMS listener (foreground + background) and one-time inbox import.
+  // Live SMS listener only. Past-inbox import never runs at launch: the user
+  // starts it from the Inbox scan screen (after onboarding or in Settings).
   await SmsService.start();
-  unawaited(SmsService.importInboxOnce());
 
   runApp(const ProviderScope(child: ExpenseTrackerApp()));
 }

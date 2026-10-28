@@ -45,8 +45,8 @@ class UserPrefsService {
   static Future<void> setImportPastSms(bool v) async =>
       (await _p).setBool(importPastSmsKey, v);
 
-  /// If user opted out of import during onboarding, mark import done so
-  /// [SmsService.importInboxOnce] does not run later unless reset.
+  /// If the user opted out during onboarding, record it. The inbox is only
+  /// ever read from the Inbox scan screen, which the user opens on purpose.
   static Future<void> applyImportPreference() async {
     final prefs = await _p;
     final want = prefs.getBool(importPastSmsKey) ?? true;

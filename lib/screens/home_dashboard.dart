@@ -52,7 +52,6 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
     // Do NOT call requestAll on every launch — permissions live in onboarding/Settings.
     if (await Permission.sms.isGranted) {
       unawaited(SmsService.start());
-      unawaited(SmsService.importInboxOnce());
     }
   }
 
