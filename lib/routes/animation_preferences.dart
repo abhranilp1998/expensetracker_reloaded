@@ -58,17 +58,17 @@ class AnimationPreferencesService {
       case AnimationType.scaleRotate:
         return 'Smooth expand in - subtle and refined';
       case AnimationType.morphing:
-        return 'Vertical swipe - fluid and smooth';
+        return 'Fades in while rising from below';
       case AnimationType.bouncy:
-        return 'Slide from left - sleek transition';
+        return 'Fades in with a short slide from the left';
       case AnimationType.liquid:
-        return 'Slide from right - smooth modern';
+        return 'Fades in with a short slide from the right';
       case AnimationType.staggered:
         return 'Diagonal swipe - flowing and elegant';
       case AnimationType.kaleidoscope:
-        return 'Scale bloom - modern bright entry';
+        return 'Fades in while growing slightly';
       case AnimationType.elasticBounce:
-        return 'Tilt entry - sophisticated transition';
+        return 'Fades in, sliding down from the top right';
     }
   }
 }

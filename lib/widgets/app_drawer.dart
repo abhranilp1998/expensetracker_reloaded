@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:expensetracker_reloaded/routes/app_routes.dart';
 import 'package:expensetracker_reloaded/services/debug_unlock_service.dart';
+import 'package:expensetracker_reloaded/widgets/debug_pin_dialog.dart';
 import 'package:expensetracker_reloaded/widgets/drawer_tile.dart';
 import 'package:expensetracker_reloaded/providers/providers.dart';
 
@@ -25,10 +26,7 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
       Navigator.of(context).pushNamed(AppRoutes.debugHub);
       return;
     }
-    final unlocked = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => const _DebugUnlockDialog(),
-    );
+    final unlocked = await unlockDebug(context);
     if (unlocked == true && mounted) {
       Navigator.of(context).pop();
       Navigator.of(context).pushNamed(AppRoutes.debugHub);
@@ -139,119 +137,6 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _DebugUnlockDialog extends StatefulWidget {
-  const _DebugUnlockDialog();
-
-  @override
-  State<_DebugUnlockDialog> createState() => _DebugUnlockDialogState();
-}
-
-class _DebugUnlockDialogState extends State<_DebugUnlockDialog> {
-  final _pin = TextEditingController();
-  String? _error;
-  bool _busy = false;
-  bool _needsSetup = false;
-
-  @override
-  void initState() {
-    super.initState();
-    DebugUnlockService.hasPin().then((has) {
-      if (mounted) setState(() => _needsSetup = !has);
-    });
-  }
-
-  @override
-  void dispose() {
-    _pin.dispose();
-    super.dispose();
-  }
-
-  Future<void> _bio() async {
-    setState(() => _busy = true);
-    final ok = await DebugUnlockService.unlockWithBiometric();
-    if (!mounted) return;
-    setState(() => _busy = false);
-    if (ok) {
-      Navigator.of(context).pop(true);
-    } else {
-      setState(() => _error = 'Biometric failed — try PIN');
-    }
-  }
-
-  Future<void> _submit() async {
-    final pin = _pin.text.trim();
-    if (pin.length < 4) {
-      setState(() => _error = 'PIN must be at least 4 digits');
-      return;
-    }
-    setState(() => _busy = true);
-    if (_needsSetup) {
-      await DebugUnlockService.setPin(pin);
-      DebugUnlockService.sessionUnlocked = true;
-      if (mounted) Navigator.of(context).pop(true);
-      return;
-    }
-    final ok = await DebugUnlockService.unlockWithPin(pin);
-    if (!mounted) return;
-    setState(() => _busy = false);
-    if (ok) {
-      Navigator.of(context).pop(true);
-    } else {
-      setState(() => _error = 'Wrong PIN');
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(_needsSetup ? 'Set Debug PIN' : 'Unlock Debug'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            _needsSetup
-                ? 'Choose a PIN (4+ digits). You can also use fingerprint next time.'
-                : 'Enter your Debug PIN or use biometrics.',
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _pin,
-            obscureText: true,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'PIN',
-              border: OutlineInputBorder(),
-            ),
-            onSubmitted: (_) => _submit(),
-          ),
-          if (_error != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              _error!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
-          ],
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context, false),
-          child: const Text('Cancel'),
-        ),
-        if (!_needsSetup)
-          TextButton(
-            onPressed: _busy ? null : _bio,
-            child: const Text('Biometric'),
-          ),
-        FilledButton(
-          onPressed: _busy ? null : _submit,
-          child: Text(_needsSetup ? 'Set PIN' : 'Unlock'),
-        ),
-      ],
     );
   }
 }

@@ -9,6 +9,7 @@ import 'package:expensetracker_reloaded/routes/animation_variants.dart';
 import 'package:expensetracker_reloaded/routes/app_routes.dart';
 import 'package:expensetracker_reloaded/widgets/app_drawer.dart';
 import 'package:expensetracker_reloaded/widgets/permissions_section.dart';
+import 'package:expensetracker_reloaded/widgets/debug_pin_section.dart';
 import 'package:expensetracker_reloaded/services/app_settings.dart';
 
 /// Single sectioned Settings page: Appearance, SMS & permissions, Learned rules, About.
@@ -446,6 +447,10 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                       Navigator.of(context).pushNamed(AppRoutes.profile),
                 ),
               ),
+              const SizedBox(height: 24),
+
+              // Debug PIN (bug #14/#20)
+              const DebugPinSection(),
               const SizedBox(height: 24),
 
               // Learned rules
