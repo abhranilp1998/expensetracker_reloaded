@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 import 'db/app_database.dart';
 
 /// Map shape the legacy list widgets render (amount in rupees, local ISO time).
@@ -45,4 +47,19 @@ String txnTitle(TxnRow r) {
     if (v != null && v.trim().isNotEmpty) return v.trim();
   }
   return r.type == 'credit' ? 'Income' : 'Expense';
+}
+
+/// Time label for a row. With [withDate], older rows get a day prefix:
+/// "11:26 PM", "Yesterday, 11:26 PM", "28 Oct, 11:26 PM".
+String txnTimeLabel(DateTime t, {bool withDate = false, DateTime? now}) {
+  final time = DateFormat('hh:mm a').format(t);
+  if (!withDate) return time;
+  final n = now ?? DateTime.now();
+  final day = DateTime(t.year, t.month, t.day);
+  final today = DateTime(n.year, n.month, n.day);
+  final diff = today.difference(day).inDays;
+  if (diff == 0) return time;
+  if (diff == 1) return 'Yesterday, $time';
+  final fmt = t.year == n.year ? 'd MMM' : 'd MMM yyyy';
+  return '${DateFormat(fmt).format(t)}, $time';
 }

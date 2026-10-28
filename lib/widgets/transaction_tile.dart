@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
+import 'package:expensetracker_reloaded/data/txn_view.dart';
 
 import 'package:expensetracker_reloaded/utils/money.dart';
 import 'package:expensetracker_reloaded/widgets/transaction_actions.dart';
@@ -13,11 +13,15 @@ class TransactionTile extends ConsumerStatefulWidget {
   final int index;
   final bool compact;
 
+  /// Prefix older rows with their day (Home 'Recent' spans many days).
+  final bool showDate;
+
   const TransactionTile({
     super.key,
     required this.transaction,
     required this.index,
     this.compact = false,
+    this.showDate = false,
   });
 
   @override
@@ -107,8 +111,9 @@ class _TransactionTileState extends ConsumerState<TransactionTile> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      DateFormat('hh:mm a').format(
+                      txnTimeLabel(
                         DateTime.parse(widget.transaction['time'].toString()),
+                        withDate: widget.showDate,
                       ),
                       style: TextStyle(
                         color: theme.colorScheme.onSurfaceVariant,

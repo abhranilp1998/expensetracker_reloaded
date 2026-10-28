@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:expensetracker_reloaded/utils/money.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:expensetracker_reloaded/providers/providers.dart';
@@ -349,6 +350,8 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
                 ),
             ],
           ),
+          const SizedBox(height: 6),
+          Text(currencySymbolNote, style: theme.textTheme.bodySmall),
           const Spacer(),
           FilledButton(onPressed: _next, child: const Text('Continue')),
         ],

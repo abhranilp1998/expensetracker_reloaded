@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:expensetracker_reloaded/utils/money.dart';
 import 'package:flutter/services.dart';
 
 import 'package:expensetracker_reloaded/services/debug_unlock_service.dart';
@@ -132,7 +133,9 @@ class _DebugPinDialogState extends State<DebugPinDialog> {
         final left = await DebugUnlockService.attemptsLeft();
         if (!mounted) return;
         _pin.clear();
-        setState(() => _error = 'Wrong PIN. $left tries left.');
+        setState(
+          () => _error = 'Wrong PIN. ${plural(left, 'try', 'tries')} left.',
+        );
       case PinResult.lockedOut:
         _pin.clear();
         setState(() => _error = null);

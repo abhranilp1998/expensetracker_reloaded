@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:expensetracker_reloaded/utils/money.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:expensetracker_reloaded/providers/providers.dart';
@@ -441,7 +442,9 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                   key: const Key('profileCurrencyTile'),
                   leading: Icon(Icons.badge_outlined, color: cs.primary),
                   title: const Text('Name & currency'),
-                  subtitle: const Text('Edit on your Profile'),
+                  subtitle: const Text(
+                    'Edit on your Profile. $currencySymbolNote',
+                  ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () =>
                       Navigator.of(context).pushNamed(AppRoutes.profile),

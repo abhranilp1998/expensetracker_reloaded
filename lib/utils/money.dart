@@ -100,3 +100,7 @@ class MoneyInputFormatter extends TextInputFormatter {
 /// "1 transaction", "2 transactions".
 String plural(int n, String singular, [String? pluralForm]) =>
     '$n ${n == 1 ? singular : (pluralForm ?? '${singular}s')}';
+
+/// Shown under every currency picker: switching never converts amounts.
+const currencySymbolNote =
+    'Changes the symbol only; amounts are not converted.';

@@ -82,6 +82,12 @@ final allTransactionsProvider = StreamProvider<List<TxnRow>>(
   (ref) => ref.watch(transactionRepositoryProvider).watchAll(),
 );
 
+/// Latest 5 confirmed transactions, any date, newest first (Home 'Recent').
+final recentTransactionsProvider = Provider<List<TxnRow>>(
+  (ref) =>
+      (ref.watch(allTransactionsProvider).value ?? const []).take(5).toList(),
+);
+
 Summary _sum(Ref ref, DateRange r) =>
     summarize(ref.watch(rangeTransactionsProvider(r)).value ?? const []);
 

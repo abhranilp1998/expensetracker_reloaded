@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:expensetracker_reloaded/utils/money.dart';
 
 import 'package:expensetracker_reloaded/routes/app_routes.dart';
 import 'package:expensetracker_reloaded/services/user_prefs_service.dart';
@@ -132,6 +133,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                         onSelected: (_) => setState(() => _currency = c),
                       ),
                   ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  currencySymbolNote,
+                  key: const Key('currencyNote'),
+                  style: theme.textTheme.bodySmall,
                 ),
                 const SizedBox(height: 24),
                 FilledButton(onPressed: _save, child: const Text('Save')),

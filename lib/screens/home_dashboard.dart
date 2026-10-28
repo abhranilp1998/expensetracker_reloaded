@@ -83,10 +83,11 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
     final userName = ref.watch(userNameProvider).value ?? 'User';
     final week = ref.watch(weekSummaryProvider);
     final month = ref.watch(monthSummaryProvider);
-    final transactions =
-        (ref.watch(todayTransactionsProvider).value ?? const []).reversed
-            .map(txnToMap)
-            .toList();
+    // Recent = newest 5 overall, not only today's (run4 bug).
+    final transactions = ref
+        .watch(recentTransactionsProvider)
+        .map(txnToMap)
+        .toList();
     ref.listen(todaySummaryProvider, (prev, next) {
       if (prev != null && next.count > prev.count) {
         _totalAnimController.forward(from: 0);
@@ -342,11 +343,12 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
                 ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: transactions.length > 5 ? 5 : transactions.length,
-                  itemBuilder: (context, index) {
-                    final t = transactions[transactions.length - 1 - index];
-                    return TransactionTile(transaction: t, index: index);
-                  },
+                  itemCount: transactions.length,
+                  itemBuilder: (context, index) => TransactionTile(
+                    transaction: transactions[index],
+                    index: index,
+                    showDate: true,
+                  ),
                 ),
             ],
           ),
