@@ -5,6 +5,7 @@ import 'package:expensetracker_reloaded/data/txn_view.dart';
 import 'package:expensetracker_reloaded/domain/summary/insights.dart';
 import 'package:expensetracker_reloaded/providers/providers.dart';
 import 'package:expensetracker_reloaded/widgets/transaction_tile.dart';
+import 'package:expensetracker_reloaded/utils/money.dart';
 
 /// Hero destination for today's spend card — insights, not a bigger number.
 class TodayInsightsPage extends ConsumerWidget {
@@ -68,7 +69,7 @@ class TodayInsightsPage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '₹${insights.today.spent.toStringAsFixed(2)}',
+                      Money.minor(insights.today.spentMinor),
                       style: theme.textTheme.displaySmall?.copyWith(
                         color: cs.onPrimary,
                         fontWeight: FontWeight.bold,
@@ -77,8 +78,8 @@ class TodayInsightsPage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Income ₹${insights.today.income.toStringAsFixed(2)}  ·  '
-                      'Net ${insights.today.netMinor < 0 ? '-' : '+'}₹${insights.today.net.abs().toStringAsFixed(2)}',
+                      'Income ${Money.minor(insights.today.incomeMinor)}  ·  '
+                      'Net ${Money.minor(insights.today.netMinor, signed: true)}',
                       style: TextStyle(
                         color: cs.onPrimary,
                         fontWeight: FontWeight.w600,
@@ -129,7 +130,7 @@ class TodayInsightsPage extends ConsumerWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        Text('₹${e.value.toStringAsFixed(0)}'),
+                        Text(Money.major(e.value)),
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -256,10 +257,7 @@ class _CompareRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(label, style: theme.textTheme.labelLarge),
-                Text(
-                  '₹${other.toStringAsFixed(2)}',
-                  style: theme.textTheme.bodySmall,
-                ),
+                Text(Money.major(other), style: theme.textTheme.bodySmall),
               ],
             ),
           ),

@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../data/db/app_database.dart';
 import '../providers/providers.dart';
 import '../widgets/app_drawer.dart';
+import 'package:expensetracker_reloaded/utils/money.dart';
 
 /// Uncertain SMS waiting for a decision. Each decision is learned as a rule.
 class ReviewQueuePage extends ConsumerWidget {
@@ -78,7 +79,7 @@ class _ReviewCard extends ConsumerWidget {
             Row(
               children: [
                 Text(
-                  '₹${(row.amountMinor / 100).toStringAsFixed(2)}',
+                  Money.minor(row.amountMinor),
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const Spacer(),

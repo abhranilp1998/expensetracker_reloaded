@@ -1,25 +1,37 @@
 import 'package:flutter/material.dart';
 
+import 'package:expensetracker_reloaded/utils/money.dart';
+
 /// Result of the manual-entry sheet.
 class ManualEntry {
-  const ManualEntry({required this.amount, required this.type, this.note});
-  final double amount;
+  const ManualEntry({required this.amountMinor, required this.type, this.note});
+
+  /// Exact amount in minor units (paise). Use this for storage.
+  final int amountMinor;
+
+  /// Major units, for display/legacy callers only.
+  double get amount => amountMinor / 100;
   final String type; // 'debit' | 'credit'
   final String? note;
 }
 
 /// Bottom sheet for entering a transaction by hand.
-Future<ManualEntry?> showAddTransactionSheet(BuildContext context) {
+/// Pass [initial] to edit an existing transaction (title becomes "Edit").
+Future<ManualEntry?> showAddTransactionSheet(
+  BuildContext context, {
+  ManualEntry? initial,
+}) {
   return showModalBottomSheet<ManualEntry>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
-    builder: (_) => const _AddTransactionSheet(),
+    builder: (_) => _AddTransactionSheet(initial: initial),
   );
 }
 
 class _AddTransactionSheet extends StatefulWidget {
-  const _AddTransactionSheet();
+  const _AddTransactionSheet({this.initial});
+  final ManualEntry? initial;
 
   @override
   State<_AddTransactionSheet> createState() => _AddTransactionSheetState();
@@ -31,6 +43,19 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
   String _type = 'debit';
   String? _error;
 
+  bool get _editing => widget.initial != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final i = widget.initial;
+    if (i != null) {
+      _amount.text = (i.amountMinor / 100).toStringAsFixed(2);
+      _note.text = i.note ?? '';
+      _type = i.type;
+    }
+  }
+
   @override
   void dispose() {
     _amount.dispose();
@@ -41,14 +66,18 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
   void _submit() {
     // Close the keyboard first so the tap is never swallowed by focus changes.
     FocusManager.instance.primaryFocus?.unfocus();
-    final value = double.tryParse(_amount.text.replaceAll(',', '').trim());
-    if (value == null || value <= 0) {
-      setState(() => _error = 'Enter an amount greater than 0');
+    final parsed = parseMoneyInput(_amount.text);
+    if (!parsed.isValid) {
+      setState(() => _error = parsed.error);
       return;
     }
     final note = _note.text.trim();
     Navigator.of(context).pop(
-      ManualEntry(amount: value, type: _type, note: note.isEmpty ? null : note),
+      ManualEntry(
+        amountMinor: parsed.minor!,
+        type: _type,
+        note: note.isEmpty ? null : note,
+      ),
     );
   }
 
@@ -66,7 +95,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Add transaction',
+              _editing ? 'Edit transaction' : 'Add transaction',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 12),
@@ -82,13 +111,18 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
             TextField(
               key: const Key('amountField'),
               controller: _amount,
-              autofocus: true,
+              autofocus: !_editing,
+              inputFormatters: [MoneyInputFormatter()],
+              // Clear a stale error as soon as the user edits the amount.
+              onChanged: (_) {
+                if (_error != null) setState(() => _error = null);
+              },
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
               textInputAction: TextInputAction.next,
               decoration: InputDecoration(
-                labelText: 'Amount (₹)',
+                labelText: 'Amount (${Money.symbol.trim()})',
                 errorText: _error,
               ),
             ),

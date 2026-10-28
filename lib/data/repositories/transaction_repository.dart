@@ -162,15 +162,35 @@ class TransactionRepository {
     _db.transactions,
   )..where((x) => x.id.equals(id))).getSingleOrNull();
 
-  /// Manually entered transaction (amount in rupees).
+  /// Edits a transaction from the edit sheet. Unlike [updateTxn], a null
+  /// [note] clears the note. Totals update via the watch streams.
+  Future<void> editTxn(
+    String id, {
+    required int amountMinor,
+    required String type,
+    String? note,
+  }) => (_db.update(_db.transactions)..where((x) => x.id.equals(id))).write(
+    TransactionsCompanion(
+      amountMinor: Value(amountMinor),
+      type: Value(type),
+      note: Value(note),
+      updatedAt: Value(_nowMs),
+      syncStatus: const Value('pending'),
+    ),
+  );
+
+  /// Manually entered transaction. Pass [amountMinor] (exact paise) when you
+  /// have it; [amount] in rupees is kept for older callers.
   Future<bool> addManual({
-    required double amount,
+    double? amount,
+    int? amountMinor,
     String type = 'debit',
     String? note,
     DateTime? at,
   }) {
+    assert(amount != null || amountMinor != null, 'amount required');
     final when = at ?? _clock();
-    final minor = (amount * 100).round();
+    final minor = amountMinor ?? (amount! * 100).round();
     return insert(
       NewTxn(
         amountMinor: minor,

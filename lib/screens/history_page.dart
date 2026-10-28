@@ -7,6 +7,7 @@ import 'package:expensetracker_reloaded/domain/summary/summary.dart';
 import 'package:expensetracker_reloaded/providers/providers.dart';
 import 'package:expensetracker_reloaded/widgets/app_drawer.dart';
 import 'package:expensetracker_reloaded/widgets/transaction_tile.dart';
+import 'package:expensetracker_reloaded/utils/money.dart';
 
 enum _ActivityFilter { day, week, month, all }
 
@@ -161,11 +162,12 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                   itemBuilder: (context, index) {
                     final date = grouped.keys.elementAt(index);
                     final dayTx = grouped[date]!;
-                    final total = dayTx.fold<double>(
-                      0.0,
+                    // Exact integer sum of the day's expenses (minor units).
+                    final totalMinor = dayTx.fold<int>(
+                      0,
                       (sum, t) => t['type'] == 'credit'
                           ? sum
-                          : sum + (t['amount'] as num).toDouble(),
+                          : sum + (t['amountMinor'] as int),
                     );
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,7 +188,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                                 ),
                               ),
                               Text(
-                                '₹${total.toStringAsFixed(2)}',
+                                'Spent ${Money.minor(totalMinor)}',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,

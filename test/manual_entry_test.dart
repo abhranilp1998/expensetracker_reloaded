@@ -58,7 +58,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Save'));
     await tester.pump();
-    expect(find.text('Enter an amount greater than 0'), findsOneWidget);
+    expect(find.text('Enter an amount'), findsOneWidget);
     await tester.tap(find.text('Income'));
     await tester.enterText(find.byKey(const Key('amountField')), '1,250.5');
     await tester.tap(find.text('Save'));

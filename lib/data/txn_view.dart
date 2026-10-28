@@ -4,9 +4,10 @@ import 'db/app_database.dart';
 Map<String, dynamic> txnToMap(TxnRow r) => {
   'id': r.id,
   'amount': r.amountMinor / 100,
+  'amountMinor': r.amountMinor,
   'type': r.type,
   'time': DateTime.fromMillisecondsSinceEpoch(r.occurredAt).toIso8601String(),
-  'message': r.note ?? r.merchant ?? r.rawBody ?? '',
+  'message': txnTitle(r),
   'merchant': r.merchant ?? '',
   'note': r.note ?? '',
   'sender': r.sender ?? '',
@@ -36,3 +37,12 @@ bool txnMatchesSearch(Map<String, dynamic> t, String query) {
 /// Oldest first, matching the legacy list order.
 List<Map<String, dynamic>> txnMaps(List<TxnRow> newestFirst) =>
     newestFirst.reversed.map(txnToMap).toList();
+
+/// Row title: note, else merchant, else SMS body, else "Expense"/"Income".
+/// Never blank (blank-title rows looked broken, bug #17).
+String txnTitle(TxnRow r) {
+  for (final v in [r.note, r.merchant, r.rawBody]) {
+    if (v != null && v.trim().isNotEmpty) return v.trim();
+  }
+  return r.type == 'credit' ? 'Income' : 'Expense';
+}

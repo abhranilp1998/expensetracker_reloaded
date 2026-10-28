@@ -1,6 +1,7 @@
 import '../data/repositories/transaction_repository.dart';
 import '../domain/sms/parsed_sms.dart';
 import '../domain/sms/sms_classifier.dart';
+import 'package:expensetracker_reloaded/utils/money.dart';
 
 /// Counts returned by an SMS import/ingest run (inserted, duplicate, review, ignored).
 class IngestResult {
@@ -66,7 +67,7 @@ Future<IngestResult?> ingestSms(
 }
 
 String describe(IngestResult p) {
-  final amt = '₹${p.amount.toStringAsFixed(2)}';
+  final amt = Money.minor(p.amountMinor);
   if (p.decision == Decision.review) return '$amt — tap to review';
   final who = p.merchant == null ? '' : ' · ${p.merchant}';
   return p.type == TxnType.debit ? '$amt spent$who' : '$amt received$who';

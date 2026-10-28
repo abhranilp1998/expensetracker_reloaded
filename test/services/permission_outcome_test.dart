@@ -11,7 +11,9 @@ void main() {
   });
 
   test('AppPermission maps to SMS + notifications only', () {
-    expect(AppPermission.values.map((e) => e.name).toList(),
-        ['sms', 'notifications']);
+    expect(AppPermission.values.map((e) => e.name).toList(), [
+      'sms',
+      'notifications',
+    ]);
   });
 }
