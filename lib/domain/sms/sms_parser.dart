@@ -56,8 +56,10 @@ class SmsParser {
     caseSensitive: false,
   );
 
+  /// Bank reference: the id after Ref/UPI/Txn/UTR. It must contain a digit,
+  /// so plain words ('UPI payment') are never a reference (Codex A2).
   static final _ref = RegExp(
-    r'\b(?:ref(?:erence)?\.?\s*(?:no\.?|number|#)?|upi\s*(?:ref|txn)?\s*(?:no\.?|id)?|txn\s*(?:id|no\.?)?|utr)\s*[:\-]?\s*([A-Za-z0-9]{6,})',
+    r'\b(?:ref(?:erence)?\.?\s*(?:no\.?|number|#)?|upi\s*(?:ref|txn)?\s*(?:no\.?|id)?|txn\s*(?:id|no\.?)?|utr)\s*[:\-]?\s*((?=[A-Za-z0-9]*\d)[A-Za-z0-9]{6,})',
     caseSensitive: false,
   );
 
