@@ -1,3 +1,4 @@
+import 'package:expensetracker_reloaded/utils/app_version.dart';
 import 'package:flutter/material.dart';
 import 'package:expensetracker_reloaded/utils/money.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -37,6 +38,9 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
   late AnimationType _currentAnimation;
   Map<String, bool> _preferences = {};
 
+  /// About -> App Version, read from the installed package.
+  String _version = '…';
+
   @override
   void initState() {
     super.initState();
@@ -44,6 +48,16 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
     _currentAccentColor = ThemeService.getCurrentAccentColor();
     _currentAnimation = AnimationVariants.currentType;
     _loadPreferences();
+    _loadVersion();
+  }
+
+  Future<void> _loadVersion() async {
+    try {
+      final v = await appVersionLabel();
+      if (mounted) setState(() => _version = v);
+    } catch (e) {
+      debugPrint('App version unavailable: $e');
+    }
   }
 
   /// Copies theme/accent from [themeControllerProvider] and the animation
@@ -541,7 +555,7 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
               _InfoCard(
                 icon: Icons.info_outline,
                 title: 'App Version',
-                value: '1.0.0',
+                value: _version,
                 color: cs.primary,
               ),
               const SizedBox(height: 12),
