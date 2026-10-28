@@ -158,6 +158,18 @@ final currencyProvider = NotifierProvider<CurrencyController, String>(
   CurrencyController.new,
 );
 
+/// Selected bottom tab of MainShell (0 Home, 1 Activity, 2 Review,
+/// 3 Settings). A provider so Home's "See all" can switch tabs (bug #18).
+class ShellTabController extends Notifier<int> {
+  @override
+  int build() => 0;
+  void select(int i) => state = i;
+}
+
+final shellTabProvider = NotifierProvider<ShellTabController, int>(
+  ShellTabController.new,
+);
+
 /// Display name, shared by Home greeting, drawer and Profile (bug #5).
 class UserNameController extends AsyncNotifier<String> {
   @override

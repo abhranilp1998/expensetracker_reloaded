@@ -7,6 +7,33 @@ import 'package:expensetracker_reloaded/providers/providers.dart';
 import 'package:expensetracker_reloaded/widgets/transaction_tile.dart';
 import 'package:expensetracker_reloaded/utils/money.dart';
 
+/// Flight widget for the 'today-total-card' Hero (bug #1).
+///
+/// The default shuttle squeezes the Home card's Column into the in-between
+/// rect and overflows (46px). This renders the source card at its natural
+/// height and clips it to the flight rect instead.
+Widget heroCardShuttle(
+  BuildContext flightContext,
+  Animation<double> animation,
+  HeroFlightDirection direction,
+  BuildContext fromHeroContext,
+  BuildContext toHeroContext,
+) {
+  final hero =
+      (direction == HeroFlightDirection.push
+              ? fromHeroContext.widget
+              : toHeroContext.widget)
+          as Hero;
+  return ClipRect(
+    child: OverflowBox(
+      alignment: Alignment.topLeft,
+      minHeight: 0,
+      maxHeight: double.infinity,
+      child: hero.child,
+    ),
+  );
+}
+
 /// Hero destination for today's spend card — insights, not a bigger number.
 class TodayInsightsPage extends ConsumerWidget {
   const TodayInsightsPage({super.key});
@@ -40,6 +67,7 @@ class TodayInsightsPage extends ConsumerWidget {
         children: [
           Hero(
             tag: 'today-total-card',
+            flightShuttleBuilder: heroCardShuttle,
             child: Material(
               color: Colors.transparent,
               child: Container(

@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:expensetracker_reloaded/routes/app_routes.dart';
 import 'package:expensetracker_reloaded/services/debug_unlock_service.dart';
-import 'package:expensetracker_reloaded/services/user_prefs_service.dart';
 import 'package:expensetracker_reloaded/widgets/drawer_tile.dart';
+import 'package:expensetracker_reloaded/providers/providers.dart';
 
 /// Side menu: Till Now, Profile, Showcase, Event logs, Debug (PIN gated).
 class AppDrawer extends ConsumerStatefulWidget {
@@ -15,15 +15,8 @@ class AppDrawer extends ConsumerStatefulWidget {
 }
 
 class _AppDrawerState extends ConsumerState<AppDrawer> {
-  String _name = 'User';
-
-  @override
-  void initState() {
-    super.initState();
-    UserPrefsService.getUserName().then((n) {
-      if (mounted) setState(() => _name = n);
-    });
-  }
+  /// Same provider as the Home greeting, so both always agree (bug #5).
+  String get _name => ref.watch(userNameProvider).value ?? 'User';
 
   Future<void> _openDebug() async {
     if (DebugUnlockService.sessionUnlocked) {

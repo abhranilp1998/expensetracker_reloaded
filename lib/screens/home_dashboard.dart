@@ -9,7 +9,6 @@ import 'package:expensetracker_reloaded/providers/providers.dart';
 import 'package:expensetracker_reloaded/routes/app_routes.dart';
 import 'package:expensetracker_reloaded/screens/today_insights_page.dart';
 import 'package:expensetracker_reloaded/services/sms_service.dart';
-import 'package:expensetracker_reloaded/services/user_prefs_service.dart';
 import 'package:expensetracker_reloaded/utils/constants.dart';
 import 'package:expensetracker_reloaded/widgets/add_transaction_sheet.dart';
 import 'package:expensetracker_reloaded/widgets/app_drawer.dart';
@@ -30,7 +29,6 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
     with WidgetsBindingObserver, TickerProviderStateMixin {
   late AnimationController _totalAnimController;
   late Animation<double> _totalScaleAnim;
-  String _userName = 'User';
 
   @override
   void initState() {
@@ -43,9 +41,6 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
       CurvedAnimation(parent: _totalAnimController, curve: Curves.elasticOut),
     );
     WidgetsBinding.instance.addObserver(this);
-    UserPrefsService.getUserName().then((n) {
-      if (mounted) setState(() => _userName = n);
-    });
     _softStartSms();
   }
 
@@ -84,6 +79,8 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
     final cs = theme.colorScheme;
     ref.watch(currencyProvider); // rebuild on currency change
     final summary = ref.watch(todaySummaryProvider);
+    // Watched so a rename in Profile shows here at once (bug #5).
+    final userName = ref.watch(userNameProvider).value ?? 'User';
     final week = ref.watch(weekSummaryProvider);
     final month = ref.watch(monthSummaryProvider);
     final transactions =
@@ -110,7 +107,7 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
               ),
             ),
             Text(
-              '$_greeting, $_userName',
+              '$_greeting, $userName',
               style: theme.textTheme.labelSmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -150,6 +147,7 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
                 },
                 child: Hero(
                   tag: 'today-total-card',
+                  flightShuttleBuilder: heroCardShuttle,
                   child: Material(
                     color: Colors.transparent,
                     child: Container(
@@ -260,56 +258,8 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
                   ),
                 ],
               ),
-              const SizedBox(height: 28),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Recent',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      // Activity is tab index 1; push history route as fallback.
-                      Navigator.of(context).pushNamed(AppRoutes.history);
-                    },
-                    child: const Text('See all'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              if (transactions.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.receipt_long_outlined,
-                          size: 56,
-                          color: cs.outline,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'No transactions yet',
-                          style: theme.textTheme.bodyLarge,
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              else
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: transactions.length > 5 ? 5 : transactions.length,
-                  itemBuilder: (context, index) {
-                    final t = transactions[transactions.length - 1 - index];
-                    return TransactionTile(transaction: t, index: index);
-                  },
-                ),
+              // Snapshot sits above Recent so the Add button never covers
+              // "Net today" (bug #19).
               const SizedBox(height: 24),
               Text(
                 'Balance snapshot',
@@ -348,7 +298,56 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
                   ),
                 ),
               ),
-              const SizedBox(height: 88),
+              const SizedBox(height: 28),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Recent',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  TextButton(
+                    // Switch to the Activity tab instead of pushing a second
+                    // Activity page (bug #18).
+                    onPressed: () =>
+                        ref.read(shellTabProvider.notifier).select(1),
+                    child: const Text('See all'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              if (transactions.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.receipt_long_outlined,
+                          size: 56,
+                          color: cs.outline,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'No transactions yet',
+                          style: theme.textTheme.bodyLarge,
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: transactions.length > 5 ? 5 : transactions.length,
+                  itemBuilder: (context, index) {
+                    final t = transactions[transactions.length - 1 - index];
+                    return TransactionTile(transaction: t, index: index);
+                  },
+                ),
             ],
           ),
         ),

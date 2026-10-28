@@ -18,6 +18,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   final _nameCtrl = TextEditingController();
   String _currency = 'INR';
   bool _loading = true;
+  String? _nameError;
 
   @override
   void initState() {
@@ -43,7 +44,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   }
 
   Future<void> _save() async {
-    await UserPrefsService.setUserName(_nameCtrl.text);
+    // A name is required here; don't silently save "User" (bug #6).
+    if (_nameCtrl.text.trim().isEmpty) {
+      setState(() => _nameError = 'Enter a name');
+      return;
+    }
+    await ref.read(userNameProvider.notifier).set(_nameCtrl.text);
     // Through the provider so every screen re-renders in the new currency.
     await ref.read(currencyProvider.notifier).set(_currency);
     if (!mounted) return;
@@ -104,12 +110,14 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 TextField(
                   controller: _nameCtrl,
                   textCapitalization: TextCapitalization.words,
-                  decoration: const InputDecoration(
+                  key: const Key('profileName'),
+                  decoration: InputDecoration(
                     labelText: 'Display name',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.badge_outlined),
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.badge_outlined),
+                    errorText: _nameError,
                   ),
-                  onChanged: (_) => setState(() {}),
+                  onChanged: (_) => setState(() => _nameError = null),
                 ),
                 const SizedBox(height: 16),
                 Text('Currency', style: theme.textTheme.titleSmall),
