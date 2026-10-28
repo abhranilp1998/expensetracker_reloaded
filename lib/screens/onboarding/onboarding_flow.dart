@@ -75,6 +75,18 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
     await _next();
   }
 
+  /// "Skip setup" keeps every default except the name: like Profile and the
+  /// About you page, an empty name is not allowed, so ask for it first.
+  Future<void> _skipSetup() async {
+    final name = await showDialog<String>(
+      context: context,
+      builder: (_) => _SkipNameDialog(initial: _nameCtrl.text),
+    );
+    if (name == null || !mounted) return; // cancelled
+    _nameCtrl.text = name;
+    await _finish();
+  }
+
   bool _finishing = false;
 
   Future<void> _finish() async {
@@ -251,7 +263,11 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
           ),
           const Spacer(flex: 3),
           FilledButton(onPressed: _next, child: const Text('Continue')),
-          TextButton(onPressed: _finish, child: const Text('Skip setup')),
+          TextButton(
+            key: const Key('skipSetup'),
+            onPressed: _skipSetup,
+            child: const Text('Skip setup'),
+          ),
         ],
       ),
     );
@@ -594,4 +610,72 @@ extension on ThemeMode {
     ThemeMode.dark => 'Dark',
     ThemeMode.system => 'System',
   };
+}
+
+/// Asks for the name before skipping onboarding; returns it, or null on
+/// Cancel. Uses the same [validateDisplayName] rule as Profile.
+class _SkipNameDialog extends StatefulWidget {
+  const _SkipNameDialog({required this.initial});
+  final String initial;
+
+  @override
+  State<_SkipNameDialog> createState() => _SkipNameDialogState();
+}
+
+class _SkipNameDialogState extends State<_SkipNameDialog> {
+  late final _ctrl = TextEditingController(text: widget.initial);
+  String? _error;
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final err = validateDisplayName(_ctrl.text);
+    if (err != null) return setState(() => _error = err);
+    Navigator.of(context).pop(_ctrl.text.trim());
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('What should we call you?'),
+    content: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Everything else uses the defaults. Change it later in Profile.',
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          key: const Key('skipName'),
+          controller: _ctrl,
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+          decoration: InputDecoration(
+            labelText: 'Your name',
+            border: const OutlineInputBorder(),
+            errorText: _error,
+          ),
+          onChanged: (_) {
+            if (_error != null) setState(() => _error = null);
+          },
+          onSubmitted: (_) => _submit(),
+        ),
+      ],
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Cancel'),
+      ),
+      FilledButton(
+        key: const Key('skipConfirm'),
+        onPressed: _submit,
+        child: const Text('Skip setup'),
+      ),
+    ],
+  );
 }

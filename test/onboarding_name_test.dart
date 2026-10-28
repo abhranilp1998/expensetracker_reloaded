@@ -43,4 +43,36 @@ void main() {
     await t.pumpAndSettle();
     expect(name.hitTestable(), findsNothing); // moved on
   });
+
+  testWidgets('Skip setup asks for a name and never saves "User"', (t) async {
+    SharedPreferences.setMockInitialValues({});
+    await ThemeService.initialize();
+    t.view.physicalSize = const Size(800, 1600);
+    t.view.devicePixelRatio = 1;
+    addTearDown(t.view.reset);
+    await t.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          home: const OnboardingFlow(),
+          onGenerateRoute: (s) =>
+              MaterialPageRoute(builder: (_) => Text('route ${s.name}')),
+        ),
+      ),
+    );
+    await t.pumpAndSettle();
+
+    await t.tap(find.byKey(const Key('skipSetup')));
+    await t.pumpAndSettle();
+    await t.tap(find.byKey(const Key('skipConfirm')));
+    await t.pumpAndSettle();
+    expect(find.text('Enter a name'), findsOneWidget);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getBool(UserPrefsService.onboardingCompletedKey), isNull);
+
+    await t.enterText(find.byKey(const Key('skipName')), '  Abhranil ');
+    await t.tap(find.byKey(const Key('skipConfirm')));
+    await t.pumpAndSettle();
+    expect(await UserPrefsService.getUserName(), 'Abhranil');
+    expect(prefs.getBool(UserPrefsService.onboardingCompletedKey), isTrue);
+  });
 }
