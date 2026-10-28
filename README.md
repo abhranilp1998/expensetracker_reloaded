@@ -5,8 +5,9 @@ transactions, and shows today's spend, income and net balance. Uncertain SMS go 
 queue; your decisions become **learned rules**. All data (including raw SMS) stays on the phone.
 
 - Package: `com.abhranil.ledgerly` · State: Riverpod · Storage: Drift (SQLite)
-- Functional spec: [`docs/FUNCTIONAL_SPEC.md`](docs/FUNCTIONAL_SPEC.md)
-- New-developer quickstart: [`docs/HANDOFF.md`](docs/HANDOFF.md)
+- Version: **1.0.1+2** — see [`CHANGELOG.md`](CHANGELOG.md)
+- Functional spec (screens, rules, settings, privacy): [`docs/FUNCTIONAL_SPEC.md`](docs/FUNCTIONAL_SPEC.md)
+- Developer handoff (architecture, tests, release, open items): [`docs/HANDOFF.md`](docs/HANDOFF.md)
 - Sideload / permission troubleshooting: [`docs/SIDELOAD_ANDROID.md`](docs/SIDELOAD_ANDROID.md)
 
 ## Prerequisites
@@ -17,8 +18,8 @@ queue; your decisions become **learned rules**. All data (including raw SMS) sta
 ```powershell
 cd "F:\Dev\Projects - The Hub\expensetracker_reloaded"
 flutter pub get
-flutter analyze
-flutter test
+flutter analyze   # 0 errors
+flutter test      # 167 tests
 ```
 
 ## Run on a physical phone over USB (Windows)
@@ -40,6 +41,8 @@ flutter test
    flutter run -d <device-id> --release
    ```
    In VS Code: pick the device in the status bar, then *Run and Debug* → `Ledgerly (debug)`.
+   Press `r` for hot reload, `R` for hot restart. Debug builds keep the screen on (wakelock);
+   release builds don't.
 6. Attach to an app already running on the phone (debug build): `flutter attach -d <device-id>`
    (or VS Code config `Ledgerly (attach)`).
 7. Logs:
@@ -55,12 +58,13 @@ flutter test
 ### Installing an APK directly
 
 ```powershell
-flutter build apk --release --split-per-abi
+flutter build apk --release --split-per-abi --target-platform android-arm64
 adb install -r -g build\app\outputs\flutter-apk\app-arm64-v8a-release.apk
 ```
 
 `-r` keeps data on reinstall, `-g` grants runtime permissions (SMS, notifications) at install.
-Uninstall first (`adb uninstall com.abhranil.ledgerly`) to see onboarding again.
+Uninstalling (`adb uninstall com.abhranil.ledgerly`) or `adb shell pm clear` shows onboarding
+again but **deletes all data**. The arm64 split APK has versionCode = build + 2000 (1.0.1+2 → 2002).
 
 **Sideload restrictions:** APKs opened from Chrome/WhatsApp/Files can be blocked by Play Protect
 (enhanced fraud protection, India pilot) and SMS toggles greyed out by *Restricted settings*
