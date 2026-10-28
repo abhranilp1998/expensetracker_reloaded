@@ -72,11 +72,14 @@ MoneyParse parseMoneyInput(String input) {
     );
   }
   final parts = s.split('.');
-  final whole = parts[0].isEmpty ? 0 : int.parse(parts[0]);
-  final frac = parts.length > 1 ? parts[1].padRight(2, '0') : '00';
-  if (parts[0].length > 10) {
+  // Length check BEFORE int.parse: 40 nines would overflow and throw
+  // (Codex A1). Leading zeros do not count.
+  final wholeDigits = parts[0].replaceFirst(RegExp(r'^0+'), '');
+  if (wholeDigits.length > 10) {
     return const MoneyParse.fail('Amount is too large');
   }
+  final whole = wholeDigits.isEmpty ? 0 : int.parse(wholeDigits);
+  final frac = parts.length > 1 ? parts[1].padRight(2, '0') : '00';
   final minor = whole * 100 + int.parse(frac);
   if (minor <= 0)
     return const MoneyParse.fail('Enter an amount greater than 0');

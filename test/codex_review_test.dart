@@ -35,6 +35,15 @@ void main() {
     DebugUnlockService.lock();
   });
 
+  test('A1 very long manual amount returns validation instead of throwing', () {
+    expect(() => parseMoneyInput(List.filled(40, '9').join()), returnsNormally);
+    expect(
+      parseMoneyInput(List.filled(40, '9').join()).error,
+      'Amount is too large',
+    );
+    expect(parseMoneyInput('0000000000012.50').minor, 1250);
+  });
+
   test(
     'A2 ordinary UPI wording must not deduplicate different payments',
     () async {
