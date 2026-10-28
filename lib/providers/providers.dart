@@ -8,6 +8,8 @@ import '../data/db/db_instance.dart';
 import '../data/repositories/transaction_repository.dart';
 import '../domain/summary/summary.dart';
 import '../services/theme_service.dart';
+import '../services/user_prefs_service.dart';
+import '../utils/money.dart';
 
 /// Overridable in tests.
 final clockProvider = Provider<DateTime Function()>((_) => DateTime.now);
@@ -136,6 +138,39 @@ class ThemeController extends Notifier<ThemeState> {
 /// Exposes [ThemeController]/[ThemeState] to MaterialApp and settings.
 final themeControllerProvider = NotifierProvider<ThemeController, ThemeState>(
   ThemeController.new,
+);
+
+/// Active currency code (bug #4). Every money label goes through [Money],
+/// which reads [Money.code]; screens `ref.watch(currencyProvider)` so they
+/// rebuild when it changes.
+class CurrencyController extends Notifier<String> {
+  @override
+  String build() => Money.code;
+
+  Future<void> set(String code) async {
+    Money.code = code;
+    state = code;
+    await UserPrefsService.setCurrency(code);
+  }
+}
+
+final currencyProvider = NotifierProvider<CurrencyController, String>(
+  CurrencyController.new,
+);
+
+/// Display name, shared by Home greeting, drawer and Profile (bug #5).
+class UserNameController extends AsyncNotifier<String> {
+  @override
+  Future<String> build() => UserPrefsService.getUserName();
+
+  Future<void> set(String name) async {
+    await UserPrefsService.setUserName(name);
+    state = AsyncData(await UserPrefsService.getUserName());
+  }
+}
+
+final userNameProvider = AsyncNotifierProvider<UserNameController, String>(
+  UserNameController.new,
 );
 
 /// Uncertain SMS-derived transactions awaiting user review.

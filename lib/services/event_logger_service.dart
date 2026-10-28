@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
+import 'package:expensetracker_reloaded/services/app_settings.dart';
 
 /// Event types for logging
 enum EventType {
@@ -65,6 +66,8 @@ class EventLoggerService {
     required String message,
     Map<String, dynamic>? metadata,
   }) async {
+    // Settings > Activity log off: record nothing (bug #11).
+    if (!AppSettings.eventLogging) return;
     final event = AppEvent(
       timestamp: DateTime.now(),
       type: type,

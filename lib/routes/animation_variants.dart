@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:expensetracker_reloaded/services/app_settings.dart';
 
 /// Enumeration of available route animation variants
 enum AnimationType {
@@ -54,6 +55,14 @@ class AnimationVariants {
 
   /// Create route with current animation type
   static Route<dynamic> createRoute(Widget page) {
+    // Settings > Enable Animations off: no transition at all (bug #11).
+    if (!AppSettings.animations) {
+      return PageRouteBuilder(
+        pageBuilder: (_, _, _) => page,
+        transitionDuration: Duration.zero,
+        reverseTransitionDuration: Duration.zero,
+      );
+    }
     return _routeBuilders[_currentType]!(page);
   }
 

@@ -71,8 +71,8 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
   Future<void> _finish() async {
     if (_finishing) return; // ignore double taps while prefs save
     _finishing = true;
-    await UserPrefsService.setUserName(_nameCtrl.text);
-    await UserPrefsService.setCurrency(_currency);
+    await ref.read(userNameProvider.notifier).set(_nameCtrl.text);
+    await ref.read(currencyProvider.notifier).set(_currency);
     await UserPrefsService.setImportPastSms(_importPast);
     await UserPrefsService.setNotificationsEnabled(_notifications);
     await UserPrefsService.applyImportPreference();

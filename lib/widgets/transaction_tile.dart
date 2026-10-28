@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import 'package:expensetracker_reloaded/utils/money.dart';
 import 'package:expensetracker_reloaded/widgets/transaction_actions.dart';
+import 'package:expensetracker_reloaded/providers/providers.dart';
 
 /// List tile for one transaction, used on Home, Activity and Insights.
 /// Tap = edit, long-press = Edit/Delete menu (when the row has an 'id').
@@ -35,6 +36,7 @@ class _TransactionTileState extends ConsumerState<TransactionTile> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    ref.watch(currencyProvider); // rebuild on currency change
     final isCredit = widget.transaction['type'] == 'credit';
     final tileColor = isCredit ? creditColor : debitColor;
     final hasId = widget.transaction['id'] != null;

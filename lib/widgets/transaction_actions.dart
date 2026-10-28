@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:expensetracker_reloaded/providers/providers.dart';
 import 'package:expensetracker_reloaded/utils/money.dart';
 import 'package:expensetracker_reloaded/widgets/add_transaction_sheet.dart';
+import 'package:expensetracker_reloaded/services/app_settings.dart';
 
 /// Edit / delete for one transaction row (bug #8).
 /// [txn] is the map from `txnToMap` (needs 'id', 'amountMinor', 'type', 'note').
@@ -69,6 +70,7 @@ Future<bool> confirmDeleteTransaction(
     ),
   );
   if (ok != true) return false;
+  Haptics.tap();
   await ref.read(transactionRepositoryProvider).softDelete(txn['id'] as String);
   if (context.mounted) {
     ScaffoldMessenger.of(

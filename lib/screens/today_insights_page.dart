@@ -14,6 +14,7 @@ class TodayInsightsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    ref.watch(currencyProvider); // rebuild on currency change
     final now = ref.watch(clockProvider)();
     final todayRows = ref.watch(todayTransactionsProvider).value ?? const [];
     final yRange = yesterdayRange(now);

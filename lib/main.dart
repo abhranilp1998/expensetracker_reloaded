@@ -12,6 +12,9 @@ import 'package:expensetracker_reloaded/services/sms_service.dart';
 import 'package:expensetracker_reloaded/data/db/db_instance.dart';
 import 'package:expensetracker_reloaded/data/migration/prefs_migration.dart';
 import 'package:expensetracker_reloaded/data/repositories/transaction_repository.dart';
+import 'package:expensetracker_reloaded/services/app_settings.dart';
+import 'package:expensetracker_reloaded/services/user_prefs_service.dart';
+import 'package:expensetracker_reloaded/utils/money.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,6 +36,10 @@ void main() async {
 
   // Initialize theme service
   await ThemeService.initialize();
+
+  // Feature toggles (haptics, animations, activity log) and currency.
+  await AppSettings.load();
+  Money.code = await UserPrefsService.getCurrency();
 
   // Live SMS listener only. Past-inbox import never runs at launch: the user
   // starts it from the Inbox scan screen (after onboarding or in Settings).

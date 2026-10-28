@@ -69,6 +69,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
   @override
   Widget build(BuildContext context) {
     final all = ref.watch(allTransactionsProvider);
+    ref.watch(currencyProvider); // rebuild on currency change
     final now = ref.watch(clockProvider)();
     final theme = Theme.of(context);
 

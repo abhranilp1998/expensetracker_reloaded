@@ -9,6 +9,7 @@ import '../domain/sms/sms_classifier.dart';
 import 'notification_service.dart';
 import 'sms_import.dart';
 import 'sms_ingest.dart';
+import '../utils/money.dart';
 
 export 'sms_import.dart' show ImportSummary, ImportCancelToken;
 
@@ -35,6 +36,10 @@ class SmsService {
     final body = m.body;
     if (body == null || body.isEmpty) return;
     try {
+      // Background isolate: load the user's currency for the notification.
+      Money.code =
+          (await SharedPreferences.getInstance()).getString('userCurrency') ??
+          Money.code;
       final p = await ingestSms(
         TransactionRepository(appDatabase),
         body: body,

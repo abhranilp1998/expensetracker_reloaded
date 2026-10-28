@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:expensetracker_reloaded/utils/money.dart';
+import 'package:expensetracker_reloaded/services/app_settings.dart';
 
 /// Result of the manual-entry sheet.
 class ManualEntry {
@@ -71,6 +72,7 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
       setState(() => _error = parsed.error);
       return;
     }
+    Haptics.tap();
     final note = _note.text.trim();
     Navigator.of(context).pop(
       ManualEntry(

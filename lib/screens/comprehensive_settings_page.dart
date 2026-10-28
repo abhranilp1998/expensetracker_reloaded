@@ -9,6 +9,7 @@ import 'package:expensetracker_reloaded/routes/animation_variants.dart';
 import 'package:expensetracker_reloaded/routes/app_routes.dart';
 import 'package:expensetracker_reloaded/widgets/app_drawer.dart';
 import 'package:expensetracker_reloaded/widgets/permissions_section.dart';
+import 'package:expensetracker_reloaded/services/app_settings.dart';
 
 /// Single sectioned Settings page: Appearance, SMS & permissions, Learned rules, About.
 class ComprehensiveSettingsPage extends StatefulWidget {
@@ -49,7 +50,6 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
       _preferences = {
         'notifications': prefs.getBool('pref_notifications') ?? true,
         'haptic_feedback': prefs.getBool('pref_haptic_feedback') ?? true,
-        'auto_dark_mode': prefs.getBool('pref_auto_dark_mode') ?? false,
         'animations_enabled': prefs.getBool('pref_animations_enabled') ?? true,
         'event_logging': prefs.getBool('pref_event_logging') ?? true,
       };
@@ -57,8 +57,8 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
   }
 
   Future<void> _updatePreference(String key, bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('pref_$key', value);
+    // AppSettings persists the flag and applies it right away (bug #11).
+    await AppSettings.set('pref_$key', value);
     setState(() => _preferences[key] = value);
 
     // Log preference change
@@ -298,7 +298,7 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
               _PreferenceToggle(
                 icon: Icons.animation_outlined,
                 title: 'Enable Animations',
-                subtitle: 'Show page transition animations',
+                subtitle: 'Off: pages switch instantly',
                 value: _preferences['animations_enabled'] ?? true,
                 color: cs.primary,
                 onChanged: (value) =>
@@ -434,6 +434,20 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
               ),
               const SizedBox(height: 24),
 
+              // Name and currency live on Profile; link them here (bug #20).
+              Card(
+                child: ListTile(
+                  key: const Key('profileCurrencyTile'),
+                  leading: Icon(Icons.badge_outlined, color: cs.primary),
+                  title: const Text('Name & currency'),
+                  subtitle: const Text('Edit on your Profile'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () =>
+                      Navigator.of(context).pushNamed(AppRoutes.profile),
+                ),
+              ),
+              const SizedBox(height: 24),
+
               // Learned rules
               _SectionHeader(
                 key: _sectionKeys['Learned rules'],
@@ -466,7 +480,7 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
               _PreferenceToggle(
                 icon: Icons.notifications,
                 title: 'Notifications',
-                subtitle: 'Receive expense alerts and reminders',
+                subtitle: 'Alert when an SMS transaction is detected',
                 value: _preferences['notifications'] ?? true,
                 color: cs.primary,
                 onChanged: (value) => _updatePreference('notifications', value),
@@ -475,7 +489,7 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
               _PreferenceToggle(
                 icon: Icons.vibration,
                 title: 'Haptic Feedback',
-                subtitle: 'Vibrations on button interactions',
+                subtitle: 'Vibrate on tabs, Add, Save and Delete',
                 value: _preferences['haptic_feedback'] ?? true,
                 color: cs.primary,
                 onChanged: (value) =>
@@ -484,38 +498,17 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
               const SizedBox(height: 12),
               _PreferenceToggle(
                 icon: Icons.event_note,
-                title: 'Event Logging',
-                subtitle: 'Log all app activities for analytics',
+                title: 'Activity log',
+                subtitle:
+                    'Keep a local log on this phone for debugging. Never uploaded.',
                 value: _preferences['event_logging'] ?? true,
                 color: cs.primary,
                 onChanged: (value) => _updatePreference('event_logging', value),
               ),
               const SizedBox(height: 24),
 
-              // Advanced Settings Section
-              _SectionHeader(
-                icon: Icons.tune,
-                title: 'Advanced Settings',
-                color: cs.primary,
-              ),
-              const SizedBox(height: 12),
-              _PreferenceToggle(
-                icon: Icons.brightness_auto,
-                title: 'Auto Dark Mode',
-                subtitle: 'Switch theme based on time of day',
-                value: _preferences['auto_dark_mode'] ?? false,
-                color: cs.primary,
-                onChanged: (value) {
-                  _updatePreference('auto_dark_mode', value);
-                  if (value) {
-                    ProviderScope.containerOf(context)
-                        .read(themeControllerProvider.notifier)
-                        .setTheme(ThemeMode.system);
-                  }
-                },
-              ),
-              const SizedBox(height: 24),
-
+              // "Auto Dark Mode" was removed (bug #11): Theme Mode > System
+              // already follows the phone's dark mode.
               // About & Info Section
               _SectionHeader(
                 key: _sectionKeys['About'],
@@ -619,9 +612,10 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('pref_notifications');
       await prefs.remove('pref_haptic_feedback');
-      await prefs.remove('pref_auto_dark_mode');
       await prefs.remove('pref_animations_enabled');
       await prefs.remove('pref_event_logging');
+      await prefs.remove('pref_auto_dark_mode'); // legacy key
+      await AppSettings.load();
 
       if (mounted) {
         await EventLoggerService.logEvent(
@@ -672,9 +666,10 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
       await prefs.remove('animationType');
       await prefs.remove('pref_notifications');
       await prefs.remove('pref_haptic_feedback');
-      await prefs.remove('pref_auto_dark_mode');
       await prefs.remove('pref_animations_enabled');
       await prefs.remove('pref_event_logging');
+      await prefs.remove('pref_auto_dark_mode'); // legacy key
+      await AppSettings.load();
 
       if (mounted) {
         await EventLoggerService.logEvent(

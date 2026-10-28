@@ -15,6 +15,7 @@ class ReviewQueuePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(currencyProvider); // rebuild on currency change
     final queue = ref.watch(reviewQueueProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('Needs review')),

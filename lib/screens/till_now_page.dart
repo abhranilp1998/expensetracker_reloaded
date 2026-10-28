@@ -17,6 +17,7 @@ class TillNowPage extends ConsumerStatefulWidget {
 class _TillNowPageState extends ConsumerState<TillNowPage> {
   @override
   Widget build(BuildContext context) {
+    ref.watch(currencyProvider); // rebuild on currency change
     final all = ref.watch(allTransactionsProvider).value;
     final transactions = all == null ? null : txnMaps(all);
     final totalSpent = ref.watch(allTimeSummaryProvider).spentMinor;

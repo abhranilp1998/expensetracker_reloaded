@@ -3,16 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:expensetracker_reloaded/routes/app_routes.dart';
 import 'package:expensetracker_reloaded/services/user_prefs_service.dart';
 import 'package:expensetracker_reloaded/utils/constants.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:expensetracker_reloaded/providers/providers.dart';
 
 /// User profile (name, currency, stats); settings live in [ComprehensiveSettingsPage].
-class ProfilePage extends StatefulWidget {
+class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
 
   @override
-  State<ProfilePage> createState() => _ProfilePageState();
+  ConsumerState<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ProfilePageState extends ConsumerState<ProfilePage> {
   final _nameCtrl = TextEditingController();
   String _currency = 'INR';
   bool _loading = true;
@@ -42,7 +44,8 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _save() async {
     await UserPrefsService.setUserName(_nameCtrl.text);
-    await UserPrefsService.setCurrency(_currency);
+    // Through the provider so every screen re-renders in the new currency.
+    await ref.read(currencyProvider.notifier).set(_currency);
     if (!mounted) return;
     ScaffoldMessenger.of(
       context,

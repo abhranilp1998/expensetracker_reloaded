@@ -1,4 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:expensetracker_reloaded/services/app_settings.dart';
 
 /// Single notification entry point. Safe to call from the background SMS
 /// isolate: it lazily initializes the plugin per isolate.
@@ -29,7 +30,9 @@ class NotificationService {
 
   /// [key] makes the id stable per transaction so notifications stack
   /// instead of overwriting each other.
+  /// Does nothing when Settings > Notifications is off (bug #11).
   static Future<void> show(String title, String body, {String? key}) async {
+    if (!await AppSettings.notificationsEnabled()) return;
     await initialize();
     final id =
         (key ?? '$title$body${DateTime.now().microsecondsSinceEpoch}')

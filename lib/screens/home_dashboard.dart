@@ -16,6 +16,7 @@ import 'package:expensetracker_reloaded/widgets/app_drawer.dart';
 import 'package:expensetracker_reloaded/widgets/summary_row.dart';
 import 'package:expensetracker_reloaded/widgets/transaction_tile.dart';
 import 'package:expensetracker_reloaded/utils/money.dart';
+import 'package:expensetracker_reloaded/services/app_settings.dart';
 
 /// Home tab: today's spend hero, income/net, week/month stats, recent transactions.
 class HomeDashboard extends ConsumerStatefulWidget {
@@ -81,6 +82,7 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
+    ref.watch(currencyProvider); // rebuild on currency change
     final summary = ref.watch(todaySummaryProvider);
     final week = ref.watch(weekSummaryProvider);
     final month = ref.watch(monthSummaryProvider);
@@ -355,6 +357,7 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
   }
 
   Future<void> _addTransaction() async {
+    Haptics.tap();
     final entry = await showAddTransactionSheet(context);
     if (entry == null || !mounted) return;
     await ref
