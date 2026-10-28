@@ -56,52 +56,56 @@ class _AddTransactionSheetState extends State<_AddTransactionSheet> {
   Widget build(BuildContext context) {
     return AnimatedPadding(
       duration: const Duration(milliseconds: 150),
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'Add transaction',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 12),
-          SegmentedButton<String>(
-            segments: const [
-              ButtonSegment(value: 'debit', label: Text('Expense')),
-              ButtonSegment(value: 'credit', label: Text('Income')),
-            ],
-            selected: {_type},
-            onSelectionChanged: (s) => setState(() => _type = s.first),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            key: const Key('amountField'),
-            controller: _amount,
-            autofocus: true,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            textInputAction: TextInputAction.next,
-            decoration: InputDecoration(
-              labelText: 'Amount (₹)',
-              errorText: _error,
-            ),
-          ),
-          TextField(
-            controller: _note,
-            textInputAction: TextInputAction.done,
-            onSubmitted: (_) => _submit(),
-            decoration: const InputDecoration(labelText: 'Note (optional)'),
-          ),
-          const SizedBox(height: 16),
-          FilledButton(
-            key: const Key('saveTxn'),
-            onPressed: _submit,
-            child: const Text('Save'),
-          ),
-        ],
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Add transaction',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 12),
+            SegmentedButton<String>(
+              segments: const [
+                ButtonSegment(value: 'debit', label: Text('Expense')),
+                ButtonSegment(value: 'credit', label: Text('Income')),
+              ],
+              selected: {_type},
+              onSelectionChanged: (s) => setState(() => _type = s.first),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              key: const Key('amountField'),
+              controller: _amount,
+              autofocus: true,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              textInputAction: TextInputAction.next,
+              decoration: InputDecoration(
+                labelText: 'Amount (₹)',
+                errorText: _error,
+              ),
+            ),
+            TextField(
+              controller: _note,
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) => _submit(),
+              decoration: const InputDecoration(labelText: 'Note (optional)'),
+            ),
+            const SizedBox(height: 16),
+            FilledButton(
+              key: const Key('saveTxn'),
+              onPressed: _submit,
+              child: const Text('Save'),
+            ),
+          ],
+        ),
       ),
     );
   }

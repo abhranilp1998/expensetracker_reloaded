@@ -131,8 +131,9 @@ class _AnimationVariantSelectorState extends State<AnimationVariantSelector> {
                 title: Text(
                   AnimationVariants.getAnimationName(type),
                   style: TextStyle(
-                    fontWeight:
-                        isSelected ? FontWeight.w600 : FontWeight.normal,
+                    fontWeight: isSelected
+                        ? FontWeight.w600
+                        : FontWeight.normal,
                   ),
                 ),
                 subtitle: Text(
@@ -209,10 +210,12 @@ class _AnimationTypeDropdownState extends State<AnimationTypeDropdown> {
       value: _selectedType,
       isExpanded: true,
       items: AnimationType.values
-          .map((type) => DropdownMenuItem(
-                value: type,
-                child: Text(AnimationVariants.getAnimationName(type)),
-              ))
+          .map(
+            (type) => DropdownMenuItem(
+              value: type,
+              child: Text(AnimationVariants.getAnimationName(type)),
+            ),
+          )
           .toList(),
       onChanged: (newType) {
         if (newType != null) {

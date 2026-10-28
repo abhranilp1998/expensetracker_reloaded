@@ -20,11 +20,17 @@ bool txnMatchesSearch(Map<String, dynamic> t, String query) {
   final amountStrs = <String>[
     amount.toString(),
     if (amount is num) amount.toStringAsFixed(2),
-    if (amount is num && amount == amount.roundToDouble()) amount.toInt().toString(),
+    if (amount is num && amount == amount.roundToDouble())
+      amount.toInt().toString(),
   ];
-  final fields = [t['merchant'], t['note'], t['sender'], t['message']]
-      .map((e) => (e ?? '').toString().toLowerCase());
-  return fields.any((f) => f.contains(q)) || amountStrs.any((a) => a.contains(q));
+  final fields = [
+    t['merchant'],
+    t['note'],
+    t['sender'],
+    t['message'],
+  ].map((e) => (e ?? '').toString().toLowerCase());
+  return fields.any((f) => f.contains(q)) ||
+      amountStrs.any((a) => a.contains(q));
 }
 
 /// Oldest first, matching the legacy list order.

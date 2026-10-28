@@ -12,8 +12,10 @@ import '../services/theme_service.dart';
 /// Overridable in tests.
 final clockProvider = Provider<DateTime Function()>((_) => DateTime.now);
 
+/// Singleton Drift [AppDatabase] (on-device SQLite).
 final databaseProvider = Provider<AppDatabase>((_) => appDatabase);
 
+/// Repository wrapping all transaction/rule reads and writes.
 final transactionRepositoryProvider = Provider<TransactionRepository>(
   (ref) => TransactionRepository(
     ref.watch(databaseProvider),
@@ -46,26 +48,34 @@ final currentDayProvider = StreamProvider<DateTime>((ref) {
 DateTime _now(Ref ref) =>
     ref.watch(currentDayProvider).value ?? ref.watch(clockProvider)();
 
+/// [DateRange] for today (local time).
 final todayRangeProvider = Provider<DateRange>(
   (ref) => DateRange.day(_now(ref)),
 );
+
+/// [DateRange] for the current week.
 final weekRangeProvider = Provider<DateRange>(
   (ref) => DateRange.week(_now(ref)),
 );
+
+/// [DateRange] for the current calendar month.
 final monthRangeProvider = Provider<DateRange>(
   (ref) => DateRange.month(_now(ref)),
 );
 
+/// Live stream of transactions within a given [DateRange] (family).
 final rangeTransactionsProvider =
     StreamProvider.family<List<TxnRow>, DateRange>(
       (ref, r) =>
           ref.watch(transactionRepositoryProvider).watchRange(r.start, r.end),
     );
 
+/// Today's transactions, derived from [rangeTransactionsProvider].
 final todayTransactionsProvider = Provider<AsyncValue<List<TxnRow>>>(
   (ref) => ref.watch(rangeTransactionsProvider(ref.watch(todayRangeProvider))),
 );
 
+/// Live stream of every stored transaction.
 final allTransactionsProvider = StreamProvider<List<TxnRow>>(
   (ref) => ref.watch(transactionRepositoryProvider).watchAll(),
 );
@@ -73,25 +83,34 @@ final allTransactionsProvider = StreamProvider<List<TxnRow>>(
 Summary _sum(Ref ref, DateRange r) =>
     summarize(ref.watch(rangeTransactionsProvider(r)).value ?? const []);
 
+/// Debit/credit/net [Summary] for today (Home hero card).
 final todaySummaryProvider = Provider<Summary>(
   (ref) => _sum(ref, ref.watch(todayRangeProvider)),
 );
+
+/// [Summary] for the current week.
 final weekSummaryProvider = Provider<Summary>(
   (ref) => _sum(ref, ref.watch(weekRangeProvider)),
 );
+
+/// [Summary] for the current month.
 final monthSummaryProvider = Provider<Summary>(
   (ref) => _sum(ref, ref.watch(monthRangeProvider)),
 );
+
+/// [Summary] across all transactions (Till Now).
 final allTimeSummaryProvider = Provider<Summary>(
   (ref) => summarize(ref.watch(allTransactionsProvider).value ?? const []),
 );
 
+/// Immutable theme selection: mode + accent colour chosen by the user.
 class ThemeState {
   final ThemeMode mode;
   final MaterialColor accent;
   const ThemeState(this.mode, this.accent);
 }
 
+/// Loads/persists the user theme and accent; the whole app theme derives from this.
 class ThemeController extends Notifier<ThemeState> {
   @override
   ThemeState build() => ThemeState(
@@ -114,12 +133,17 @@ class ThemeController extends Notifier<ThemeState> {
   }
 }
 
+/// Exposes [ThemeController]/[ThemeState] to MaterialApp and settings.
 final themeControllerProvider = NotifierProvider<ThemeController, ThemeState>(
   ThemeController.new,
 );
 
+/// Uncertain SMS-derived transactions awaiting user review.
 final reviewQueueProvider = StreamProvider<List<TxnRow>>(
-    (ref) => ref.watch(transactionRepositoryProvider).watchReviewQueue());
+  (ref) => ref.watch(transactionRepositoryProvider).watchReviewQueue(),
+);
 
+/// Sender/pattern rules learned from user review decisions.
 final learnedRulesProvider = StreamProvider<List<RuleRow>>(
-    (ref) => ref.watch(transactionRepositoryProvider).watchRules());
+  (ref) => ref.watch(transactionRepositoryProvider).watchRules(),
+);

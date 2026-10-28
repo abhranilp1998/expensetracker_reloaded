@@ -10,13 +10,15 @@ import 'package:expensetracker_reloaded/routes/app_routes.dart';
 import 'package:expensetracker_reloaded/widgets/app_drawer.dart';
 import 'package:expensetracker_reloaded/widgets/permissions_section.dart';
 
+/// Single sectioned Settings page: Appearance, SMS & permissions, Learned rules, About.
 class ComprehensiveSettingsPage extends StatefulWidget {
   const ComprehensiveSettingsPage({super.key, this.asTab = false});
 
   final bool asTab;
 
   @override
-  State<ComprehensiveSettingsPage> createState() => _ComprehensiveSettingsPageState();
+  State<ComprehensiveSettingsPage> createState() =>
+      _ComprehensiveSettingsPageState();
 }
 
 class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
@@ -58,7 +60,7 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('pref_$key', value);
     setState(() => _preferences[key] = value);
-    
+
     // Log preference change
     await EventLoggerService.logEvent(
       type: EventType.settingsChanged,
@@ -96,8 +98,10 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                           onPressed: () {
                             final ctx = _sectionKeys[name]!.currentContext;
                             if (ctx != null) {
-                              Scrollable.ensureVisible(ctx,
-                                  duration: const Duration(milliseconds: 300));
+                              Scrollable.ensureVisible(
+                                ctx,
+                                duration: const Duration(milliseconds: 300),
+                              );
                             }
                           },
                         ),
@@ -128,7 +132,9 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                       onChanged: (value) {
                         if (value != null) {
                           setState(() => _currentTheme = value);
-                          ProviderScope.containerOf(context).read(themeControllerProvider.notifier).setTheme(value);
+                          ProviderScope.containerOf(context)
+                              .read(themeControllerProvider.notifier)
+                              .setTheme(value);
                           EventLoggerService.logEvent(
                             type: EventType.settingsChanged,
                             message: 'Theme changed to Light',
@@ -143,7 +149,9 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                       onChanged: (value) {
                         if (value != null) {
                           setState(() => _currentTheme = value);
-                          ProviderScope.containerOf(context).read(themeControllerProvider.notifier).setTheme(value);
+                          ProviderScope.containerOf(context)
+                              .read(themeControllerProvider.notifier)
+                              .setTheme(value);
                           EventLoggerService.logEvent(
                             type: EventType.settingsChanged,
                             message: 'Theme changed to Dark',
@@ -158,7 +166,9 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                       onChanged: (value) {
                         if (value != null) {
                           setState(() => _currentTheme = value);
-                          ProviderScope.containerOf(context).read(themeControllerProvider.notifier).setTheme(value);
+                          ProviderScope.containerOf(context)
+                              .read(themeControllerProvider.notifier)
+                              .setTheme(value);
                           EventLoggerService.logEvent(
                             type: EventType.settingsChanged,
                             message: 'Theme changed to System',
@@ -180,21 +190,25 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                   child: GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 5,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 5,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                        ),
                     itemCount: ThemeService.availableColors.length,
                     itemBuilder: (context, index) {
-                      final colorName = ThemeService.availableColors.keys.toList()[index];
+                      final colorName = ThemeService.availableColors.keys
+                          .toList()[index];
                       final color = ThemeService.availableColors[colorName]!;
                       final isSelected = _currentAccentColor == color;
 
                       return GestureDetector(
                         onTap: () {
                           setState(() => _currentAccentColor = color);
-                          ProviderScope.containerOf(context).read(themeControllerProvider.notifier).setAccentColor(color);
+                          ProviderScope.containerOf(context)
+                              .read(themeControllerProvider.notifier)
+                              .setAccentColor(color);
                           EventLoggerService.logEvent(
                             type: EventType.settingsChanged,
                             message: 'Accent color changed to $colorName',
@@ -221,7 +235,11 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                                   : null,
                             ),
                             child: isSelected
-                                ? const Icon(Icons.check, color: Colors.white, size: 20)
+                                ? const Icon(
+                                    Icons.check,
+                                    color: Colors.white,
+                                    size: 20,
+                                  )
                                 : null,
                           ),
                         ),
@@ -248,7 +266,9 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                   children: [
                     for (final animType in AnimationType.values)
                       RadioListTile<AnimationType>(
-                        title: Text(AnimationVariants.getAnimationName(animType)),
+                        title: Text(
+                          AnimationVariants.getAnimationName(animType),
+                        ),
                         subtitle: Text(
                           AnimationPreferencesService.getDescription(animType),
                           maxLines: 1,
@@ -260,10 +280,13 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                         onChanged: (value) {
                           if (value != null) {
                             setState(() => _currentAnimation = value);
-                            AnimationPreferencesService.saveAnimationType(value);
+                            AnimationPreferencesService.saveAnimationType(
+                              value,
+                            );
                             EventLoggerService.logEvent(
                               type: EventType.animationChanged,
-                              message: 'Animation type changed to ${AnimationVariants.getAnimationName(value)}',
+                              message:
+                                  'Animation type changed to ${AnimationVariants.getAnimationName(value)}',
                             );
                           }
                         },
@@ -278,27 +301,36 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                 subtitle: 'Show page transition animations',
                 value: _preferences['animations_enabled'] ?? true,
                 color: cs.primary,
-                onChanged: (value) => _updatePreference('animations_enabled', value),
+                onChanged: (value) =>
+                    _updatePreference('animations_enabled', value),
               ),
               const SizedBox(height: 16),
               Card(
-                child: Column(children: [
-                  ListTile(
-                    leading: const Icon(Icons.rule),
-                    title: const Text('Needs review'),
-                    subtitle: const Text('Uncertain SMS waiting for your decision'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => Navigator.of(context).pushNamed(AppRoutes.review),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.psychology_outlined),
-                    title: const Text('Learned rules'),
-                    subtitle: const Text('View or delete on-device SMS rules'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () =>
-                        Navigator.of(context).pushNamed(AppRoutes.learnedRules),
-                  ),
-                ]),
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.rule),
+                      title: const Text('Needs review'),
+                      subtitle: const Text(
+                        'Uncertain SMS waiting for your decision',
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () =>
+                          Navigator.of(context).pushNamed(AppRoutes.review),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.psychology_outlined),
+                      title: const Text('Learned rules'),
+                      subtitle: const Text(
+                        'View or delete on-device SMS rules',
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => Navigator.of(
+                        context,
+                      ).pushNamed(AppRoutes.learnedRules),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 16),
               // Animation Preview Button
@@ -307,14 +339,12 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                   Navigator.of(context).pushNamed(AppRoutes.animationShowcase);
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 16,
+                    horizontal: 16,
+                  ),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        cs.primary,
-                        cs.tertiary,
-                      ],
-                    ),
+                    gradient: LinearGradient(colors: [cs.primary, cs.tertiary]),
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
@@ -402,9 +432,12 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                 child: ListTile(
                   leading: Icon(Icons.rule, color: cs.primary),
                   title: const Text('Manage learned rules'),
-                  subtitle: const Text('Senders and patterns learned from your reviews'),
+                  subtitle: const Text(
+                    'Senders and patterns learned from your reviews',
+                  ),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Navigator.of(context).pushNamed(AppRoutes.learnedRules),
+                  onTap: () =>
+                      Navigator.of(context).pushNamed(AppRoutes.learnedRules),
                 ),
               ),
               const SizedBox(height: 24),
@@ -431,7 +464,8 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                 subtitle: 'Vibrations on button interactions',
                 value: _preferences['haptic_feedback'] ?? true,
                 color: cs.primary,
-                onChanged: (value) => _updatePreference('haptic_feedback', value),
+                onChanged: (value) =>
+                    _updatePreference('haptic_feedback', value),
               ),
               const SizedBox(height: 12),
               _PreferenceToggle(
@@ -460,7 +494,9 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                 onChanged: (value) {
                   _updatePreference('auto_dark_mode', value);
                   if (value) {
-                    ProviderScope.containerOf(context).read(themeControllerProvider.notifier).setTheme(ThemeMode.system);
+                    ProviderScope.containerOf(context)
+                        .read(themeControllerProvider.notifier)
+                        .setTheme(ThemeMode.system);
                   }
                 },
               ),
@@ -504,8 +540,13 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: cs.secondary,
                   foregroundColor: cs.onSecondary,
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 16,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   minimumSize: const Size(double.infinity, 48),
                 ),
               ),
@@ -517,8 +558,13 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                 style: OutlinedButton.styleFrom(
                   foregroundColor: cs.error,
                   side: BorderSide(color: cs.error),
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 16,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   minimumSize: const Size(double.infinity, 48),
                 ),
               ),
@@ -546,7 +592,9 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.secondary),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.secondary,
+            ),
             child: const Text('Clear'),
           ),
         ],
@@ -560,7 +608,7 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
       await prefs.remove('pref_auto_dark_mode');
       await prefs.remove('pref_animations_enabled');
       await prefs.remove('pref_event_logging');
-      
+
       if (mounted) {
         await EventLoggerService.logEvent(
           type: EventType.settingsChanged,
@@ -594,7 +642,9 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
             child: const Text('Reset'),
           ),
         ],
@@ -617,12 +667,18 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
           type: EventType.settingsChanged,
           message: 'All settings reset to defaults',
         );
-        
+
         // Reset to defaults
-        ProviderScope.containerOf(context).read(themeControllerProvider.notifier).setTheme(ThemeMode.system);
-        ProviderScope.containerOf(context).read(themeControllerProvider.notifier).setAccentColor(Colors.green);
-        await AnimationPreferencesService.saveAnimationType(AnimationType.fadeSlide);
-        
+        ProviderScope.containerOf(
+          context,
+        ).read(themeControllerProvider.notifier).setTheme(ThemeMode.system);
+        ProviderScope.containerOf(
+          context,
+        ).read(themeControllerProvider.notifier).setAccentColor(Colors.green);
+        await AnimationPreferencesService.saveAnimationType(
+          AnimationType.fadeSlide,
+        );
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('✓ Settings reset to defaults'),
@@ -665,13 +721,14 @@ class _SectionHeaderState extends State<_SectionHeader>
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
-    );
-    _slideAnimation = Tween<Offset>(begin: const Offset(-0.3, 0), end: Offset.zero)
-        .animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(-0.3, 0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
     _controller.forward();
   }
 
@@ -701,15 +758,16 @@ class _SectionHeaderState extends State<_SectionHeader>
             const SizedBox(width: 12),
             Text(
               widget.title,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ) ??
-              TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
+              style:
+                  Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ) ??
+                  TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
             ),
           ],
         ),
@@ -751,16 +809,18 @@ class _SettingsCardState extends State<_SettingsCard>
       duration: const Duration(milliseconds: 700),
       vsync: this,
     );
-    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
-    );
-    _slideAnimation = Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero)
-        .animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
-    _scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.2),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+    _scaleAnimation = Tween<double>(
+      begin: 0.95,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
     _controller.forward();
   }
 
@@ -809,20 +869,37 @@ class _SettingsCardState extends State<_SettingsCard>
                           children: [
                             Text(
                               widget.title,
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ) ??
-                              const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              style:
+                                  Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.bold) ??
+                                  const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                             const SizedBox(height: 2),
                             Text(
                               widget.subtitle,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Theme.of(context).brightness == Brightness.dark
-                                  ? Theme.of(context).colorScheme.onSurfaceVariant
-                                  : Theme.of(context).colorScheme.onSurfaceVariant,
-                              ) ??
-                              TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                              style:
+                                  Theme.of(
+                                    context,
+                                  ).textTheme.bodySmall?.copyWith(
+                                    color:
+                                        Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant
+                                        : Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
+                                  ) ??
+                                  TextStyle(
+                                    fontSize: 12,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
                             ),
                           ],
                         ),
@@ -831,7 +908,11 @@ class _SettingsCardState extends State<_SettingsCard>
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+                  padding: const EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    bottom: 16,
+                  ),
                   child: widget.child,
                 ),
               ],
@@ -882,9 +963,10 @@ class _PreferenceToggleState extends State<_PreferenceToggle>
     _scaleAnimation = Tween<double>(begin: 1.0, end: 1.02).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOutCubic),
     );
-    _rotateAnimation = Tween<double>(begin: 0, end: 0.05).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
-    );
+    _rotateAnimation = Tween<double>(
+      begin: 0,
+      end: 0.05,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.elasticOut));
   }
 
   @override
@@ -906,7 +988,7 @@ class _PreferenceToggleState extends State<_PreferenceToggle>
     final borderColor = Theme.of(context).brightness == Brightness.dark
         ? Theme.of(context).colorScheme.outlineVariant
         : Theme.of(context).colorScheme.outlineVariant;
-    
+
     return GestureDetector(
       onTap: _handleTap,
       child: ScaleTransition(
@@ -932,7 +1014,9 @@ class _PreferenceToggleState extends State<_PreferenceToggle>
                   : Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: _value ? widget.color.withValues(alpha: 0.3) : borderColor,
+                color: _value
+                    ? widget.color.withValues(alpha: 0.3)
+                    : borderColor,
                 width: _value ? 1.5 : 0.5,
               ),
               boxShadow: _value
@@ -958,11 +1042,7 @@ class _PreferenceToggleState extends State<_PreferenceToggle>
                   child: AnimatedRotation(
                     duration: const Duration(milliseconds: 400),
                     turns: _value ? 0.1 : 0,
-                    child: Icon(
-                      widget.icon,
-                      color: widget.color,
-                      size: 24,
-                    ),
+                    child: Icon(widget.icon, color: widget.color, size: 24),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -972,35 +1052,45 @@ class _PreferenceToggleState extends State<_PreferenceToggle>
                     children: [
                       AnimatedDefaultTextStyle(
                         duration: const Duration(milliseconds: 250),
-                        style: (Theme.of(context).textTheme.titleMedium ??
-                                const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold))
-                            .copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: _value
-                              ? widget.color
-                              : Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.color,
-                        ),
+                        style:
+                            (Theme.of(context).textTheme.titleMedium ??
+                                    const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ))
+                                .copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: _value
+                                      ? widget.color
+                                      : Theme.of(
+                                          context,
+                                        ).textTheme.titleMedium?.color,
+                                ),
                         child: Text(widget.title),
                       ),
                       const SizedBox(height: 4),
                       AnimatedDefaultTextStyle(
                         duration: const Duration(milliseconds: 250),
-                        style: (Theme.of(context).textTheme.bodySmall ??
-                                TextStyle(
-                                    fontSize: 12,
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant))
-                            .copyWith(
-                          color: _value
-                              ? widget.color.withValues(alpha: 0.7)
-                              : (Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? Theme.of(context).colorScheme.onSurfaceVariant
-                                  : Theme.of(context).colorScheme.onSurfaceVariant),
-                        ),
+                        style:
+                            (Theme.of(context).textTheme.bodySmall ??
+                                    TextStyle(
+                                      fontSize: 12,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                    ))
+                                .copyWith(
+                                  color: _value
+                                      ? widget.color.withValues(alpha: 0.7)
+                                      : (Theme.of(context).brightness ==
+                                                Brightness.dark
+                                            ? Theme.of(
+                                                context,
+                                              ).colorScheme.onSurfaceVariant
+                                            : Theme.of(
+                                                context,
+                                              ).colorScheme.onSurfaceVariant),
+                                ),
                         child: Text(widget.subtitle),
                       ),
                     ],
@@ -1012,8 +1102,10 @@ class _PreferenceToggleState extends State<_PreferenceToggle>
                     return ScaleTransition(
                       scale: animation,
                       child: RotationTransition(
-                        turns: Tween<double>(begin: 0.5, end: 1.0)
-                            .animate(animation),
+                        turns: Tween<double>(
+                          begin: 0.5,
+                          end: 1.0,
+                        ).animate(animation),
                         child: child,
                       ),
                     );
@@ -1067,19 +1159,22 @@ class _InfoCardState extends State<_InfoCard>
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
-    );
-    _slideAnimation = Tween<Offset>(begin: const Offset(0.3, 0), end: Offset.zero)
-        .animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
-    _scaleAnimation = Tween<double>(begin: 0.9, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
-    _rotateAnimation = Tween<double>(begin: 0, end: 0.02).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0,
+      end: 1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0.3, 0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+    _scaleAnimation = Tween<double>(
+      begin: 0.9,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+    _rotateAnimation = Tween<double>(
+      begin: 0,
+      end: 0.02,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
     _controller.forward();
   }
 
@@ -1100,7 +1195,7 @@ class _InfoCardState extends State<_InfoCard>
     final iconColor = Theme.of(context).brightness == Brightness.dark
         ? Theme.of(context).colorScheme.onSurfaceVariant
         : Theme.of(context).colorScheme.onSurfaceVariant;
-    
+
     return FadeTransition(
       opacity: _fadeAnimation,
       child: SlideTransition(
@@ -1133,18 +1228,28 @@ class _InfoCardState extends State<_InfoCard>
                       children: [
                         Text(
                           widget.title,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ) ??
-                          const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w500,
+                              ) ??
+                              const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           widget.value,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: subtleTextColor,
-                          ) ??
-                          TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: subtleTextColor,
+                              ) ??
+                              TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
                         ),
                       ],
                     ),

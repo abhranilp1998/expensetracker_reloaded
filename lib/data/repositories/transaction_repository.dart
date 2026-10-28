@@ -6,6 +6,7 @@ import '../db/app_database.dart';
 
 typedef Clock = DateTime Function();
 
+/// Input DTO for inserting a transaction.
 class NewTxn {
   final int amountMinor;
   final String type;
@@ -36,6 +37,7 @@ class NewTxn {
   });
 }
 
+/// All DB access for transactions, review queue and learned rules.
 class TransactionRepository {
   TransactionRepository(this._db, {Clock? clock, Uuid? uuid})
     : _clock = clock ?? DateTime.now,
@@ -169,71 +171,83 @@ class TransactionRepository {
   }) {
     final when = at ?? _clock();
     final minor = (amount * 100).round();
-    return insert(NewTxn(
-      amountMinor: minor,
-      type: type,
-      source: 'manual',
-      occurredAt: when,
-      note: note,
-      dedupeHash: 'manual:${_uuid.v4()}',
-    ));
+    return insert(
+      NewTxn(
+        amountMinor: minor,
+        type: type,
+        source: 'manual',
+        occurredAt: when,
+        note: note,
+        dedupeHash: 'manual:${_uuid.v4()}',
+      ),
+    );
   }
 
   /// Soft-deletes every transaction (sync-friendly reset).
   Future<void> softDeleteAll() =>
-      (_db.update(_db.transactions)..where((x) => x.deleted.equals(false)))
-          .write(TransactionsCompanion(
-        deleted: const Value(true),
-        updatedAt: Value(_nowMs),
-        syncStatus: const Value('pending'),
-      ));
+      (_db.update(
+        _db.transactions,
+      )..where((x) => x.deleted.equals(false))).write(
+        TransactionsCompanion(
+          deleted: const Value(true),
+          updatedAt: Value(_nowMs),
+          syncStatus: const Value('pending'),
+        ),
+      );
 
   // ---- Review queue -------------------------------------------------------
 
-  Stream<List<TxnRow>> watchReviewQueue() => (_db.select(_db.transactions)
-        ..where((x) => x.deleted.equals(false) & x.status.equals('review'))
-        ..orderBy([(x) => OrderingTerm.desc(x.occurredAt)]))
-      .watch();
+  Stream<List<TxnRow>> watchReviewQueue() =>
+      (_db.select(_db.transactions)
+            ..where((x) => x.deleted.equals(false) & x.status.equals('review'))
+            ..orderBy([(x) => OrderingTerm.desc(x.occurredAt)]))
+          .watch();
 
-  Future<List<TxnRow>> reviewQueue() => (_db.select(_db.transactions)
-        ..where((x) => x.deleted.equals(false) & x.status.equals('review')))
-      .get();
+  Future<List<TxnRow>> reviewQueue() => (_db.select(
+    _db.transactions,
+  )..where((x) => x.deleted.equals(false) & x.status.equals('review'))).get();
 
   /// Applies the user's decision to [id] and every other queued row with the
   /// same template, and stores it as a rule for future SMS.
   /// [action] is 'debit' | 'credit' | 'ignore'. Returns rows resolved.
-  Future<int> resolveReview(String id, String action) =>
-      _db.transaction(() async {
-        final row = await byId(id);
-        if (row == null) return 0;
-        final key = row.templateKey;
-        if (key != null) {
-          await upsertRule(
-              templateKey: key,
-              sender: row.sender ?? '',
-              action: action,
-              sample: row.rawBody == null ? null : normalizeTemplate(row.rawBody!));
-        }
-        final targets = key == null
-            ? [row]
-            : await (_db.select(_db.transactions)
-                  ..where((x) =>
+  Future<int> resolveReview(String id, String action) => _db.transaction(
+    () async {
+      final row = await byId(id);
+      if (row == null) return 0;
+      final key = row.templateKey;
+      if (key != null) {
+        await upsertRule(
+          templateKey: key,
+          sender: row.sender ?? '',
+          action: action,
+          sample: row.rawBody == null ? null : normalizeTemplate(row.rawBody!),
+        );
+      }
+      final targets = key == null
+          ? [row]
+          : await (_db.select(_db.transactions)..where(
+                  (x) =>
                       x.deleted.equals(false) &
                       x.status.equals('review') &
-                      x.templateKey.equals(key)))
+                      x.templateKey.equals(key),
+                ))
                 .get();
-        for (final t in targets) {
-          await (_db.update(_db.transactions)..where((x) => x.id.equals(t.id)))
-              .write(TransactionsCompanion(
+      for (final t in targets) {
+        await (_db.update(
+          _db.transactions,
+        )..where((x) => x.id.equals(t.id))).write(
+          TransactionsCompanion(
             status: const Value('confirmed'),
             type: action == 'ignore' ? const Value.absent() : Value(action),
             deleted: Value(action == 'ignore'),
             updatedAt: Value(_nowMs),
             syncStatus: const Value('pending'),
-          ));
-        }
-        return targets.length;
-      });
+          ),
+        );
+      }
+      return targets.length;
+    },
+  );
 
   // ---- Learned rules ------------------------------------------------------
 
@@ -244,43 +258,50 @@ class TransactionRepository {
     String? sample,
   }) async {
     final now = _nowMs;
-    final existing = await (_db.select(_db.learnedRules)
-          ..where((r) => r.templateKey.equals(templateKey)))
-        .getSingleOrNull();
+    final existing = await (_db.select(
+      _db.learnedRules,
+    )..where((r) => r.templateKey.equals(templateKey))).getSingleOrNull();
     if (existing == null) {
-      await _db.into(_db.learnedRules).insert(LearnedRulesCompanion.insert(
-            id: _uuid.v4(),
-            templateKey: templateKey,
-            sender: sender,
-            action: action,
-            sample: Value(sample),
-            createdAt: now,
-            updatedAt: now,
-          ));
+      await _db
+          .into(_db.learnedRules)
+          .insert(
+            LearnedRulesCompanion.insert(
+              id: _uuid.v4(),
+              templateKey: templateKey,
+              sender: sender,
+              action: action,
+              sample: Value(sample),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
     } else {
-      await (_db.update(_db.learnedRules)
-            ..where((r) => r.id.equals(existing.id)))
-          .write(LearnedRulesCompanion(
-        action: Value(action),
-        sample: sample == null ? const Value.absent() : Value(sample),
-        deleted: const Value(false),
-        updatedAt: Value(now),
-        syncStatus: const Value('pending'),
-      ));
+      await (_db.update(
+        _db.learnedRules,
+      )..where((r) => r.id.equals(existing.id))).write(
+        LearnedRulesCompanion(
+          action: Value(action),
+          sample: sample == null ? const Value.absent() : Value(sample),
+          deleted: const Value(false),
+          updatedAt: Value(now),
+          syncStatus: const Value('pending'),
+        ),
+      );
     }
   }
 
   Future<Map<String, String>> activeRules() async {
-    final rows = await (_db.select(_db.learnedRules)
-          ..where((r) => r.deleted.equals(false)))
-        .get();
+    final rows = await (_db.select(
+      _db.learnedRules,
+    )..where((r) => r.deleted.equals(false))).get();
     return {for (final r in rows) r.templateKey: r.action};
   }
 
-  Stream<List<RuleRow>> watchRules() => (_db.select(_db.learnedRules)
-        ..where((r) => r.deleted.equals(false))
-        ..orderBy([(r) => OrderingTerm.desc(r.updatedAt)]))
-      .watch();
+  Stream<List<RuleRow>> watchRules() =>
+      (_db.select(_db.learnedRules)
+            ..where((r) => r.deleted.equals(false))
+            ..orderBy([(r) => OrderingTerm.desc(r.updatedAt)]))
+          .watch();
 
   Future<void> deleteRule(String id) =>
       (_db.update(_db.learnedRules)..where((r) => r.id.equals(id))).write(

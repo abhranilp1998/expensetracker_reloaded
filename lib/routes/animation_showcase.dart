@@ -89,7 +89,8 @@ class _AnimationPreviewState extends State<AnimationPreview>
                   // Preview Title
                   Text(
                     'Current Animation',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    style:
+                        Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: subtleColor,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
@@ -106,7 +107,8 @@ class _AnimationPreviewState extends State<AnimationPreview>
                   // Animation Name
                   Text(
                     AnimationVariants.getAnimationName(_currentAnimation),
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    style:
+                        Theme.of(context).textTheme.headlineSmall?.copyWith(
                           color: primaryColor,
                           fontWeight: FontWeight.bold,
                         ) ??
@@ -122,7 +124,8 @@ class _AnimationPreviewState extends State<AnimationPreview>
                   // Description
                   Text(
                     _getAnimationDescription(_currentAnimation),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    style:
+                        Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: subtleColor,
                           height: 1.5,
                         ) ??
@@ -143,7 +146,8 @@ class _AnimationPreviewState extends State<AnimationPreview>
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: () => _previewAnimation(context, _currentAnimation),
+                      onPressed: () =>
+                          _previewAnimation(context, _currentAnimation),
                       icon: const Icon(Icons.play_arrow),
                       label: const Text('Test This Animation'),
                       style: ElevatedButton.styleFrom(
@@ -165,9 +169,7 @@ class _AnimationPreviewState extends State<AnimationPreview>
             // Divider
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Divider(
-                color: primaryColor.withValues(alpha: 0.1),
-              ),
+              child: Divider(color: primaryColor.withValues(alpha: 0.1)),
             ),
 
             // Section Title
@@ -178,7 +180,8 @@ class _AnimationPreviewState extends State<AnimationPreview>
                 children: [
                   Text(
                     'All Animations',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    style:
+                        Theme.of(context).textTheme.titleLarge?.copyWith(
                           color: textColor,
                           fontWeight: FontWeight.bold,
                         ) ??
@@ -190,13 +193,11 @@ class _AnimationPreviewState extends State<AnimationPreview>
                   const SizedBox(height: 4),
                   Text(
                     'Tap to select, swipe to preview',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: subtleColor,
-                        ) ??
-                        TextStyle(
-                          fontSize: 12,
-                          color: subtleColor,
-                        ),
+                    style:
+                        Theme.of(
+                          context,
+                        ).textTheme.bodySmall?.copyWith(color: subtleColor) ??
+                        TextStyle(fontSize: 12, color: subtleColor),
                   ),
                 ],
               ),
@@ -205,9 +206,7 @@ class _AnimationPreviewState extends State<AnimationPreview>
             // Animation Grid/List
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-              child: Column(
-                children: _buildAnimationTiles(),
-              ),
+              child: Column(children: _buildAnimationTiles()),
             ),
           ],
         ),
@@ -238,16 +237,15 @@ class _AnimationPreviewState extends State<AnimationPreview>
       child: Center(
         child: ScaleTransition(
           scale: Tween<double>(begin: 0.5, end: 1.0).animate(
-            CurvedAnimation(parent: _previewController, curve: Curves.easeOutBack),
+            CurvedAnimation(
+              parent: _previewController,
+              curve: Curves.easeOutBack,
+            ),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                _getIconForAnimation(type),
-                size: 48,
-                color: primaryColor,
-              ),
+              Icon(_getIconForAnimation(type), size: 48, color: primaryColor),
               const SizedBox(height: 8),
               Text(
                 _getAnimationEmoji(type),
@@ -276,7 +274,11 @@ class _AnimationPreviewState extends State<AnimationPreview>
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
               ),
             ),
-            subtitle: Text(_getAnimationDescription(type), maxLines: 1, overflow: TextOverflow.ellipsis),
+            subtitle: Text(
+              _getAnimationDescription(type),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
@@ -373,11 +375,9 @@ class _AnimationPreviewState extends State<AnimationPreview>
     final previousType = AnimationVariants.currentType;
     AnimationVariants.setAnimationType(type);
 
-    Navigator.of(context).push(
-      AnimationVariants.createRoute(
-        const AnimationPreviewPage(),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(AnimationVariants.createRoute(const AnimationPreviewPage()));
 
     Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
@@ -476,10 +476,10 @@ class _AnimationTileState extends State<AnimationTile> {
                         Expanded(
                           child: Text(
                             AnimationVariants.getAnimationName(widget.type),
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
+                            style:
+                                Theme.of(
+                                  context,
+                                ).textTheme.bodyMedium?.copyWith(
                                   color: textColor,
                                   fontWeight: FontWeight.w600,
                                 ) ??
@@ -529,14 +529,12 @@ class _AnimationTileState extends State<AnimationTile> {
                     const SizedBox(height: 3),
                     Text(
                       _getShortDescription(widget.type),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      style:
+                          Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: subtleColor,
                             fontSize: 11,
                           ) ??
-                          TextStyle(
-                            fontSize: 11,
-                            color: subtleColor,
-                          ),
+                          TextStyle(fontSize: 11, color: subtleColor),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -640,10 +638,7 @@ class AnimationPreviewPage extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: LinearGradient(
-                  colors: [
-                    primaryColor,
-                    primaryColor.withValues(alpha: 0.6),
-                  ],
+                  colors: [primaryColor, primaryColor.withValues(alpha: 0.6)],
                 ),
                 boxShadow: [
                   BoxShadow(
@@ -662,13 +657,11 @@ class AnimationPreviewPage extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               'Animation Applied!',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              style:
+                  Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ) ??
-                  const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             Padding(
@@ -686,8 +679,9 @@ class AnimationPreviewPage extends StatelessWidget {
               label: const Text('Go Back'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: primaryColor,
-                foregroundColor:
-                    isDark ? const Color(0xFF121212) : Colors.white,
+                foregroundColor: isDark
+                    ? const Color(0xFF121212)
+                    : Colors.white,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 28,
                   vertical: 12,

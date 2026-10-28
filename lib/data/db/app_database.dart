@@ -5,6 +5,7 @@ import 'tables.dart';
 
 part 'app_database.g.dart';
 
+/// Drift database (SQLite file on device) with schema migrations.
 @DriftDatabase(tables: [Transactions, LearnedRules])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _open());

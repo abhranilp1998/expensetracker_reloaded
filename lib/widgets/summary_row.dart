@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Label/amount row used in summary cards.
 class SummaryRow extends StatelessWidget {
   final String label;
   final double amount;
@@ -29,12 +30,11 @@ class SummaryRow extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.w500,
-            ) ?? const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
+            style:
+                Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500) ??
+                const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
           ),
         ),
         Text(

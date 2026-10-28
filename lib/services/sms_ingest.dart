@@ -2,6 +2,7 @@ import '../data/repositories/transaction_repository.dart';
 import '../domain/sms/parsed_sms.dart';
 import '../domain/sms/sms_classifier.dart';
 
+/// Counts returned by an SMS import/ingest run (inserted, duplicate, review, ignored).
 class IngestResult {
   final Decision decision;
   final int amountMinor;

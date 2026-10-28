@@ -10,6 +10,7 @@ import 'package:expensetracker_reloaded/widgets/transaction_tile.dart';
 
 enum _ActivityFilter { day, week, month, all }
 
+/// Activity tab: transaction history with Day/Week/Month/All filters and search.
 class HistoryPage extends ConsumerStatefulWidget {
   const HistoryPage({super.key, this.asTab = false});
 
@@ -74,7 +75,10 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         elevation: 0,
-        title: const Text('Activity', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Activity',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
       drawer: widget.asTab || ModalRoute.of(context)?.canPop != true
           ? const AppDrawer()
@@ -82,26 +86,26 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
       body: Column(
         children: [
           Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-              child: TextField(
-                key: const ValueKey('activity-search'),
-                controller: _search,
-                textInputAction: TextInputAction.search,
-                onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  hintText: 'Search merchant, note, amount…',
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: _search.text.isEmpty
-                      ? null
-                      : IconButton(
-                          icon: const Icon(Icons.close),
-                          onPressed: () => setState(_search.clear),
-                        ),
-                  border: const OutlineInputBorder(),
-                  isDense: true,
-                ),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: TextField(
+              key: const ValueKey('activity-search'),
+              controller: _search,
+              textInputAction: TextInputAction.search,
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                hintText: 'Search merchant, note, amount…',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _search.text.isEmpty
+                    ? null
+                    : IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => setState(_search.clear),
+                      ),
+                border: const OutlineInputBorder(),
+                isDense: true,
               ),
             ),
+          ),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -136,8 +140,11 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.receipt_long_outlined,
-                            size: 72, color: theme.colorScheme.outline),
+                        Icon(
+                          Icons.receipt_long_outlined,
+                          size: 72,
+                          color: theme.colorScheme.outline,
+                        ),
                         const SizedBox(height: 16),
                         Text(
                           'No transactions',
@@ -165,7 +172,9 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                       children: [
                         Padding(
                           padding: const EdgeInsets.symmetric(
-                              vertical: 12, horizontal: 8),
+                            vertical: 12,
+                            horizontal: 8,
+                          ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -188,12 +197,12 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                           ),
                         ),
                         ...dayTx.asMap().entries.map(
-                              (e) => TransactionTile(
-                                transaction: e.value,
-                                index: e.key,
-                                compact: true,
-                              ),
-                            ),
+                          (e) => TransactionTile(
+                            transaction: e.value,
+                            index: e.key,
+                            compact: true,
+                          ),
+                        ),
                         const SizedBox(height: 8),
                       ],
                     );
@@ -208,7 +217,8 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
   }
 
   Map<String, List<Map<String, dynamic>>> _groupByDate(
-      List<Map<String, dynamic>> transactions) {
+    List<Map<String, dynamic>> transactions,
+  ) {
     final grouped = <String, List<Map<String, dynamic>>>{};
     for (final t in transactions.reversed) {
       final date = DateTime.parse(t['time'].toString());

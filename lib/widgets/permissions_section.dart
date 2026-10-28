@@ -56,8 +56,9 @@ class _PermissionsSectionState extends State<PermissionsSection>
           : EventType.permissionDenied,
       message: 'SMS permission request: $outcome',
     );
-    setState(() =>
-        _restricted = outcome == PermissionOutcome.needsRestrictedSettings);
+    setState(
+      () => _restricted = outcome == PermissionOutcome.needsRestrictedSettings,
+    );
     await _load();
     if (!mounted) return;
     final msg = switch (outcome) {
@@ -94,9 +95,11 @@ class _PermissionsSectionState extends State<PermissionsSection>
                 : theme.colorScheme.error,
           ),
           title: const Text('SMS'),
-          subtitle: Text(_sms?.isGranted ?? false
-              ? 'Granted — bank messages can be read'
-              : 'Required to auto-track expenses'),
+          subtitle: Text(
+            _sms?.isGranted ?? false
+                ? 'Granted — bank messages can be read'
+                : 'Required to auto-track expenses',
+          ),
           trailing: (_sms?.isGranted ?? false)
               ? const Icon(Icons.check_circle)
               : TextButton(onPressed: _requestSms, child: const Text('Grant')),
@@ -112,7 +115,10 @@ class _PermissionsSectionState extends State<PermissionsSection>
           subtitle: Text(_notif?.isGranted ?? false ? 'Granted' : 'Optional'),
           trailing: (_notif?.isGranted ?? false)
               ? const Icon(Icons.check_circle)
-              : TextButton(onPressed: _requestNotif, child: const Text('Grant')),
+              : TextButton(
+                  onPressed: _requestNotif,
+                  child: const Text('Grant'),
+                ),
         ),
         OutlinedButton.icon(
           onPressed: () async {

@@ -194,6 +194,7 @@ class SmsParser {
   }
 }
 
+/// Fields (amount, direction, merchant, account) extracted from one SMS body.
 class RawExtraction {
   final String text;
   final int? amountMinor;

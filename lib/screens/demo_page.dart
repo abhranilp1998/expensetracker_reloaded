@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:expensetracker_reloaded/providers/providers.dart';
 import 'dart:async';
 
+/// Showcase helper that inserts/clears sample transactions for demos.
 class DemoPage extends ConsumerStatefulWidget {
   const DemoPage({super.key});
 
@@ -10,7 +11,8 @@ class DemoPage extends ConsumerStatefulWidget {
   ConsumerState<DemoPage> createState() => _DemoPageState();
 }
 
-class _DemoPageState extends ConsumerState<DemoPage> with SingleTickerProviderStateMixin {
+class _DemoPageState extends ConsumerState<DemoPage>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   bool _isInserting = false;
@@ -22,9 +24,10 @@ class _DemoPageState extends ConsumerState<DemoPage> with SingleTickerProviderSt
       vsync: this,
       duration: const Duration(milliseconds: 600),
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.1,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -57,31 +60,33 @@ class _DemoPageState extends ConsumerState<DemoPage> with SingleTickerProviderSt
                   padding: const EdgeInsets.all(32),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Colors.orange.shade400, Colors.orange.shade700],
+                      colors: [
+                        Theme.of(context).colorScheme.tertiary,
+                        Theme.of(context).colorScheme.primary,
+                      ],
                     ),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.orange.withValues(alpha: 0.3),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.tertiary.withValues(alpha: 0.3),
                         blurRadius: 20,
                         spreadRadius: 5,
                       ),
                     ],
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.science,
                     size: 64,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onPrimary,
                   ),
                 ),
               ),
               const SizedBox(height: 32),
               const Text(
                 'Insert Sample Data',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               Text(
@@ -89,7 +94,7 @@ class _DemoPageState extends ConsumerState<DemoPage> with SingleTickerProviderSt
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.grey.shade600,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 40),
@@ -98,11 +103,11 @@ class _DemoPageState extends ConsumerState<DemoPage> with SingleTickerProviderSt
                 duration: const Duration(milliseconds: 100),
                 child: ElevatedButton.icon(
                   icon: _isInserting
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.onPrimary,
                             strokeWidth: 2,
                           ),
                         )
@@ -110,8 +115,8 @@ class _DemoPageState extends ConsumerState<DemoPage> with SingleTickerProviderSt
                   label: Text(_isInserting ? 'Inserting...' : 'Insert Samples'),
                   onPressed: _isInserting ? null : _insertSamples,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green.shade600,
-                    foregroundColor: Colors.white,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 32,
                       vertical: 16,
@@ -129,8 +134,8 @@ class _DemoPageState extends ConsumerState<DemoPage> with SingleTickerProviderSt
                 label: const Text('Reset All Data'),
                 onPressed: _isInserting ? null : _resetAllData,
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.red.shade600,
-                  side: BorderSide(color: Colors.red.shade600),
+                  foregroundColor: Theme.of(context).colorScheme.error,
+                  side: BorderSide(color: Theme.of(context).colorScheme.error),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 32,
                     vertical: 16,
@@ -162,24 +167,23 @@ class _DemoPageState extends ConsumerState<DemoPage> with SingleTickerProviderSt
       (1500.0, const Duration(days: 7), 'Demo: Monthly rent'),
     ];
     for (final (amount, ago, note) in samples) {
-      await ref.read(transactionRepositoryProvider).addManual(
-          amount: amount, note: note, at: now.subtract(ago));
+      await ref
+          .read(transactionRepositoryProvider)
+          .addManual(amount: amount, note: note, at: now.subtract(ago));
     }
 
     _controller.stop();
     _controller.reset();
-    
+
     messenger.showSnackBar(
       SnackBar(
         content: const Text('✓ Sample transactions inserted'),
-        backgroundColor: Colors.green.shade600,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
-    
+
     await Future.delayed(const Duration(milliseconds: 700));
     navigator.pushReplacementNamed('/home');
   }
@@ -188,9 +192,7 @@ class _DemoPageState extends ConsumerState<DemoPage> with SingleTickerProviderSt
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Reset All Data?'),
         content: const Text(
           'This will delete all transactions and reset your daily total. This action cannot be undone.',
@@ -203,8 +205,8 @@ class _DemoPageState extends ConsumerState<DemoPage> with SingleTickerProviderSt
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade600,
-              foregroundColor: Colors.white,
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
             ),
             child: const Text('Reset'),
           ),
@@ -219,14 +221,14 @@ class _DemoPageState extends ConsumerState<DemoPage> with SingleTickerProviderSt
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('✓ All data has been reset'),
-            backgroundColor: Colors.orange.shade600,
+            backgroundColor: Theme.of(context).colorScheme.primary,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
           ),
         );
-        
+
         await Future.delayed(const Duration(milliseconds: 700));
         Navigator.of(context).pushReplacementNamed('/home');
       }

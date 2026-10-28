@@ -6,6 +6,7 @@ import 'package:expensetracker_reloaded/services/debug_unlock_service.dart';
 import 'package:expensetracker_reloaded/services/user_prefs_service.dart';
 import 'package:expensetracker_reloaded/widgets/drawer_tile.dart';
 
+/// Side menu: Till Now, Profile, Showcase, Event logs, Debug (PIN gated).
 class AppDrawer extends ConsumerStatefulWidget {
   const AppDrawer({super.key});
 
@@ -69,8 +70,11 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                     CircleAvatar(
                       radius: 40,
                       backgroundColor: primary,
-                      child: Icon(Icons.person,
-                          color: theme.colorScheme.onPrimary, size: 40),
+                      child: Icon(
+                        Icons.person,
+                        color: theme.colorScheme.onPrimary,
+                        size: 40,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -111,8 +115,9 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                       color: theme.colorScheme.primary,
                       onTap: () {
                         Navigator.of(context).pop();
-                        Navigator.of(context)
-                            .pushNamed(AppRoutes.animationShowcase);
+                        Navigator.of(
+                          context,
+                        ).pushNamed(AppRoutes.animationShowcase);
                       },
                     ),
                     DrawerTile(
@@ -131,8 +136,9 @@ class _AppDrawerState extends ConsumerState<AppDrawer> {
                 color: theme.colorScheme.outline,
                 onTap: () {
                   Navigator.of(context).pop();
-                  Navigator.of(context)
-                      .pushNamed(AppRoutes.comprehensiveSettings);
+                  Navigator.of(
+                    context,
+                  ).pushNamed(AppRoutes.comprehensiveSettings);
                 },
               ),
               const SizedBox(height: 16),
@@ -231,7 +237,10 @@ class _DebugUnlockDialogState extends State<_DebugUnlockDialog> {
           ),
           if (_error != null) ...[
             const SizedBox(height: 8),
-            Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            Text(
+              _error!,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
           ],
         ],
       ),

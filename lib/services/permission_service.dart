@@ -15,15 +15,17 @@ enum AppPermission {
 enum PermissionOutcome {
   granted,
   denied,
+
   /// Auto-denied / greyed toggle — typical for sideloaded SMS apps on Android 15+.
   needsRestrictedSettings,
   openedSettings,
 }
 
+/// Checks/requests SMS and notification permissions and opens app settings.
 class PermissionService {
   static Future<Map<AppPermission, PermissionStatus>> statuses() async => {
-        for (final p in AppPermission.values) p: await p.permission.status,
-      };
+    for (final p in AppPermission.values) p: await p.permission.status,
+  };
 
   /// True when SMS cannot be granted via the normal dialog (sideload restricted).
   ///

@@ -48,7 +48,8 @@ class AppEvent {
     );
   }
 
-  String get formattedTime => DateFormat('yyyy-MM-dd HH:mm:ss').format(timestamp);
+  String get formattedTime =>
+      DateFormat('yyyy-MM-dd HH:mm:ss').format(timestamp);
   String get formattedTimeShort => DateFormat('HH:mm:ss').format(timestamp);
   String get typeLabel => type.toString().split('.').last;
 }
@@ -137,8 +138,12 @@ class EventLoggerService {
 
     return {
       'totalEvents': allEvents.length,
-      'oldestEvent': allEvents.isNotEmpty ? allEvents.last.formattedTime : 'No events',
-      'newestEvent': allEvents.isNotEmpty ? allEvents.first.formattedTime : 'No events',
+      'oldestEvent': allEvents.isNotEmpty
+          ? allEvents.last.formattedTime
+          : 'No events',
+      'newestEvent': allEvents.isNotEmpty
+          ? allEvents.first.formattedTime
+          : 'No events',
       'typeBreakdown': typeCounts,
     };
   }
