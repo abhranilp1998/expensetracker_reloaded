@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../data/repositories/transaction_repository.dart';
 import 'sms_ingest.dart';
 
@@ -20,6 +21,7 @@ class ImportSummary {
   int review = 0; // new rows waiting in the Review tab
   int duplicates = 0; // already stored earlier (re-scan)
   int skipped = 0; // not transactions (OTP, promo, ignored...)
+  int errors = 0; // messages that could not be read (malformed); scan goes on
   bool cancelled = false;
 
   /// Messages that looked like money movement.
@@ -28,7 +30,7 @@ class ImportSummary {
   @override
   String toString() =>
       'ImportSummary(scanned=$scanned, found=$found, added=$added, '
-      'review=$review, duplicates=$duplicates, skipped=$skipped, '
+      'review=$review, duplicates=$duplicates, skipped=$skipped, errors=$errors, '
       'cancelled=$cancelled)';
 }
 
@@ -56,14 +58,23 @@ Future<ImportSummary> importMessages(
     }
     final m = messages[i];
     summary.scanned++;
-    final r = await ingestSmsWithStatus(
-      repo,
-      body: m.body,
-      sender: m.address,
-      receivedAt: m.date,
-      source: 'import',
-      rules: rules,
-    );
+    // One bad message must never stop the scan (Codex A3).
+    final ({IngestStatus status, IngestResult? result}) r;
+    try {
+      r = await ingestSmsWithStatus(
+        repo,
+        body: m.body,
+        sender: m.address,
+        receivedAt: m.date,
+        source: 'import',
+        rules: rules,
+      );
+    } catch (e) {
+      debugPrint('inbox import: skipped unreadable SMS from ${m.address}: $e');
+      summary.errors++;
+      onProgress?.call(i + 1, total);
+      continue;
+    }
     switch (r.status) {
       case IngestStatus.added:
         summary.added++;

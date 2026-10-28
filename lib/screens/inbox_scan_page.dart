@@ -229,6 +229,7 @@ class _InboxScanPageState extends State<InboxScanPage> {
         row('Already added (skipped)', s.duplicates, Icons.copy_all_outlined),
         row('Needs review', s.review, Icons.rule),
         row('Not transactions', s.skipped, Icons.block),
+        if (s.errors > 0) row('Could not read', s.errors, Icons.error_outline),
         const SizedBox(height: 20),
         if (s.review > 0)
           FilledButton.tonal(
