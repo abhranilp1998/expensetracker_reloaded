@@ -222,6 +222,7 @@ class _TillNowPageState extends State<TillNowPage> {
     int totalTransactions = transactions.length;
 
     for (final t in transactions) {
+      if (t['type'] == 'credit') continue;
       final amount = (t['amount'] as num).toDouble();
       averageTransaction += amount;
       if (amount > maxTransaction) maxTransaction = amount;

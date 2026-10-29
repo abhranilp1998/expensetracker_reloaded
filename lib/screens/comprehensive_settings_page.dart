@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:expensetracker_reloaded/providers/providers.dart';
 import 'package:expensetracker_reloaded/services/theme_service.dart';
 import 'package:expensetracker_reloaded/services/event_logger_service.dart';
 import 'package:expensetracker_reloaded/routes/animation_preferences.dart';
 import 'package:expensetracker_reloaded/routes/animation_variants.dart';
 import 'package:expensetracker_reloaded/routes/app_routes.dart';
-import 'package:expensetracker_reloaded/main.dart' show ExpenseTrackerApp;
 
 class ComprehensiveSettingsPage extends StatefulWidget {
   const ComprehensiveSettingsPage({super.key});
@@ -94,7 +95,7 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                       onChanged: (value) {
                         if (value != null) {
                           setState(() => _currentTheme = value);
-                          ExpenseTrackerApp.of(context)?.setTheme(value);
+                          ProviderScope.containerOf(context).read(themeControllerProvider.notifier).setTheme(value);
                           EventLoggerService.logEvent(
                             type: EventType.settingsChanged,
                             message: 'Theme changed to Light',
@@ -109,7 +110,7 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                       onChanged: (value) {
                         if (value != null) {
                           setState(() => _currentTheme = value);
-                          ExpenseTrackerApp.of(context)?.setTheme(value);
+                          ProviderScope.containerOf(context).read(themeControllerProvider.notifier).setTheme(value);
                           EventLoggerService.logEvent(
                             type: EventType.settingsChanged,
                             message: 'Theme changed to Dark',
@@ -124,7 +125,7 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                       onChanged: (value) {
                         if (value != null) {
                           setState(() => _currentTheme = value);
-                          ExpenseTrackerApp.of(context)?.setTheme(value);
+                          ProviderScope.containerOf(context).read(themeControllerProvider.notifier).setTheme(value);
                           EventLoggerService.logEvent(
                             type: EventType.settingsChanged,
                             message: 'Theme changed to System',
@@ -160,7 +161,7 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                       return GestureDetector(
                         onTap: () {
                           setState(() => _currentAccentColor = color);
-                          ExpenseTrackerApp.of(context)?.setAccentColor(color);
+                          ProviderScope.containerOf(context).read(themeControllerProvider.notifier).setAccentColor(color);
                           EventLoggerService.logEvent(
                             type: EventType.settingsChanged,
                             message: 'Accent color changed to $colorName',
@@ -370,7 +371,7 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                 onChanged: (value) {
                   _updatePreference('auto_dark_mode', value);
                   if (value) {
-                    ExpenseTrackerApp.of(context)?.setTheme(ThemeMode.system);
+                    ProviderScope.containerOf(context).read(themeControllerProvider.notifier).setTheme(ThemeMode.system);
                   }
                 },
               ),
@@ -528,8 +529,8 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
         );
         
         // Reset to defaults
-        ExpenseTrackerApp.of(context)?.setTheme(ThemeMode.system);
-        ExpenseTrackerApp.of(context)?.setAccentColor(Colors.green);
+        ProviderScope.containerOf(context).read(themeControllerProvider.notifier).setTheme(ThemeMode.system);
+        ProviderScope.containerOf(context).read(themeControllerProvider.notifier).setAccentColor(Colors.green);
         await AnimationPreferencesService.saveAnimationType(AnimationType.fadeSlide);
         
         ScaffoldMessenger.of(context).showSnackBar(
