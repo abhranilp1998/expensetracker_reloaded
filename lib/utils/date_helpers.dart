@@ -8,7 +8,6 @@ String formatCurrency(double value) {
 String isoNow() => DateTime.now().toIso8601String();
 
 
-// import 'package:intl/intl.dart';
 
 class DateHelpers {
   static String formatTime(DateTime date) {

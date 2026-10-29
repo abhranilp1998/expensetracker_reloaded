@@ -57,8 +57,6 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = Theme.of(context).primaryColor;
 
     return Scaffold(
       appBar: AppBar(
@@ -180,7 +178,7 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                               boxShadow: isSelected
                                   ? [
                                       BoxShadow(
-                                        color: color.withOpacity(0.4),
+                                        color: color.withValues(alpha: 0.4),
                                         blurRadius: 12,
                                         spreadRadius: 2,
                                       ),
@@ -285,7 +283,7 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.purple.withOpacity(0.3),
+                        color: Colors.purple.withValues(alpha: 0.3),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -296,7 +294,7 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(
@@ -323,7 +321,7 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                               'Preview all animation types',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.white.withOpacity(0.8),
+                                color: Colors.white.withValues(alpha: 0.8),
                               ),
                             ),
                           ],
@@ -622,7 +620,7 @@ class _SectionHeaderState extends State<_SectionHeader>
               duration: const Duration(milliseconds: 300),
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: widget.color.withOpacity(0.2),
+                color: widget.color.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(widget.icon, color: widget.color, size: 24),
@@ -726,7 +724,7 @@ class _SettingsCardState extends State<_SettingsCard>
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: widget.color.withOpacity(0.1),
+                          color: widget.color.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(widget.icon, color: widget.color, size: 24),
@@ -857,17 +855,17 @@ class _PreferenceToggleState extends State<_PreferenceToggle>
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: _value
-                  ? widget.color.withOpacity(0.08)
+                  ? widget.color.withValues(alpha: 0.08)
                   : Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: _value ? widget.color.withOpacity(0.3) : borderColor,
+                color: _value ? widget.color.withValues(alpha: 0.3) : borderColor,
                 width: _value ? 1.5 : 0.5,
               ),
               boxShadow: _value
                   ? [
                       BoxShadow(
-                        color: widget.color.withOpacity(0.15),
+                        color: widget.color.withValues(alpha: 0.15),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -881,7 +879,7 @@ class _PreferenceToggleState extends State<_PreferenceToggle>
                   curve: Curves.easeInOutCubic,
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: widget.color.withOpacity(_value ? 0.15 : 0.1),
+                    color: widget.color.withValues(alpha: _value ? 0.15 : 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: AnimatedRotation(
@@ -924,7 +922,7 @@ class _PreferenceToggleState extends State<_PreferenceToggle>
                                     color: Colors.grey.shade600))
                             .copyWith(
                           color: _value
-                              ? widget.color.withOpacity(0.7)
+                              ? widget.color.withValues(alpha: 0.7)
                               : (Theme.of(context).brightness ==
                                       Brightness.dark
                                   ? Colors.grey.shade400
@@ -1050,7 +1048,7 @@ class _InfoCardState extends State<_InfoCard>
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: widget.color.withOpacity(0.1),
+                      color: widget.color.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(widget.icon, color: widget.color, size: 24),

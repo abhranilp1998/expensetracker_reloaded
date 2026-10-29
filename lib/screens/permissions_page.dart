@@ -191,12 +191,12 @@ class _PermissionsPageState extends State<PermissionsPage> {
         color: cardBgColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: statusColor.withOpacity(isDark ? 0.3 : 0.2),
+          color: statusColor.withValues(alpha: isDark ? 0.3 : 0.2),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.2 : 0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -212,7 +212,7 @@ class _PermissionsPageState extends State<PermissionsPage> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(isDark ? 0.15 : 0.1),
+                    color: statusColor.withValues(alpha: isDark ? 0.15 : 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
@@ -247,7 +247,7 @@ class _PermissionsPageState extends State<PermissionsPage> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(isDark ? 0.15 : 0.1),
+                    color: statusColor.withValues(alpha: isDark ? 0.15 : 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -290,15 +290,14 @@ class _PermissionsPageState extends State<PermissionsPage> {
 
   Widget _buildStatusLegend(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? Colors.white : Colors.grey.shade900;
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor.withOpacity(isDark ? 0.12 : 0.05),
+        color: Theme.of(context).primaryColor.withValues(alpha: isDark ? 0.12 : 0.05),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Theme.of(context).primaryColor.withOpacity(isDark ? 0.25 : 0.15),
+          color: Theme.of(context).primaryColor.withValues(alpha: isDark ? 0.25 : 0.15),
           width: 1,
         ),
       ),
@@ -328,7 +327,7 @@ class _PermissionsPageState extends State<PermissionsPage> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final subtleColor = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
     final textColor = isDark ? Colors.white : Colors.grey.shade900;
-    
+
     return Row(
       children: [
         Container(
@@ -369,15 +368,14 @@ class _PermissionsPageState extends State<PermissionsPage> {
   Widget _buildInfoCard(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accentColor = Colors.amber;
-    final textColor = isDark ? Colors.white : Colors.grey.shade900;
     
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: accentColor.withOpacity(isDark ? 0.12 : 0.05),
+        color: accentColor.withValues(alpha: isDark ? 0.12 : 0.05),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: accentColor.withOpacity(isDark ? 0.25 : 0.15),
+          color: accentColor.withValues(alpha: isDark ? 0.25 : 0.15),
           width: 1,
         ),
       ),

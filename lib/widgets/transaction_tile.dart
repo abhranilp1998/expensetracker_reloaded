@@ -50,16 +50,16 @@ class _TransactionTileState extends State<TransactionTile> {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: isDark
-                ? tileColor.withOpacity(0.15)
-                : tileColor.withOpacity(0.08),
+                ? tileColor.withValues(alpha: 0.15)
+                : tileColor.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: tileColor.withOpacity(isDark ? 0.3 : 0.15),
+              color: tileColor.withValues(alpha: isDark ? 0.3 : 0.15),
               width: 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
+                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
                 blurRadius: 10,
                 offset: const Offset(0, 2),
               ),
@@ -70,7 +70,7 @@ class _TransactionTileState extends State<TransactionTile> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: tileColor.withOpacity(isDark ? 0.3 : 0.15),
+                  color: tileColor.withValues(alpha: isDark ? 0.3 : 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(

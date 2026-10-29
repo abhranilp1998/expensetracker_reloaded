@@ -67,7 +67,7 @@ class HeroAnimations {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.green.withOpacity(0.3),
+              color: Colors.green.withValues(alpha: 0.3),
               blurRadius: 20,
               spreadRadius: 5,
             ),
@@ -106,7 +106,7 @@ class HeroAnimations {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.green.withOpacity(0.3),
+              color: Colors.green.withValues(alpha: 0.3),
               blurRadius: 20,
               spreadRadius: 5,
             ),

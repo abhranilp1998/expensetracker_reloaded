@@ -158,7 +158,7 @@ class _TillNowPageState extends ConsumerState<TillNowPage> {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: color.withOpacity(0.3)),
+        side: BorderSide(color: color.withValues(alpha: 0.3)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -167,7 +167,7 @@ class _TillNowPageState extends ConsumerState<TillNowPage> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 32),
@@ -270,7 +270,7 @@ class _TillNowPageState extends ConsumerState<TillNowPage> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(icon, color: color, size: 24),
