@@ -1,32 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:another_telephony/telephony.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:expensetracker_reloaded/routes/app_routes.dart';
 import 'package:expensetracker_reloaded/routes/animation_preferences.dart';
 import 'package:expensetracker_reloaded/services/theme_service.dart';
 import 'dart:async';
+import 'package:expensetracker_reloaded/services/notification_service.dart';
+import 'package:expensetracker_reloaded/services/sms_service.dart';
 import 'package:expensetracker_reloaded/data/db/db_instance.dart';
 import 'package:expensetracker_reloaded/data/migration/prefs_migration.dart';
 import 'package:expensetracker_reloaded/data/repositories/transaction_repository.dart';
-import 'package:expensetracker_reloaded/domain/sms/parsed_sms.dart';
-import 'package:expensetracker_reloaded/domain/sms/sms_parser.dart';
-
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-    FlutterLocalNotificationsPlugin();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize notifications
-  const AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings('@mipmap/ic_launcher');
-
-  const InitializationSettings initializationSettings = InitializationSettings(
-    android: initializationSettingsAndroid,
-  );
-
-  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  await NotificationService.initialize();
 
   // One-time legacy SharedPreferences -> SQLite migration.
   await PrefsMigration.run(
@@ -40,58 +27,11 @@ void main() async {
   // Initialize theme service
   await ThemeService.initialize();
 
+  // Single SMS listener (foreground + background) and one-time inbox import.
+  await SmsService.start();
+  unawaited(SmsService.importInboxOnce());
+
   runApp(const ExpenseTrackerApp());
-}
-
-@pragma('vm:entry-point')
-Future<void> backgroundMessageHandler(SmsMessage message) async {
-  debugPrint('🔔 Background SMS Handler triggered');
-
-  if (message.body != null) {
-    final parsed = const SmsParser().parse(
-      body: message.body!,
-      sender: message.address ?? '',
-      receivedAt: DateTime.now(),
-    );
-
-    if (parsed != null && parsed.type == TxnType.debit) {
-      try {
-        final amount = parsed.amount;
-        debugPrint('💰 Expense detected: ₹$amount');
-
-        final prefs = await SharedPreferences.getInstance();
-        final currentTotal = prefs.getDouble('todayTotal') ?? 0.0;
-        final newTotal = currentTotal + amount;
-        await prefs.setDouble('todayTotal', newTotal);
-
-        // Show notification for background message
-        const AndroidNotificationDetails androidPlatformChannelSpecifics =
-            AndroidNotificationDetails(
-              'expense_tracker',
-              'Expense Notifications',
-              channelDescription: 'Notifications for expense tracking',
-              importance: Importance.max,
-              priority: Priority.high,
-            );
-
-        const NotificationDetails platformChannelSpecifics =
-            NotificationDetails(android: androidPlatformChannelSpecifics);
-
-        await flutterLocalNotificationsPlugin.show(
-          0,
-          'New Expense Detected (Background)',
-          '₹${amount.toStringAsFixed(2)} spent\nDaily total: ₹${newTotal.toStringAsFixed(2)}',
-          platformChannelSpecifics,
-        );
-
-        debugPrint('✅ Background handler completed successfully');
-      } catch (e) {
-        debugPrint('❌ Error in background handler: $e');
-      }
-    } else {
-      debugPrint('⚠️ No expense amount found in message');
-    }
-  }
 }
 
 class ExpenseTrackerApp extends StatefulWidget {
