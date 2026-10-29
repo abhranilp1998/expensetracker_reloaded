@@ -1,41 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:expensetracker_reloaded/services/storage_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:expensetracker_reloaded/providers/providers.dart';
+import 'package:expensetracker_reloaded/data/txn_view.dart';
 import 'package:expensetracker_reloaded/services/theme_service.dart';
 import 'package:intl/intl.dart';
 
 /// Till Now page - shows all-time statistics and summaries
-class TillNowPage extends StatefulWidget {
+class TillNowPage extends ConsumerStatefulWidget {
   const TillNowPage({super.key});
 
   @override
-  State<TillNowPage> createState() => _TillNowPageState();
+  ConsumerState<TillNowPage> createState() => _TillNowPageState();
 }
 
-class _TillNowPageState extends State<TillNowPage> {
-  late Future<List<Map<String, dynamic>>> _transactionsFuture;
-  late Future<double> _totalSpentFuture;
-  late Future<double> _weekTotalFuture;
-  late Future<double> _monthTotalFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
-
-  void _loadData() {
-    _transactionsFuture = StorageService.getTransactions();
-    _totalSpentFuture = StorageService.calculateTotal(DateTime(2000)); // All time
-    _weekTotalFuture = StorageService.calculateTotal(
-      DateTime.now().subtract(const Duration(days: 7)),
-    );
-    _monthTotalFuture = StorageService.calculateTotal(
-      DateTime.now().subtract(const Duration(days: 30)),
-    );
-  }
-
+class _TillNowPageState extends ConsumerState<TillNowPage> {
   @override
   Widget build(BuildContext context) {
+    final all = ref.watch(allTransactionsProvider).value;
+    final transactions = all == null ? null : txnMaps(all);
+    final totalSpent = ref.watch(allTimeSummaryProvider).spent;
+    final weekTotal = ref.watch(weekSummaryProvider).spent;
+    final monthTotal = ref.watch(monthSummaryProvider).spent;
     return Scaffold(
       backgroundColor: context.getScaffoldBg(),
       appBar: AppBar(
@@ -62,7 +47,8 @@ class _TillNowPageState extends State<TillNowPage> {
             ),
             const SizedBox(height: 12),
             FutureBuilder<double>(
-              future: _totalSpentFuture,
+              future: null,
+              initialData: totalSpent,
               builder: (context, snapshot) {
                 if (!snapshot.hasData) return const SizedBox.shrink();
                 return _buildBigStatCard(
@@ -75,7 +61,8 @@ class _TillNowPageState extends State<TillNowPage> {
             ),
             const SizedBox(height: 12),
             FutureBuilder<double>(
-              future: _monthTotalFuture,
+              future: null,
+              initialData: monthTotal,
               builder: (context, snapshot) {
                 if (!snapshot.hasData) return const SizedBox.shrink();
                 return _buildBigStatCard(
@@ -88,7 +75,8 @@ class _TillNowPageState extends State<TillNowPage> {
             ),
             const SizedBox(height: 12),
             FutureBuilder<double>(
-              future: _weekTotalFuture,
+              future: null,
+              initialData: weekTotal,
               builder: (context, snapshot) {
                 if (!snapshot.hasData) return const SizedBox.shrink();
                 return _buildBigStatCard(
@@ -108,7 +96,8 @@ class _TillNowPageState extends State<TillNowPage> {
             ),
             const SizedBox(height: 12),
             FutureBuilder<List<Map<String, dynamic>>>(
-              future: _transactionsFuture,
+              future: null,
+              initialData: transactions,
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());

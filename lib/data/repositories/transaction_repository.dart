@@ -160,6 +160,34 @@ class TransactionRepository {
     _db.transactions,
   )..where((x) => x.id.equals(id))).getSingleOrNull();
 
+  /// Manually entered transaction (amount in rupees).
+  Future<bool> addManual({
+    required double amount,
+    String type = 'debit',
+    String? note,
+    DateTime? at,
+  }) {
+    final when = at ?? _clock();
+    final minor = (amount * 100).round();
+    return insert(NewTxn(
+      amountMinor: minor,
+      type: type,
+      source: 'manual',
+      occurredAt: when,
+      note: note,
+      dedupeHash: 'manual:${_uuid.v4()}',
+    ));
+  }
+
+  /// Soft-deletes every transaction (sync-friendly reset).
+  Future<void> softDeleteAll() =>
+      (_db.update(_db.transactions)..where((x) => x.deleted.equals(false)))
+          .write(TransactionsCompanion(
+        deleted: const Value(true),
+        updatedAt: Value(_nowMs),
+        syncStatus: const Value('pending'),
+      ));
+
   // ---- Review queue -------------------------------------------------------
 
   Stream<List<TxnRow>> watchReviewQueue() => (_db.select(_db.transactions)
