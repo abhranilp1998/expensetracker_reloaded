@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../domain/sms/sms_template.dart';
 import '../db/app_database.dart';
 
 typedef Clock = DateTime Function();
@@ -15,8 +16,14 @@ class NewTxn {
   final String? sender;
   final String? merchant;
   final String? note;
+  final String status;
+  final String? templateKey;
+  final double? confidence;
 
   const NewTxn({
+    this.status = 'confirmed',
+    this.templateKey,
+    this.confidence,
     required this.amountMinor,
     required this.type,
     required this.source,
@@ -53,6 +60,9 @@ class TransactionRepository {
       sender: Value(t.sender),
       merchant: Value(t.merchant),
       note: Value(t.note),
+      status: Value(t.status),
+      templateKey: Value(t.templateKey),
+      confidence: Value(t.confidence),
       createdAt: now,
       updatedAt: now,
     );
@@ -98,6 +108,7 @@ class TransactionRepository {
       ..where(
         (x) =>
             x.deleted.equals(false) &
+            x.status.equals('confirmed') &
             x.occurredAt.isBiggerOrEqualValue(f) &
             x.occurredAt.isSmallerThanValue(t),
       )
@@ -113,7 +124,9 @@ class TransactionRepository {
 
   Stream<List<TxnRow>> watchAll() =>
       (_db.select(_db.transactions)
-            ..where((x) => x.deleted.equals(false))
+            ..where(
+              (x) => x.deleted.equals(false) & x.status.equals('confirmed'),
+            )
             ..orderBy([(x) => OrderingTerm.desc(x.occurredAt)]))
           .watch();
 
@@ -146,4 +159,107 @@ class TransactionRepository {
   Future<TxnRow?> byId(String id) => (_db.select(
     _db.transactions,
   )..where((x) => x.id.equals(id))).getSingleOrNull();
+
+  // ---- Review queue -------------------------------------------------------
+
+  Stream<List<TxnRow>> watchReviewQueue() => (_db.select(_db.transactions)
+        ..where((x) => x.deleted.equals(false) & x.status.equals('review'))
+        ..orderBy([(x) => OrderingTerm.desc(x.occurredAt)]))
+      .watch();
+
+  Future<List<TxnRow>> reviewQueue() => (_db.select(_db.transactions)
+        ..where((x) => x.deleted.equals(false) & x.status.equals('review')))
+      .get();
+
+  /// Applies the user's decision to [id] and every other queued row with the
+  /// same template, and stores it as a rule for future SMS.
+  /// [action] is 'debit' | 'credit' | 'ignore'. Returns rows resolved.
+  Future<int> resolveReview(String id, String action) =>
+      _db.transaction(() async {
+        final row = await byId(id);
+        if (row == null) return 0;
+        final key = row.templateKey;
+        if (key != null) {
+          await upsertRule(
+              templateKey: key,
+              sender: row.sender ?? '',
+              action: action,
+              sample: row.rawBody == null ? null : normalizeTemplate(row.rawBody!));
+        }
+        final targets = key == null
+            ? [row]
+            : await (_db.select(_db.transactions)
+                  ..where((x) =>
+                      x.deleted.equals(false) &
+                      x.status.equals('review') &
+                      x.templateKey.equals(key)))
+                .get();
+        for (final t in targets) {
+          await (_db.update(_db.transactions)..where((x) => x.id.equals(t.id)))
+              .write(TransactionsCompanion(
+            status: const Value('confirmed'),
+            type: action == 'ignore' ? const Value.absent() : Value(action),
+            deleted: Value(action == 'ignore'),
+            updatedAt: Value(_nowMs),
+            syncStatus: const Value('pending'),
+          ));
+        }
+        return targets.length;
+      });
+
+  // ---- Learned rules ------------------------------------------------------
+
+  Future<void> upsertRule({
+    required String templateKey,
+    required String sender,
+    required String action,
+    String? sample,
+  }) async {
+    final now = _nowMs;
+    final existing = await (_db.select(_db.learnedRules)
+          ..where((r) => r.templateKey.equals(templateKey)))
+        .getSingleOrNull();
+    if (existing == null) {
+      await _db.into(_db.learnedRules).insert(LearnedRulesCompanion.insert(
+            id: _uuid.v4(),
+            templateKey: templateKey,
+            sender: sender,
+            action: action,
+            sample: Value(sample),
+            createdAt: now,
+            updatedAt: now,
+          ));
+    } else {
+      await (_db.update(_db.learnedRules)
+            ..where((r) => r.id.equals(existing.id)))
+          .write(LearnedRulesCompanion(
+        action: Value(action),
+        sample: sample == null ? const Value.absent() : Value(sample),
+        deleted: const Value(false),
+        updatedAt: Value(now),
+        syncStatus: const Value('pending'),
+      ));
+    }
+  }
+
+  Future<Map<String, String>> activeRules() async {
+    final rows = await (_db.select(_db.learnedRules)
+          ..where((r) => r.deleted.equals(false)))
+        .get();
+    return {for (final r in rows) r.templateKey: r.action};
+  }
+
+  Stream<List<RuleRow>> watchRules() => (_db.select(_db.learnedRules)
+        ..where((r) => r.deleted.equals(false))
+        ..orderBy([(r) => OrderingTerm.desc(r.updatedAt)]))
+      .watch();
+
+  Future<void> deleteRule(String id) =>
+      (_db.update(_db.learnedRules)..where((r) => r.id.equals(id))).write(
+        LearnedRulesCompanion(
+          deleted: const Value(true),
+          updatedAt: Value(_nowMs),
+          syncStatus: const Value('pending'),
+        ),
+      );
 }

@@ -120,6 +120,32 @@ class SmsParser {
     }
   }
 
+  /// Loose extraction with no exclusions, used by [SmsClassifier] to queue
+  /// uncertain messages for review.
+  RawExtraction extract(String body) {
+    final text = body.replaceAll(RegExp(r'\s+'), ' ').trim();
+    final c = _credit.firstMatch(text);
+    final d = _debit.firstMatch(text);
+    TxnType? type;
+    if (c != null && d != null) {
+      type = d.start <= c.start ? TxnType.debit : TxnType.credit;
+    } else if (d != null) {
+      type = TxnType.debit;
+    } else if (c != null) {
+      type = TxnType.credit;
+    }
+    return RawExtraction(
+      text: text,
+      amountMinor: _firstTxnAmount(text),
+      typeGuess: type,
+      reference: _ref.firstMatch(text)?.group(1),
+      merchant: _merchant.firstMatch(text)?.group(1)?.trim(),
+      isOtp: _otp.hasMatch(text),
+      isFailed: _failed.hasMatch(text),
+      isReminder: _reminder.hasMatch(text),
+    );
+  }
+
   bool _looksTransactional(String t) => RegExp(
     r'\b(a/?c|acct|account|card|upi)\b',
     caseSensitive: false,
@@ -166,4 +192,25 @@ class SmsParser {
         : '${sender.toUpperCase()}|$amountMinor|${type.name}|${body.toLowerCase()}|$minuteBucket';
     return sha1.convert(utf8.encode(key)).toString();
   }
+}
+
+class RawExtraction {
+  final String text;
+  final int? amountMinor;
+  final TxnType? typeGuess;
+  final String? reference;
+  final String? merchant;
+  final bool isOtp;
+  final bool isFailed;
+  final bool isReminder;
+  const RawExtraction({
+    required this.text,
+    required this.amountMinor,
+    required this.typeGuess,
+    required this.reference,
+    required this.merchant,
+    required this.isOtp,
+    required this.isFailed,
+    required this.isReminder,
+  });
 }

@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/db/db_instance.dart';
 import '../data/repositories/transaction_repository.dart';
+import '../domain/sms/sms_classifier.dart';
 import 'notification_service.dart';
 import 'sms_ingest.dart';
 
@@ -38,7 +39,7 @@ class SmsService {
       );
       if (p != null) {
         await NotificationService.show(
-          'Transaction detected',
+          p.decision == Decision.review ? 'Needs review' : 'Transaction detected',
           describe(p),
           key: p.dedupeHash,
         );
@@ -71,6 +72,7 @@ class SmsService {
       filter: SmsFilter.where(SmsColumn.DATE).greaterThan('$since'),
     );
     final repo = TransactionRepository(appDatabase);
+    final rules = await repo.activeRules();
     var added = 0;
     for (final m in msgs) {
       final body = m.body;
@@ -81,6 +83,7 @@ class SmsService {
         sender: m.address ?? '',
         receivedAt: DateTime.fromMillisecondsSinceEpoch(m.date ?? 0),
         source: 'import',
+        rules: rules,
       );
       if (p != null) added++;
     }

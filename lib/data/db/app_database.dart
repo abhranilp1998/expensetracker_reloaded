@@ -5,7 +5,7 @@ import 'tables.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [Transactions])
+@DriftDatabase(tables: [Transactions, LearnedRules])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor]) : super(executor ?? _open());
 
@@ -16,7 +16,7 @@ class AppDatabase extends _$AppDatabase {
   );
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -30,7 +30,12 @@ class AppDatabase extends _$AppDatabase {
       );
     },
     onUpgrade: (m, from, to) async {
-      // Future schema migrations go here, keyed on `from`.
+      if (from < 2) {
+        await m.addColumn(transactions, transactions.status);
+        await m.addColumn(transactions, transactions.templateKey);
+        await m.addColumn(transactions, transactions.confidence);
+        await m.createTable(learnedRules);
+      }
     },
   );
 }

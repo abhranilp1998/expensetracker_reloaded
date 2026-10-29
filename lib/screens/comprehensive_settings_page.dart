@@ -248,6 +248,26 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                 onChanged: (value) => _updatePreference('animations_enabled', value),
               ),
               const SizedBox(height: 16),
+              Card(
+                child: Column(children: [
+                  ListTile(
+                    leading: const Icon(Icons.rule),
+                    title: const Text('Needs review'),
+                    subtitle: const Text('Uncertain SMS waiting for your decision'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => Navigator.of(context).pushNamed(AppRoutes.review),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.psychology_outlined),
+                    title: const Text('Learned rules'),
+                    subtitle: const Text('View or delete on-device SMS rules'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () =>
+                        Navigator.of(context).pushNamed(AppRoutes.learnedRules),
+                  ),
+                ]),
+              ),
+              const SizedBox(height: 16),
               // Animation Preview Button
               GestureDetector(
                 onTap: () {

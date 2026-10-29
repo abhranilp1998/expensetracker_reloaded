@@ -278,6 +278,7 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
     final week = ref.watch(weekSummaryProvider);
     final month = ref.watch(monthSummaryProvider);
     final todayTotal = summary.spent;
+    final pendingReview = ref.watch(reviewQueueProvider).value?.length ?? 0;
     final transactions = (ref.watch(todayTransactionsProvider).value ?? const [])
         .reversed
         .map(txnToMap)
@@ -511,6 +512,26 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
                 ),
 
                 const SizedBox(height: 32),
+
+                if (pendingReview > 0) ...[
+                  Card(
+                    color: Colors.orange.shade50,
+                    child: ListTile(
+                      leading: const Icon(Icons.rule, color: Colors.deepOrange),
+                      title: Text(
+                        '$pendingReview SMS need${pendingReview == 1 ? 's' : ''} review',
+                        style: const TextStyle(color: Colors.black87),
+                      ),
+                      subtitle: const Text(
+                        'Tap Expense, Income or Ignore. Not counted until you decide.',
+                        style: TextStyle(color: Colors.black54),
+                      ),
+                      trailing: const Icon(Icons.chevron_right, color: Colors.black54),
+                      onTap: () => Navigator.of(context).pushNamed('/review'),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
 
                 // Recent Transactions
                 Row(
@@ -1044,6 +1065,12 @@ class AppDrawer extends StatelessWidget {
                       title: 'Home',
                       color: Colors.green,
                       onTap: () => Navigator.of(context).pushReplacementNamed('/home'),
+                    ),
+                    _DrawerTile(
+                      icon: Icons.rule,
+                      title: 'Needs review',
+                      color: Colors.deepOrange,
+                      onTap: () => Navigator.of(context).pushNamed('/review'),
                     ),
                     _DrawerTile(
                       icon: Icons.history,

@@ -10,6 +10,8 @@ import 'package:expensetracker_reloaded/routes/animation_variants.dart';
 import 'package:expensetracker_reloaded/screens/permissions_page.dart';
 import 'package:expensetracker_reloaded/screens/event_logs_page.dart';
 import 'package:expensetracker_reloaded/screens/till_now_page.dart';
+import 'package:expensetracker_reloaded/screens/review_queue_page.dart';
+import 'package:expensetracker_reloaded/screens/learned_rules_page.dart';
 import 'package:expensetracker_reloaded/screens/comprehensive_settings_page.dart' show ComprehensiveSettingsPage;
 
 /// Global route constants
@@ -27,6 +29,8 @@ class AppRoutes {
   static const String permissions = '/permissions';
   static const String eventLogs = '/event-logs';
   static const String tillNow = '/till-now';
+  static const String review = '/review';
+  static const String learnedRules = '/learned-rules';
 }
 
 /// Creates an animated route using the currently selected animation variant
@@ -61,6 +65,10 @@ Route<dynamic> onGenerateRoute(RouteSettings settings) {
       return createRoute(const EventLogsPage());
     case AppRoutes.tillNow:
       return createRoute(const TillNowPage());
+    case AppRoutes.review:
+      return createRoute(const ReviewQueuePage());
+    case AppRoutes.learnedRules:
+      return createRoute(const LearnedRulesPage());
     default:
       return createRoute(const WelcomeScreen());
   }
