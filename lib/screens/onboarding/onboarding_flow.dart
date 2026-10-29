@@ -80,8 +80,9 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
     await UserPrefsService.setOnboardingCompleted(true);
     if (!mounted) return;
     // Clear the onboarding stack and land on the Home tab.
-    Navigator.of(context)
-        .pushNamedAndRemoveUntil(AppRoutes.home, (route) => false);
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil(AppRoutes.home, (route) => false);
   }
 
   Future<void> _requestPerms() async {
@@ -192,8 +193,11 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
                       color: primary,
                       borderRadius: BorderRadius.circular(28),
                     ),
-                    child: Icon(Icons.account_balance_wallet_rounded,
-                        size: 56, color: theme.colorScheme.onPrimary),
+                    child: Icon(
+                      Icons.account_balance_wallet_rounded,
+                      size: 56,
+                      color: theme.colorScheme.onPrimary,
+                    ),
                   ),
                 ),
               ),
@@ -222,14 +226,8 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
             style: theme.textTheme.bodyLarge,
           ),
           const Spacer(flex: 3),
-          FilledButton(
-            onPressed: _next,
-            child: const Text('Continue'),
-          ),
-          TextButton(
-            onPressed: _finish,
-            child: const Text('Skip setup'),
-          ),
+          FilledButton(onPressed: _next, child: const Text('Continue')),
+          TextButton(onPressed: _finish, child: const Text('Skip setup')),
         ],
       ),
     );
@@ -237,22 +235,37 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
 
   Widget _whatPage(ThemeData theme) {
     final items = [
-      (Icons.sms_outlined, 'Reads bank & UPI SMS',
-          'Detects debits and credits automatically.'),
-      (Icons.insights_outlined, 'Tracks spend & income',
-          'See today, week, and month at a glance.'),
-      (Icons.school_outlined, 'Learns from your reviews',
-          'Uncertain messages wait for your call.'),
-      (Icons.phone_android, 'Stays on your phone',
-          'Nothing is uploaded. Your data is yours.'),
+      (
+        Icons.sms_outlined,
+        'Reads bank & UPI SMS',
+        'Detects debits and credits automatically.',
+      ),
+      (
+        Icons.insights_outlined,
+        'Tracks spend & income',
+        'See today, week, and month at a glance.',
+      ),
+      (
+        Icons.school_outlined,
+        'Learns from your reviews',
+        'Uncertain messages wait for your call.',
+      ),
+      (
+        Icons.phone_android,
+        'Stays on your phone',
+        'Nothing is uploaded. Your data is yours.',
+      ),
     ];
     return _PageFrame(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('What Ledgerly does',
-              style: theme.textTheme.headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.bold)),
+          Text(
+            'What Ledgerly does',
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(height: 8),
           Text('Short version — no fluff.', style: theme.textTheme.bodyMedium),
           const SizedBox(height: 28),
@@ -260,11 +273,15 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: CircleAvatar(
-                backgroundColor:
-                    theme.colorScheme.primary.withValues(alpha: 0.12),
+                backgroundColor: theme.colorScheme.primary.withValues(
+                  alpha: 0.12,
+                ),
                 child: Icon(icon, color: theme.colorScheme.primary),
               ),
-              title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+              title: Text(
+                title,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
               subtitle: Text(sub),
             ),
             const SizedBox(height: 8),
@@ -282,12 +299,17 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('About you',
-              style: theme.textTheme.headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.bold)),
+          Text(
+            'About you',
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(height: 8),
-          Text('Used in greetings and on your Profile. Change anytime in Settings.',
-              style: theme.textTheme.bodyMedium),
+          Text(
+            'Used in greetings and on your Profile. Change anytime in Settings.',
+            style: theme.textTheme.bodyMedium,
+          ),
           const SizedBox(height: 32),
           TextField(
             controller: _nameCtrl,
@@ -323,9 +345,12 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
     return _PageFrame(
       child: ListView(
         children: [
-          Text('Your setup',
-              style: theme.textTheme.headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.bold)),
+          Text(
+            'Your setup',
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(height: 8),
           Text(
             'Pick from the existing themes and accents. You can change these later in Settings.',
@@ -369,7 +394,9 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
                       shape: BoxShape.circle,
                       border: _accent == e.value
                           ? Border.all(
-                              color: theme.colorScheme.onSurface, width: 3)
+                              color: theme.colorScheme.onSurface,
+                              width: 3,
+                            )
                           : null,
                     ),
                   ),
@@ -405,9 +432,12 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
     return _PageFrame(
       child: ListView(
         children: [
-          Text('Permissions',
-              style: theme.textTheme.headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.bold)),
+          Text(
+            'Permissions',
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(height: 8),
           Text(
             'Ledgerly needs SMS to read bank messages on this device only. Notifications are optional.',
@@ -423,7 +453,9 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.sms_outlined),
-            label: Text(_permBusy ? 'Requesting…' : 'Grant SMS & notifications'),
+            label: Text(
+              _permBusy ? 'Requesting…' : 'Grant SMS & notifications',
+            ),
           ),
           const SizedBox(height: 12),
           OutlinedButton.icon(
@@ -467,20 +499,26 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
   }
 
   Widget _allSetPage(ThemeData theme) {
-    final name = _nameCtrl.text.trim().isEmpty ? 'there' : _nameCtrl.text.trim();
+    final name = _nameCtrl.text.trim().isEmpty
+        ? 'there'
+        : _nameCtrl.text.trim();
     return _PageFrame(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Spacer(flex: 2),
-          Icon(Icons.check_circle_outline,
-              size: 72, color: theme.colorScheme.primary),
+          Icon(
+            Icons.check_circle_outline,
+            size: 72,
+            color: theme.colorScheme.primary,
+          ),
           const SizedBox(height: 24),
           Text(
             'You\'re all set, $name',
             textAlign: TextAlign.center,
-            style: theme.textTheme.headlineSmall
-                ?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 12),
           Text(
@@ -491,10 +529,7 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
             style: theme.textTheme.bodyMedium,
           ),
           const Spacer(flex: 3),
-          FilledButton(
-            onPressed: _finish,
-            child: const Text('Go to Home'),
-          ),
+          FilledButton(onPressed: _finish, child: const Text('Go to Home')),
         ],
       ),
     );
@@ -516,8 +551,8 @@ class _PageFrame extends StatelessWidget {
 
 extension on ThemeMode {
   String get name => switch (this) {
-        ThemeMode.light => 'Light',
-        ThemeMode.dark => 'Dark',
-        ThemeMode.system => 'System',
-      };
+    ThemeMode.light => 'Light',
+    ThemeMode.dark => 'Dark',
+    ThemeMode.system => 'System',
+  };
 }

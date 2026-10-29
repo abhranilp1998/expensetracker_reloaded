@@ -17,6 +17,7 @@ Future<void> smsBackgroundHandler(SmsMessage message) async {
   await SmsService.handle(message);
 }
 
+/// Reads the SMS inbox and registers the background SMS listener.
 class SmsService {
   static final Telephony _telephony = Telephony.instance;
   static bool _listening = false;
@@ -39,7 +40,9 @@ class SmsService {
       );
       if (p != null) {
         await NotificationService.show(
-          p.decision == Decision.review ? 'Needs review' : 'Transaction detected',
+          p.decision == Decision.review
+              ? 'Needs review'
+              : 'Transaction detected',
           describe(p),
           key: p.dedupeHash,
         );

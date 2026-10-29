@@ -5,8 +5,10 @@ Route createSlideFadeRoute(Widget page, {int ms = 450}) {
     transitionDuration: Duration(milliseconds: ms),
     pageBuilder: (context, animation, secondaryAnimation) => page,
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      final tween = Tween(begin: const Offset(0.0, 0.1), end: Offset.zero)
-          .chain(CurveTween(curve: Curves.easeOut));
+      final tween = Tween(
+        begin: const Offset(0.0, 0.1),
+        end: Offset.zero,
+      ).chain(CurveTween(curve: Curves.easeOut));
       return FadeTransition(
         opacity: animation,
         child: SlideTransition(position: animation.drive(tween), child: child),
@@ -15,8 +17,7 @@ Route createSlideFadeRoute(Widget page, {int ms = 450}) {
   );
 }
 
-
-
+/// Page-route transition builders used by the showcase.
 class AnimatedRoutes {
   static Route createRoute(Widget page) {
     return PageRouteBuilder(
@@ -32,7 +33,7 @@ class AnimatedRoutes {
           begin: const Offset(0.0, 0.08),
           end: Offset.zero,
         ).chain(CurveTween(curve: Curves.easeOutCubic));
-        
+
         return FadeTransition(
           opacity: fadeIn,
           child: SlideTransition(
@@ -45,6 +46,7 @@ class AnimatedRoutes {
   }
 }
 
+/// Shared Hero tags/helpers for card-to-page transitions.
 class HeroAnimations {
   static Widget logoFlightShuttle(
     BuildContext flightContext,
@@ -55,9 +57,10 @@ class HeroAnimations {
   ) {
     return ScaleTransition(
       scale: animation.drive(
-        Tween(begin: 1.0, end: 0.4).chain(
-          CurveTween(curve: Curves.easeInOutCubic),
-        ),
+        Tween(
+          begin: 1.0,
+          end: 0.4,
+        ).chain(CurveTween(curve: Curves.easeInOutCubic)),
       ),
       child: Container(
         decoration: BoxDecoration(
@@ -92,9 +95,10 @@ class HeroAnimations {
   ) {
     return ScaleTransition(
       scale: animation.drive(
-        Tween(begin: 0.5, end: 1.5).chain(
-          CurveTween(curve: Curves.easeInOutCubic),
-        ),
+        Tween(
+          begin: 0.5,
+          end: 1.5,
+        ).chain(CurveTween(curve: Curves.easeInOutCubic)),
       ),
       child: Container(
         width: 128,
@@ -112,11 +116,7 @@ class HeroAnimations {
             ),
           ],
         ),
-        child: const Icon(
-          Icons.person,
-          size: 64,
-          color: Colors.white,
-        ),
+        child: const Icon(Icons.person, size: 64, color: Colors.white),
       ),
     );
   }

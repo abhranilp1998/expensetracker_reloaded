@@ -84,7 +84,10 @@ class _EventLogsPageState extends State<EventLogsPage> {
               child: Row(
                 children: [
                   _buildFilterChip(null, 'All'),
-                  ...EventType.values.map((type) => _buildFilterChip(type, type.toString().split('.').last)),
+                  ...EventType.values.map(
+                    (type) =>
+                        _buildFilterChip(type, type.toString().split('.').last),
+                  ),
                 ],
               ),
             ),
@@ -106,14 +109,16 @@ class _EventLogsPageState extends State<EventLogsPage> {
                         Icon(
                           Icons.history,
                           size: 64,
-                          color: Colors.grey.shade400,
+                          color: Theme.of(context).colorScheme.outline,
                         ),
                         const SizedBox(height: 16),
                         Text(
                           'No events yet',
                           style: TextStyle(
                             fontSize: 18,
-                            color: Colors.grey.shade600,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -144,7 +149,7 @@ class _EventLogsPageState extends State<EventLogsPage> {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.blue.shade200),
+        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -156,16 +161,28 @@ class _EventLogsPageState extends State<EventLogsPage> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: Colors.blue.shade900,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildStatItem('Total Events', stats['totalEvents'].toString(), Colors.blue),
-                _buildStatItem('Oldest', stats['oldestEvent'].toString().substring(0, 10), Colors.green),
-                _buildStatItem('Latest', stats['newestEvent'].toString().substring(0, 10), Colors.orange),
+                _buildStatItem(
+                  'Total Events',
+                  stats['totalEvents'].toString(),
+                  Theme.of(context).colorScheme.primary,
+                ),
+                _buildStatItem(
+                  'Oldest',
+                  stats['oldestEvent'].toString().substring(0, 10),
+                  Theme.of(context).colorScheme.secondary,
+                ),
+                _buildStatItem(
+                  'Latest',
+                  stats['newestEvent'].toString().substring(0, 10),
+                  Theme.of(context).colorScheme.tertiary,
+                ),
               ],
             ),
           ],
@@ -193,7 +210,7 @@ class _EventLogsPageState extends State<EventLogsPage> {
             label,
             style: TextStyle(
               fontSize: 12,
-              color: Colors.grey.shade600,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -216,13 +233,17 @@ class _EventLogsPageState extends State<EventLogsPage> {
             _loadData();
           });
         },
-        backgroundColor: Colors.white,
-        selectedColor: Colors.green.shade100,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        selectedColor: Theme.of(context).colorScheme.secondaryContainer,
         side: BorderSide(
-          color: isSelected ? Colors.green.shade600 : Colors.grey.shade300,
+          color: isSelected
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).colorScheme.outlineVariant,
         ),
         labelStyle: TextStyle(
-          color: isSelected ? Colors.green.shade600 : Colors.grey.shade700,
+          color: isSelected
+              ? Theme.of(context).colorScheme.primary
+              : Theme.of(context).colorScheme.onSurfaceVariant,
           fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
         ),
       ),
@@ -238,7 +259,7 @@ class _EventLogsPageState extends State<EventLogsPage> {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -271,7 +292,10 @@ class _EventLogsPageState extends State<EventLogsPage> {
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: color.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
@@ -292,7 +316,7 @@ class _EventLogsPageState extends State<EventLogsPage> {
                     event.message,
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey.shade700,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -304,7 +328,7 @@ class _EventLogsPageState extends State<EventLogsPage> {
                         'Details: ${event.metadata.toString()}',
                         style: TextStyle(
                           fontSize: 11,
-                          color: Colors.grey.shade500,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                           fontStyle: FontStyle.italic,
                         ),
                         maxLines: 1,
@@ -323,23 +347,23 @@ class _EventLogsPageState extends State<EventLogsPage> {
   Color _getEventColor(EventType type) {
     switch (type) {
       case EventType.smsReceived:
-        return Colors.blue;
+        return Theme.of(context).colorScheme.primary;
       case EventType.transactionAdded:
-        return Colors.green;
+        return Theme.of(context).colorScheme.secondary;
       case EventType.permissionGranted:
-        return Colors.green;
+        return Theme.of(context).colorScheme.secondary;
       case EventType.permissionDenied:
-        return Colors.red;
+        return Theme.of(context).colorScheme.error;
       case EventType.permissionRevoked:
-        return Colors.orange;
+        return Theme.of(context).colorScheme.tertiary;
       case EventType.appOpened:
-        return Colors.purple;
+        return Theme.of(context).colorScheme.tertiary;
       case EventType.dataReset:
-        return Colors.red;
+        return Theme.of(context).colorScheme.error;
       case EventType.settingsChanged:
-        return Colors.amber;
+        return Theme.of(context).colorScheme.secondary;
       case EventType.animationChanged:
-        return Colors.cyan;
+        return Theme.of(context).colorScheme.primary;
     }
   }
 
@@ -371,7 +395,9 @@ class _EventLogsPageState extends State<EventLogsPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Clear All Logs?'),
-        content: const Text('This will permanently delete all event logs. This cannot be undone.'),
+        content: const Text(
+          'This will permanently delete all event logs. This cannot be undone.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -389,7 +415,7 @@ class _EventLogsPageState extends State<EventLogsPage> {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+              backgroundColor: Theme.of(context).colorScheme.error,
             ),
             child: const Text('Clear'),
           ),

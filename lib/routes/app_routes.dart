@@ -13,9 +13,9 @@ import 'package:expensetracker_reloaded/screens/comprehensive_settings_page.dart
 import 'package:expensetracker_reloaded/screens/history_page.dart';
 import 'package:expensetracker_reloaded/screens/today_insights_page.dart';
 import 'package:expensetracker_reloaded/screens/debug_hub_page.dart';
-import 'package:expensetracker_reloaded/screens/onboarding_permissions_page.dart';
 import 'package:expensetracker_reloaded/services/user_prefs_service.dart';
 
+/// Named route constants; see [onGenerateRoute].
 class AppRoutes {
   AppRoutes._();
 
@@ -27,7 +27,6 @@ class AppRoutes {
   static const String demo = '/demo';
   static const String profile = '/profile';
   static const String animationShowcase = '/animation-showcase';
-  static const String onboardingPermissions = '/onboarding-permissions';
   static const String eventLogs = '/event-logs';
   static const String tillNow = '/till-now';
   static const String review = '/review';
@@ -58,8 +57,6 @@ Route<dynamic> onGenerateRoute(RouteSettings settings) {
       return createRoute(const ProfilePage());
     case AppRoutes.animationShowcase:
       return createRoute(const AnimationPreview());
-    case AppRoutes.onboardingPermissions:
-      return createRoute(const OnboardingPermissionsPage());
     case AppRoutes.eventLogs:
       return createRoute(const EventLogsPage());
     case AppRoutes.tillNow:
@@ -95,15 +92,13 @@ class _BootstrapGateState extends State<_BootstrapGate> {
   Future<void> _go() async {
     final done = await UserPrefsService.isOnboardingCompleted();
     if (!mounted) return;
-    Navigator.of(context).pushReplacementNamed(
-      done ? AppRoutes.home : AppRoutes.onboarding,
-    );
+    Navigator.of(
+      context,
+    ).pushReplacementNamed(done ? AppRoutes.home : AppRoutes.onboarding);
   }
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: CircularProgressIndicator()),
-    );
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }

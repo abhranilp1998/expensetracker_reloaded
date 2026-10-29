@@ -7,6 +7,7 @@ enum Decision { accept, review, drop }
 /// A user decision learned for a sender+template.
 enum RuleAction { debit, credit, ignore }
 
+/// Result of classifying a parsed SMS: kind, confidence and whether it needs review.
 class Classification {
   final Decision decision;
   final double confidence;

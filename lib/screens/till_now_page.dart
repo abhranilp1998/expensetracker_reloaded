@@ -54,7 +54,7 @@ class _TillNowPageState extends ConsumerState<TillNowPage> {
                 return _buildBigStatCard(
                   'Total Spent (All Time)',
                   '₹${snapshot.data!.toStringAsFixed(2)}',
-                  Colors.red,
+                  Theme.of(context).colorScheme.error,
                   Icons.trending_down,
                 );
               },
@@ -68,7 +68,7 @@ class _TillNowPageState extends ConsumerState<TillNowPage> {
                 return _buildBigStatCard(
                   'This Month',
                   '₹${snapshot.data!.toStringAsFixed(2)}',
-                  Colors.orange,
+                  Theme.of(context).colorScheme.tertiary,
                   Icons.calendar_month,
                 );
               },
@@ -82,7 +82,7 @@ class _TillNowPageState extends ConsumerState<TillNowPage> {
                 return _buildBigStatCard(
                   'This Week',
                   '₹${snapshot.data!.toStringAsFixed(2)}',
-                  Colors.blue,
+                  Theme.of(context).colorScheme.primary,
                   Icons.calendar_view_week,
                 );
               },
@@ -122,9 +122,9 @@ class _TillNowPageState extends ConsumerState<TillNowPage> {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.green.shade200),
+        side: BorderSide(color: Theme.of(context).colorScheme.primary),
       ),
-      color: Colors.green.shade50,
+      color: Theme.of(context).colorScheme.primaryContainer,
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -135,7 +135,7 @@ class _TillNowPageState extends ConsumerState<TillNowPage> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.green.shade900,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
               ),
             ),
             const SizedBox(height: 12),
@@ -143,7 +143,7 @@ class _TillNowPageState extends ConsumerState<TillNowPage> {
               'View complete statistics and analysis of all your expenses from the beginning. Track spending patterns, identify trends, and manage your finances better.',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.green.shade800,
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
                 height: 1.6,
               ),
             ),
@@ -153,7 +153,12 @@ class _TillNowPageState extends ConsumerState<TillNowPage> {
     );
   }
 
-  Widget _buildBigStatCard(String title, String value, Color color, IconData icon) {
+  Widget _buildBigStatCard(
+    String title,
+    String value,
+    Color color,
+    IconData icon,
+  ) {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -181,7 +186,7 @@ class _TillNowPageState extends ConsumerState<TillNowPage> {
                     title,
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey.shade600,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -218,7 +223,9 @@ class _TillNowPageState extends ConsumerState<TillNowPage> {
       if (amount < minTransaction) minTransaction = amount;
     }
 
-    averageTransaction = totalTransactions > 0 ? averageTransaction / totalTransactions : 0;
+    averageTransaction = totalTransactions > 0
+        ? averageTransaction / totalTransactions
+        : 0;
     if (minTransaction == double.infinity) minTransaction = 0;
 
     return Column(
@@ -226,28 +233,28 @@ class _TillNowPageState extends ConsumerState<TillNowPage> {
         _buildAnalysisItem(
           'Total Transactions',
           totalTransactions.toString(),
-          Colors.purple,
+          Theme.of(context).colorScheme.tertiary,
           Icons.receipt,
         ),
         const SizedBox(height: 12),
         _buildAnalysisItem(
           'Average Transaction',
           '₹${averageTransaction.toStringAsFixed(2)}',
-          Colors.blue,
+          Theme.of(context).colorScheme.primary,
           Icons.trending_up,
         ),
         const SizedBox(height: 12),
         _buildAnalysisItem(
           'Highest Transaction',
           '₹${maxTransaction.toStringAsFixed(2)}',
-          Colors.red,
+          Theme.of(context).colorScheme.error,
           Icons.trending_up,
         ),
         const SizedBox(height: 12),
         _buildAnalysisItem(
           'Lowest Transaction',
           '₹${minTransaction.toStringAsFixed(2)}',
-          Colors.green,
+          Theme.of(context).colorScheme.secondary,
           Icons.trending_down,
         ),
         const SizedBox(height: 24),
@@ -256,12 +263,17 @@ class _TillNowPageState extends ConsumerState<TillNowPage> {
     );
   }
 
-  Widget _buildAnalysisItem(String label, String value, Color color, IconData icon) {
+  Widget _buildAnalysisItem(
+    String label,
+    String value,
+    Color color,
+    IconData icon,
+  ) {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -284,7 +296,7 @@ class _TillNowPageState extends ConsumerState<TillNowPage> {
                     label,
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey.shade600,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -330,13 +342,19 @@ class _TillNowPageState extends ConsumerState<TillNowPage> {
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
-                side: BorderSide(color: Colors.grey.shade200),
+                side: BorderSide(
+                  color: Theme.of(context).colorScheme.outlineVariant,
+                ),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Row(
                   children: [
-                    Icon(Icons.arrow_downward, color: Colors.red, size: 20),
+                    Icon(
+                      Icons.arrow_downward,
+                      color: Theme.of(context).colorScheme.error,
+                      size: 20,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -352,7 +370,9 @@ class _TillNowPageState extends ConsumerState<TillNowPage> {
                             DateFormat('MMM d, yyyy HH:mm').format(dateTime),
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.grey.shade600,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -362,7 +382,7 @@ class _TillNowPageState extends ConsumerState<TillNowPage> {
                       '-₹${amount.toStringAsFixed(2)}',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Colors.red.shade600,
+                        color: Theme.of(context).colorScheme.error,
                       ),
                     ),
                   ],
@@ -378,7 +398,7 @@ class _TillNowPageState extends ConsumerState<TillNowPage> {
               '+${transactions.length - 10} more transactions',
               style: TextStyle(
                 fontSize: 13,
-                color: Colors.grey.shade600,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -395,14 +415,14 @@ class _TillNowPageState extends ConsumerState<TillNowPage> {
           Icon(
             Icons.receipt_long_outlined,
             size: 64,
-            color: Colors.grey.shade400,
+            color: Theme.of(context).colorScheme.outline,
           ),
           const SizedBox(height: 16),
           Text(
             'No transactions yet',
             style: TextStyle(
               fontSize: 18,
-              color: Colors.grey.shade600,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w500,
             ),
           ),

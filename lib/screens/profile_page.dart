@@ -4,6 +4,7 @@ import 'package:expensetracker_reloaded/routes/app_routes.dart';
 import 'package:expensetracker_reloaded/services/user_prefs_service.dart';
 import 'package:expensetracker_reloaded/utils/constants.dart';
 
+/// User profile (name, currency, stats); settings live in [ComprehensiveSettingsPage].
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -43,9 +44,9 @@ class _ProfilePageState extends State<ProfilePage> {
     await UserPrefsService.setUserName(_nameCtrl.text);
     await UserPrefsService.setCurrency(_currency);
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Profile saved')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Profile saved')));
     setState(() {});
   }
 
@@ -53,12 +54,16 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primary = theme.colorScheme.primary;
-    final displayName =
-        _nameCtrl.text.trim().isEmpty ? 'User' : _nameCtrl.text.trim();
+    final displayName = _nameCtrl.text.trim().isEmpty
+        ? 'User'
+        : _nameCtrl.text.trim();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Profile',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -69,16 +74,20 @@ class _ProfilePageState extends State<ProfilePage> {
                   child: CircleAvatar(
                     radius: 48,
                     backgroundColor: primary,
-                    child: Icon(Icons.person,
-                        size: 48, color: theme.colorScheme.onPrimary),
+                    child: Icon(
+                      Icons.person,
+                      size: 48,
+                      color: theme.colorScheme.onPrimary,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   displayName,
                   textAlign: TextAlign.center,
-                  style: theme.textTheme.headlineSmall
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -117,8 +126,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 FilledButton(onPressed: _save, child: const Text('Save')),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
-                  onPressed: () => Navigator.of(context)
-                      .pushNamed(AppRoutes.comprehensiveSettings),
+                  onPressed: () => Navigator.of(
+                    context,
+                  ).pushNamed(AppRoutes.comprehensiveSettings),
                   icon: const Icon(Icons.palette_outlined),
                   label: const Text('Appearance is in Settings'),
                 ),

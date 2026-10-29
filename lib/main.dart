@@ -36,6 +36,7 @@ void main() async {
   runApp(const ProviderScope(child: ExpenseTrackerApp()));
 }
 
+/// Root widget: wires Riverpod theme state into MaterialApp and routes.
 class ExpenseTrackerApp extends ConsumerWidget {
   const ExpenseTrackerApp({super.key});
 

@@ -19,8 +19,10 @@ class TodayInsightsPage extends ConsumerWidget {
     final yesterdayRows =
         ref.watch(rangeTransactionsProvider(yRange)).value ?? const [];
     final weekRows =
-        ref.watch(rangeTransactionsProvider(ref.watch(weekRangeProvider))).value ??
-            const [];
+        ref
+            .watch(rangeTransactionsProvider(ref.watch(weekRangeProvider)))
+            .value ??
+        const [];
     final insights = buildDayInsights(
       now: now,
       todayRows: todayRows,
@@ -30,9 +32,7 @@ class TodayInsightsPage extends ConsumerWidget {
     final cs = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Today\'s insights'),
-      ),
+      appBar: AppBar(title: const Text('Today\'s insights')),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -79,7 +79,10 @@ class TodayInsightsPage extends ConsumerWidget {
                     Text(
                       'Income ₹${insights.today.income.toStringAsFixed(2)}  ·  '
                       'Net ${insights.today.netMinor < 0 ? '-' : '+'}₹${insights.today.net.abs().toStringAsFixed(2)}',
-                      style: TextStyle(color: cs.onPrimary, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        color: cs.onPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -99,7 +102,12 @@ class TodayInsightsPage extends ConsumerWidget {
             pct: insights.vsAveragePct,
           ),
           const SizedBox(height: 28),
-          Text('By category', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+          Text(
+            'By category',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(height: 12),
           if (insights.byCategory.isEmpty)
             Text('No debits yet today', style: theme.textTheme.bodyMedium)
@@ -114,7 +122,13 @@ class TodayInsightsPage extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        Expanded(child: Text(e.key, maxLines: 1, overflow: TextOverflow.ellipsis)),
+                        Expanded(
+                          child: Text(
+                            e.key,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                         Text('₹${e.value.toStringAsFixed(0)}'),
                       ],
                     ),
@@ -131,7 +145,12 @@ class TodayInsightsPage extends ConsumerWidget {
               );
             }),
           const SizedBox(height: 28),
-          Text('By hour', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+          Text(
+            'By hour',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(height: 12),
           SizedBox(
             height: 120,
@@ -144,9 +163,13 @@ class TodayInsightsPage extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 1),
                       child: FractionallySizedBox(
                         heightFactor: () {
-                          final maxH = insights.byHour.values.fold<double>(0, (a, b) => a > b ? a : b);
+                          final maxH = insights.byHour.values.fold<double>(
+                            0,
+                            (a, b) => a > b ? a : b,
+                          );
                           if (maxH <= 0) return 0.05;
-                          return (0.05 + 0.95 * (insights.byHour[h]! / maxH)).clamp(0.05, 1.0);
+                          return (0.05 + 0.95 * (insights.byHour[h]! / maxH))
+                              .clamp(0.05, 1.0);
                         }(),
                         alignment: Alignment.bottomCenter,
                         child: DecoratedBox(
@@ -174,15 +197,20 @@ class TodayInsightsPage extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 28),
-          Text('Top transactions', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+          Text(
+            'Top transactions',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(height: 12),
           if (insights.topDebits.isEmpty)
             Text('Nothing to show yet', style: theme.textTheme.bodyMedium)
           else
-            ...insights.topDebits.asMap().entries.map((e) => TransactionTile(
-                  transaction: txnToMap(e.value),
-                  index: e.key,
-                )),
+            ...insights.topDebits.asMap().entries.map(
+              (e) =>
+                  TransactionTile(transaction: txnToMap(e.value), index: e.key),
+            ),
           const SizedBox(height: 24),
         ],
       ),
@@ -208,9 +236,13 @@ class _CompareRow extends StatelessWidget {
     final color = up
         ? theme.colorScheme.error
         : down
-            ? theme.colorScheme.tertiary
-            : theme.colorScheme.onSurfaceVariant;
-    final arrow = up ? '▲' : down ? '▼' : '●';
+        ? theme.colorScheme.tertiary
+        : theme.colorScheme.onSurfaceVariant;
+    final arrow = up
+        ? '▲'
+        : down
+        ? '▼'
+        : '●';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(

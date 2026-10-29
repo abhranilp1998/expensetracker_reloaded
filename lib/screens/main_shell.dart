@@ -32,7 +32,8 @@ class _MainShellState extends ConsumerState<MainShell> {
     return Scaffold(
       body: IndexedStack(
         index: _index,
-        children: widget.pagesOverride ??
+        children:
+            widget.pagesOverride ??
             const [
               HomeDashboard(),
               HistoryPage(asTab: true),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Single side-menu entry.
 class DrawerTile extends StatefulWidget {
   final IconData icon;
   final String title;
@@ -32,7 +33,9 @@ class _DrawerTileState extends State<DrawerTile> {
         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: _isHovered ? widget.color.withValues(alpha: 0.1) : Colors.transparent,
+          color: _isHovered
+              ? widget.color.withValues(alpha: 0.1)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -43,19 +46,12 @@ class _DrawerTileState extends State<DrawerTile> {
                 color: widget.color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(
-                widget.icon,
-                color: widget.color,
-                size: 20,
-              ),
+              child: Icon(widget.icon, color: widget.color, size: 20),
             ),
             const SizedBox(width: 16),
             Text(
               widget.title,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
           ],
         ),

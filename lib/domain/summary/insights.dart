@@ -5,7 +5,8 @@ import 'summary.dart';
 class DayInsights {
   final Summary today;
   final Summary yesterday;
-  final double dailyAverageSpent; // from last 7 complete days excl. today if possible
+  final double
+  dailyAverageSpent; // from last 7 complete days excl. today if possible
   final Map<String, double> byCategory; // spent rupees
   final Map<int, double> byHour; // 0-23 spent rupees
   final List<TxnRow> topDebits;
@@ -65,8 +66,10 @@ DayInsights buildDayInsights({
     final amt = r.amountMinor / 100.0;
     final label = categoryLabel(r);
     byCat[label] = (byCat[label] ?? 0) + amt;
-    final local = DateTime.fromMillisecondsSinceEpoch(r.occurredAt, isUtc: true)
-        .toLocal();
+    final local = DateTime.fromMillisecondsSinceEpoch(
+      r.occurredAt,
+      isUtc: true,
+    ).toLocal();
     byHour[local.hour] = (byHour[local.hour] ?? 0) + amt;
   }
 

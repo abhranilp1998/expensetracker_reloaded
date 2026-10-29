@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 
 /// Enumeration of available route animation variants
 enum AnimationType {
-  fadeSlide,      // Fade + Slide from bottom
-  slideLeft,      // Slide from left
-  slideRight,     // Slide from right
-  scaleRotate,    // Scale + Rotate animation
-  morphing,       // Morphing blob animation (modern)
-  bouncy,         // Bouncy scale animation
-  liquid,         // Liquid swipe effect
-  staggered,      // Staggered cascade animation
-  kaleidoscope,   // Rotating kaleidoscope effect
-  elasticBounce,  // Elastic bounce with overshoot
+  fadeSlide, // Fade + Slide from bottom
+  slideLeft, // Slide from left
+  slideRight, // Slide from right
+  scaleRotate, // Scale + Rotate animation
+  morphing, // Morphing blob animation (modern)
+  bouncy, // Bouncy scale animation
+  liquid, // Liquid swipe effect
+  staggered, // Staggered cascade animation
+  kaleidoscope, // Rotating kaleidoscope effect
+  elasticBounce, // Elastic bounce with overshoot
 }
 
 /// Global animation type manager - allows switching between variants
@@ -79,8 +79,10 @@ class AnimationVariants {
       transitionDuration: const Duration(milliseconds: 450),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final tween = Tween(begin: const Offset(0.0, 0.1), end: Offset.zero)
-            .chain(CurveTween(curve: Curves.easeOut));
+        final tween = Tween(
+          begin: const Offset(0.0, 0.1),
+          end: Offset.zero,
+        ).chain(CurveTween(curve: Curves.easeOut));
         return FadeTransition(
           opacity: animation,
           child: SlideTransition(
@@ -103,12 +105,12 @@ class AnimationVariants {
         const begin = Offset(-1.0, 0.0);
         const end = Offset.zero;
         const curve = Curves.easeInOutCubic;
-        final tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+        final tween = Tween(
+          begin: begin,
+          end: end,
+        ).chain(CurveTween(curve: curve));
 
-        return SlideTransition(
-          position: animation.drive(tween),
-          child: child,
-        );
+        return SlideTransition(position: animation.drive(tween), child: child);
       },
     );
   }
@@ -124,12 +126,12 @@ class AnimationVariants {
         const begin = Offset(1.0, 0.0);
         const end = Offset.zero;
         const curve = Curves.easeInOutCubic;
-        final tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+        final tween = Tween(
+          begin: begin,
+          end: end,
+        ).chain(CurveTween(curve: curve));
 
-        return SlideTransition(
-          position: animation.drive(tween),
-          child: child,
-        );
+        return SlideTransition(position: animation.drive(tween), child: child);
       },
     );
   }
@@ -142,10 +144,14 @@ class AnimationVariants {
       transitionDuration: const Duration(milliseconds: 450),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final scaleTween = Tween(begin: 0.85, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOutQuad));
-        final fadeTween = Tween(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOut));
+        final scaleTween = Tween(
+          begin: 0.85,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeOutQuad));
+        final fadeTween = Tween(
+          begin: 0.0,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeOut));
 
         return FadeTransition(
           opacity: animation.drive(fadeTween),
@@ -166,10 +172,14 @@ class AnimationVariants {
       transitionDuration: const Duration(milliseconds: 500),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final slideTween = Tween(begin: const Offset(0.0, 0.15), end: Offset.zero)
-            .chain(CurveTween(curve: Curves.easeOutQuad));
-        final fadeTween = Tween(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOut));
+        final slideTween = Tween(
+          begin: const Offset(0.0, 0.15),
+          end: Offset.zero,
+        ).chain(CurveTween(curve: Curves.easeOutQuad));
+        final fadeTween = Tween(
+          begin: 0.0,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeOut));
 
         return FadeTransition(
           opacity: animation.drive(fadeTween),
@@ -190,10 +200,14 @@ class AnimationVariants {
       transitionDuration: const Duration(milliseconds: 400),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final slideTween = Tween(begin: const Offset(-0.3, 0.0), end: Offset.zero)
-            .chain(CurveTween(curve: Curves.easeOutQuad));
-        final fadeTween = Tween(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOut));
+        final slideTween = Tween(
+          begin: const Offset(-0.3, 0.0),
+          end: Offset.zero,
+        ).chain(CurveTween(curve: Curves.easeOutQuad));
+        final fadeTween = Tween(
+          begin: 0.0,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeOut));
 
         return FadeTransition(
           opacity: animation.drive(fadeTween),
@@ -214,36 +228,42 @@ class AnimationVariants {
       transitionDuration: const Duration(milliseconds: 400),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      final slideTween = Tween(begin: const Offset(0.3, 0.0), end: Offset.zero)
-        .chain(CurveTween(curve: Curves.easeOutQuad));
-      
-      final fadeTween = Tween(begin: 0.0, end: 1.0)
-        .chain(CurveTween(curve: Curves.easeOut));
+        final slideTween = Tween(
+          begin: const Offset(0.3, 0.0),
+          end: Offset.zero,
+        ).chain(CurveTween(curve: Curves.easeOutQuad));
 
-      final progress = animation.value;
-      
-      // Slow phase: 0% to 15%, quick phase: 15% to 85%, rest: 85% to 100%
-      double smoothedProgress = progress;
-      if (progress < 0.15) {
-        // Slow acceleration phase: 0% to 15%
-        smoothedProgress = (progress / 0.15) * 0.15;
-      } else if (progress < 0.85) {
-        // Quick animation phase: 15% to 85%
-        smoothedProgress = 0.15 + ((progress - 0.15) / 0.70) * 0.70;
-      } else {
-        // Resting phase: 85% to 100%
-        smoothedProgress = 0.85 + ((progress - 0.85) / 0.15) * 0.15;
-      }
+        final fadeTween = Tween(
+          begin: 0.0,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeOut));
 
-      final smoothAnimation = AlwaysStoppedAnimation<double>(smoothedProgress);
+        final progress = animation.value;
 
-      return FadeTransition(
-        opacity: animation.drive(fadeTween),
-        child: SlideTransition(
-        position: smoothAnimation.drive(slideTween),
-        child: child,
-        ),
-      );
+        // Slow phase: 0% to 15%, quick phase: 15% to 85%, rest: 85% to 100%
+        double smoothedProgress = progress;
+        if (progress < 0.15) {
+          // Slow acceleration phase: 0% to 15%
+          smoothedProgress = (progress / 0.15) * 0.15;
+        } else if (progress < 0.85) {
+          // Quick animation phase: 15% to 85%
+          smoothedProgress = 0.15 + ((progress - 0.15) / 0.70) * 0.70;
+        } else {
+          // Resting phase: 85% to 100%
+          smoothedProgress = 0.85 + ((progress - 0.85) / 0.15) * 0.15;
+        }
+
+        final smoothAnimation = AlwaysStoppedAnimation<double>(
+          smoothedProgress,
+        );
+
+        return FadeTransition(
+          opacity: animation.drive(fadeTween),
+          child: SlideTransition(
+            position: smoothAnimation.drive(slideTween),
+            child: child,
+          ),
+        );
       },
     );
   }
@@ -256,10 +276,14 @@ class AnimationVariants {
       transitionDuration: const Duration(milliseconds: 500),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final slideTween = Tween(begin: const Offset(-0.15, 0.1), end: Offset.zero)
-            .chain(CurveTween(curve: Curves.easeOutQuad));
-        final fadeTween = Tween(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOut));
+        final slideTween = Tween(
+          begin: const Offset(-0.15, 0.1),
+          end: Offset.zero,
+        ).chain(CurveTween(curve: Curves.easeOutQuad));
+        final fadeTween = Tween(
+          begin: 0.0,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeOut));
 
         return FadeTransition(
           opacity: animation.drive(fadeTween),
@@ -280,10 +304,14 @@ class AnimationVariants {
       transitionDuration: const Duration(milliseconds: 450),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final scaleTween = Tween(begin: 0.9, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOutQuad));
-        final fadeTween = Tween(begin: 0.7, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOut));
+        final scaleTween = Tween(
+          begin: 0.9,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeOutQuad));
+        final fadeTween = Tween(
+          begin: 0.7,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeOut));
 
         return FadeTransition(
           opacity: animation.drive(fadeTween),
@@ -304,10 +332,14 @@ class AnimationVariants {
       transitionDuration: const Duration(milliseconds: 500),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final slideTween = Tween(begin: const Offset(0.15, -0.1), end: Offset.zero)
-            .chain(CurveTween(curve: Curves.easeOutQuad));
-        final fadeTween = Tween(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOut));
+        final slideTween = Tween(
+          begin: const Offset(0.15, -0.1),
+          end: Offset.zero,
+        ).chain(CurveTween(curve: Curves.easeOutQuad));
+        final fadeTween = Tween(
+          begin: 0.0,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeOut));
 
         return FadeTransition(
           opacity: animation.drive(fadeTween),
@@ -329,11 +361,16 @@ class CustomAnimationRoute {
       transitionDuration: const Duration(milliseconds: 450),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final tween = Tween(begin: const Offset(0.0, 0.1), end: Offset.zero)
-            .chain(CurveTween(curve: Curves.easeOut));
+        final tween = Tween(
+          begin: const Offset(0.0, 0.1),
+          end: Offset.zero,
+        ).chain(CurveTween(curve: Curves.easeOut));
         return FadeTransition(
           opacity: animation,
-          child: SlideTransition(position: animation.drive(tween), child: child),
+          child: SlideTransition(
+            position: animation.drive(tween),
+            child: child,
+          ),
         );
       },
     );
@@ -345,8 +382,10 @@ class CustomAnimationRoute {
       transitionDuration: const Duration(milliseconds: 350),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final tween = Tween(begin: const Offset(-1.0, 0.0), end: Offset.zero)
-            .chain(CurveTween(curve: Curves.easeInOutCubic));
+        final tween = Tween(
+          begin: const Offset(-1.0, 0.0),
+          end: Offset.zero,
+        ).chain(CurveTween(curve: Curves.easeInOutCubic));
         return SlideTransition(position: animation.drive(tween), child: child);
       },
     );
@@ -358,8 +397,10 @@ class CustomAnimationRoute {
       transitionDuration: const Duration(milliseconds: 350),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final tween = Tween(begin: const Offset(1.0, 0.0), end: Offset.zero)
-            .chain(CurveTween(curve: Curves.easeInOutCubic));
+        final tween = Tween(
+          begin: const Offset(1.0, 0.0),
+          end: Offset.zero,
+        ).chain(CurveTween(curve: Curves.easeInOutCubic));
         return SlideTransition(position: animation.drive(tween), child: child);
       },
     );
@@ -371,10 +412,14 @@ class CustomAnimationRoute {
       transitionDuration: const Duration(milliseconds: 450),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final scaleTween = Tween(begin: 0.85, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOutQuad));
-        final fadeTween = Tween(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOut));
+        final scaleTween = Tween(
+          begin: 0.85,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeOutQuad));
+        final fadeTween = Tween(
+          begin: 0.0,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeOut));
 
         return FadeTransition(
           opacity: animation.drive(fadeTween),
@@ -393,10 +438,14 @@ class CustomAnimationRoute {
       transitionDuration: const Duration(milliseconds: 500),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final slideTween = Tween(begin: const Offset(0.0, 0.15), end: Offset.zero)
-            .chain(CurveTween(curve: Curves.easeOutQuad));
-        final fadeTween = Tween(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOut));
+        final slideTween = Tween(
+          begin: const Offset(0.0, 0.15),
+          end: Offset.zero,
+        ).chain(CurveTween(curve: Curves.easeOutQuad));
+        final fadeTween = Tween(
+          begin: 0.0,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeOut));
 
         return FadeTransition(
           opacity: animation.drive(fadeTween),
@@ -415,10 +464,14 @@ class CustomAnimationRoute {
       transitionDuration: const Duration(milliseconds: 400),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final slideTween = Tween(begin: const Offset(-0.3, 0.0), end: Offset.zero)
-            .chain(CurveTween(curve: Curves.easeOutQuad));
-        final fadeTween = Tween(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOut));
+        final slideTween = Tween(
+          begin: const Offset(-0.3, 0.0),
+          end: Offset.zero,
+        ).chain(CurveTween(curve: Curves.easeOutQuad));
+        final fadeTween = Tween(
+          begin: 0.0,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeOut));
 
         return FadeTransition(
           opacity: animation.drive(fadeTween),
@@ -439,17 +492,21 @@ class CustomAnimationRoute {
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         // Create custom curve with stops at 22% and 77% for smooth effect
         final customCurve = Interval(0.0, 1.0, curve: Curves.easeOutQuad);
-        
-        final slideTween = Tween(begin: const Offset(0.3, 0.0), end: Offset.zero)
-            .chain(CurveTween(curve: customCurve));
-        
+
+        final slideTween = Tween(
+          begin: const Offset(0.3, 0.0),
+          end: Offset.zero,
+        ).chain(CurveTween(curve: customCurve));
+
         // Fade with smooth stops - quick fade at 22%, holds, then final push at 77%
-        final fadeTween = Tween(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOut));
+        final fadeTween = Tween(
+          begin: 0.0,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeOut));
 
         // Get animation value and apply custom timing for smooth stops effect
         final progress = animation.value;
-        
+
         // Smooth acceleration/deceleration at key points (22% and 77%)
         double smoothedProgress = progress;
         if (progress < 0.22) {
@@ -463,7 +520,9 @@ class CustomAnimationRoute {
           smoothedProgress = 0.77 + ((progress - 0.77) / 0.23) * 0.23;
         }
 
-        final smoothAnimation = AlwaysStoppedAnimation<double>(smoothedProgress);
+        final smoothAnimation = AlwaysStoppedAnimation<double>(
+          smoothedProgress,
+        );
 
         return FadeTransition(
           opacity: animation.drive(fadeTween),
@@ -482,10 +541,14 @@ class CustomAnimationRoute {
       transitionDuration: const Duration(milliseconds: 500),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final slideTween = Tween(begin: const Offset(-0.15, 0.1), end: Offset.zero)
-            .chain(CurveTween(curve: Curves.easeOutQuad));
-        final fadeTween = Tween(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOut));
+        final slideTween = Tween(
+          begin: const Offset(-0.15, 0.1),
+          end: Offset.zero,
+        ).chain(CurveTween(curve: Curves.easeOutQuad));
+        final fadeTween = Tween(
+          begin: 0.0,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeOut));
 
         return FadeTransition(
           opacity: animation.drive(fadeTween),
@@ -504,10 +567,14 @@ class CustomAnimationRoute {
       transitionDuration: const Duration(milliseconds: 450),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final scaleTween = Tween(begin: 0.9, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOutQuad));
-        final fadeTween = Tween(begin: 0.7, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOut));
+        final scaleTween = Tween(
+          begin: 0.9,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeOutQuad));
+        final fadeTween = Tween(
+          begin: 0.7,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeOut));
 
         return FadeTransition(
           opacity: animation.drive(fadeTween),
@@ -526,10 +593,14 @@ class CustomAnimationRoute {
       transitionDuration: const Duration(milliseconds: 500),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final slideTween = Tween(begin: const Offset(0.15, -0.1), end: Offset.zero)
-            .chain(CurveTween(curve: Curves.easeOutQuad));
-        final fadeTween = Tween(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOut));
+        final slideTween = Tween(
+          begin: const Offset(0.15, -0.1),
+          end: Offset.zero,
+        ).chain(CurveTween(curve: Curves.easeOutQuad));
+        final fadeTween = Tween(
+          begin: 0.0,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeOut));
 
         return FadeTransition(
           opacity: animation.drive(fadeTween),

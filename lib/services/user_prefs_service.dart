@@ -22,8 +22,10 @@ class UserPrefsService {
   static Future<String> getUserName() async =>
       (await _p).getString(userNameKey) ?? 'User';
 
-  static Future<void> setUserName(String name) async =>
-      (await _p).setString(userNameKey, name.trim().isEmpty ? 'User' : name.trim());
+  static Future<void> setUserName(String name) async => (await _p).setString(
+    userNameKey,
+    name.trim().isEmpty ? 'User' : name.trim(),
+  );
 
   static Future<String> getCurrency() async =>
       (await _p).getString(currencyKey) ?? 'INR';

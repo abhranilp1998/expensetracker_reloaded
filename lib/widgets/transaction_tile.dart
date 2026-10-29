@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+/// List tile for one transaction, used on Home and Activity.
 class TransactionTile extends StatefulWidget {
   final Map<String, dynamic> transaction;
   final int index;
@@ -72,8 +73,9 @@ class _TransactionTileState extends State<TransactionTile> {
                 decoration: BoxDecoration(
                   color: tileColor.withValues(alpha: isDark ? 0.3 : 0.15),
                   shape: widget.compact ? BoxShape.rectangle : BoxShape.circle,
-                  borderRadius:
-                      widget.compact ? BorderRadius.circular(10) : null,
+                  borderRadius: widget.compact
+                      ? BorderRadius.circular(10)
+                      : null,
                 ),
                 child: Icon(
                   isCredit ? Icons.arrow_upward : Icons.arrow_downward,

@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../repositories/transaction_repository.dart';
 
+/// Outcome of migrating legacy SharedPreferences data into Drift.
 class PrefsMigrationResult {
   final int migrated;
   final int skipped;

@@ -16,6 +16,7 @@ import 'package:expensetracker_reloaded/widgets/app_drawer.dart';
 import 'package:expensetracker_reloaded/widgets/summary_row.dart';
 import 'package:expensetracker_reloaded/widgets/transaction_tile.dart';
 
+/// Home tab: today's spend hero, income/net, week/month stats, recent transactions.
 class HomeDashboard extends ConsumerStatefulWidget {
   const HomeDashboard({super.key});
 
@@ -84,10 +85,10 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
     final week = ref.watch(weekSummaryProvider);
     final month = ref.watch(monthSummaryProvider);
     final todayTotal = summary.spent;
-    final transactions = (ref.watch(todayTransactionsProvider).value ?? const [])
-        .reversed
-        .map(txnToMap)
-        .toList();
+    final transactions =
+        (ref.watch(todayTransactionsProvider).value ?? const []).reversed
+            .map(txnToMap)
+            .toList();
     ref.listen(todaySummaryProvider, (prev, next) {
       if (prev != null && next.count > prev.count) {
         _totalAnimController.forward(from: 0);
@@ -103,7 +104,9 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
           children: [
             Text(
               AppConstants.appName,
-              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             Text(
               '$_greeting, $_userName',
@@ -140,9 +143,9 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
             children: [
               GestureDetector(
                 onTap: () {
-                  Navigator.of(context).push(
-                    createRoute(const TodayInsightsPage()),
-                  );
+                  Navigator.of(
+                    context,
+                  ).push(createRoute(const TodayInsightsPage()));
                 },
                 child: Hero(
                   tag: 'today-total-card',
@@ -182,7 +185,11 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              Icon(Icons.insights, color: cs.onPrimary.withValues(alpha: 0.9), size: 20),
+                              Icon(
+                                Icons.insights,
+                                color: cs.onPrimary.withValues(alpha: 0.9),
+                                size: 20,
+                              ),
                             ],
                           ),
                           const SizedBox(height: 12),
@@ -219,8 +226,11 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
                                   fontSize: 13,
                                 ),
                               ),
-                              Icon(Icons.arrow_forward_ios,
-                                  color: cs.onPrimary.withValues(alpha: 0.75), size: 14),
+                              Icon(
+                                Icons.arrow_forward_ios,
+                                color: cs.onPrimary.withValues(alpha: 0.75),
+                                size: 14,
+                              ),
                             ],
                           ),
                         ],
@@ -255,8 +265,9 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
                 children: [
                   Text(
                     'Recent',
-                    style: theme.textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   TextButton(
                     onPressed: () {
@@ -274,11 +285,16 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
                   child: Center(
                     child: Column(
                       children: [
-                        Icon(Icons.receipt_long_outlined,
-                            size: 56, color: cs.outline),
+                        Icon(
+                          Icons.receipt_long_outlined,
+                          size: 56,
+                          color: cs.outline,
+                        ),
                         const SizedBox(height: 12),
-                        Text('No transactions yet',
-                            style: theme.textTheme.bodyLarge),
+                        Text(
+                          'No transactions yet',
+                          style: theme.textTheme.bodyLarge,
+                        ),
                       ],
                     ),
                   ),
@@ -296,8 +312,9 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
               const SizedBox(height: 24),
               Text(
                 'Balance snapshot',
-                style: theme.textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 12),
               Card(
@@ -340,11 +357,9 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
   Future<void> _addTransaction() async {
     final entry = await showAddTransactionSheet(context);
     if (entry == null || !mounted) return;
-    await ref.read(transactionRepositoryProvider).addManual(
-          amount: entry.amount,
-          type: entry.type,
-          note: entry.note,
-        );
+    await ref
+        .read(transactionRepositoryProvider)
+        .addManual(amount: entry.amount, type: entry.type, note: entry.note);
     if (mounted) unawaited(_totalAnimController.forward(from: 0));
   }
 }
@@ -378,7 +393,9 @@ class _MiniStat extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             '₹${amount.toStringAsFixed(0)}',
-            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),

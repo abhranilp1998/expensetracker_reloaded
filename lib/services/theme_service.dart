@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Persists theme mode and accent colour in SharedPreferences.
 class ThemeService {
   static const String _themeKey = 'app_theme_mode';
   static const String _accentColorKey = 'app_accent_color';
@@ -82,6 +83,7 @@ class ThemeService {
 }
 
 // Theme data generator
+/// Builds light/dark [ThemeData] seeded from the user accent colour.
 class AppThemeData {
   static ThemeData lightTheme(MaterialColor accentColor) {
     return ThemeData(
@@ -98,11 +100,26 @@ class AppThemeData {
         bodyLarge: TextStyle(color: Colors.black87),
         bodyMedium: TextStyle(color: Colors.black87),
         bodySmall: TextStyle(color: Colors.black87),
-        headlineLarge: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
-        headlineMedium: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
-        headlineSmall: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
-        titleLarge: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
-        titleMedium: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+        headlineLarge: TextStyle(
+          color: Colors.black87,
+          fontWeight: FontWeight.bold,
+        ),
+        headlineMedium: TextStyle(
+          color: Colors.black87,
+          fontWeight: FontWeight.bold,
+        ),
+        headlineSmall: TextStyle(
+          color: Colors.black87,
+          fontWeight: FontWeight.bold,
+        ),
+        titleLarge: TextStyle(
+          color: Colors.black87,
+          fontWeight: FontWeight.bold,
+        ),
+        titleMedium: TextStyle(
+          color: Colors.black87,
+          fontWeight: FontWeight.bold,
+        ),
         titleSmall: TextStyle(color: Colors.black87),
         labelLarge: TextStyle(color: Colors.black87),
         labelMedium: TextStyle(color: Colors.black87),
@@ -121,9 +138,7 @@ class AppThemeData {
       cardTheme: CardThemeData(
         color: Colors.white,
         elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -135,9 +150,7 @@ class AppThemeData {
         ),
       ),
       textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          foregroundColor: accentColor.shade600,
-        ),
+        style: TextButton.styleFrom(foregroundColor: accentColor.shade600),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
@@ -161,10 +174,7 @@ class AppThemeData {
           borderSide: BorderSide(color: accentColor.shade600, width: 2),
         ),
       ),
-      dividerTheme: DividerThemeData(
-        color: Colors.grey.shade200,
-        thickness: 1,
-      ),
+      dividerTheme: DividerThemeData(color: Colors.grey.shade200, thickness: 1),
       switchTheme: SwitchThemeData(
         thumbColor: MaterialStateProperty.resolveWith((states) {
           if (states.contains(MaterialState.selected)) {
@@ -197,11 +207,31 @@ class AppThemeData {
         bodyLarge: TextStyle(color: Color(0xFFFFFFFF), fontSize: 16),
         bodyMedium: TextStyle(color: Color(0xFFE3E3E3), fontSize: 14),
         bodySmall: TextStyle(color: Color(0xFFB3B3B3), fontSize: 12),
-        headlineLarge: TextStyle(color: Color(0xFFFFFFFF), fontWeight: FontWeight.bold, fontSize: 32),
-        headlineMedium: TextStyle(color: Color(0xFFFFFFFF), fontWeight: FontWeight.bold, fontSize: 28),
-        headlineSmall: TextStyle(color: Color(0xFFFFFFFF), fontWeight: FontWeight.bold, fontSize: 24),
-        titleLarge: TextStyle(color: Color(0xFFFFFFFF), fontWeight: FontWeight.bold, fontSize: 20),
-        titleMedium: TextStyle(color: Color(0xFFFFFFFF), fontWeight: FontWeight.bold, fontSize: 16),
+        headlineLarge: TextStyle(
+          color: Color(0xFFFFFFFF),
+          fontWeight: FontWeight.bold,
+          fontSize: 32,
+        ),
+        headlineMedium: TextStyle(
+          color: Color(0xFFFFFFFF),
+          fontWeight: FontWeight.bold,
+          fontSize: 28,
+        ),
+        headlineSmall: TextStyle(
+          color: Color(0xFFFFFFFF),
+          fontWeight: FontWeight.bold,
+          fontSize: 24,
+        ),
+        titleLarge: TextStyle(
+          color: Color(0xFFFFFFFF),
+          fontWeight: FontWeight.bold,
+          fontSize: 20,
+        ),
+        titleMedium: TextStyle(
+          color: Color(0xFFFFFFFF),
+          fontWeight: FontWeight.bold,
+          fontSize: 16,
+        ),
         titleSmall: TextStyle(color: Color(0xFFE3E3E3), fontSize: 14),
         labelLarge: TextStyle(color: Color(0xFFFFFFFF), fontSize: 14),
         labelMedium: TextStyle(color: Color(0xFFE3E3E3), fontSize: 12),
@@ -220,9 +250,7 @@ class AppThemeData {
       cardTheme: CardThemeData(
         color: const Color(0xFF1E1E1E),
         elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -234,9 +262,7 @@ class AppThemeData {
         ),
       ),
       textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          foregroundColor: accentColor.shade400,
-        ),
+        style: TextButton.styleFrom(foregroundColor: accentColor.shade400),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
@@ -260,10 +286,7 @@ class AppThemeData {
           borderSide: BorderSide(color: accentColor.shade400, width: 2),
         ),
       ),
-      dividerTheme: DividerThemeData(
-        color: Colors.grey.shade800,
-        thickness: 1,
-      ),
+      dividerTheme: DividerThemeData(color: Colors.grey.shade800, thickness: 1),
       switchTheme: SwitchThemeData(
         thumbColor: MaterialStateProperty.resolveWith((states) {
           if (states.contains(MaterialState.selected)) {
@@ -286,19 +309,20 @@ class AppThemeData {
 extension ThemeHelpers on BuildContext {
   /// Get proper background color based on theme
   Color getScaffoldBg() => Theme.of(this).scaffoldBackgroundColor;
-  
+
   /// Get proper card color based on theme
   Color getCardColor() => Theme.of(this).cardColor;
-  
+
   /// Get proper app bar color based on theme
-  Color getAppBarBg() => Theme.of(this).appBarTheme.backgroundColor ?? Colors.white;
-  
+  Color getAppBarBg() =>
+      Theme.of(this).appBarTheme.backgroundColor ?? Colors.white;
+
   /// Get primary color (accent)
   Color getPrimaryColor() => Theme.of(this).primaryColor;
-  
+
   /// Check if dark mode
   bool isDarkMode() => Theme.of(this).brightness == Brightness.dark;
-  
+
   /// Get text color based on theme
   Color getTextColor({bool isSecondary = false}) {
     if (isDarkMode()) {
@@ -307,7 +331,7 @@ extension ThemeHelpers on BuildContext {
       return isSecondary ? Colors.grey.shade600 : Colors.black87;
     }
   }
-  
+
   /// Get a subtle color for backgrounds
   Color getSubtleBg() {
     if (isDarkMode()) {
@@ -316,7 +340,7 @@ extension ThemeHelpers on BuildContext {
       return Colors.grey.shade100;
     }
   }
-  
+
   /// Get border color
   Color getBorderColor() {
     if (isDarkMode()) {
@@ -326,4 +350,3 @@ extension ThemeHelpers on BuildContext {
     }
   }
 }
-

@@ -1,145 +1,103 @@
-
 # Ledgerly
 
-A Flutter app that automatically detects expense amounts from incoming SMS messages,
-keeps a running daily total, stores transaction history locally, and provides a modern
-dashboard UI with hero animations and smooth page transitions.
+Android-only Flutter app that reads bank/UPI SMS on the device, turns them into debit/credit
+transactions, and shows today's spend, income and net balance. Uncertain SMS go to a **Review**
+queue; your decisions become **learned rules**. All data (including raw SMS) stays on the phone.
 
-This repository contains the app source used during development: UI components are in
-`lib/home_dashboard.dart` and app entry + routing is in `lib/main.dart`.
-
-## Key features
-
-- Auto-detect expense amounts from SMS (regex-based parsing)
-- Local persistence using `SharedPreferences` (daily total + transaction history)
-- In-app notifications (local notifications) when a new expense is detected
-- Background SMS handling (registered handler for incoming messages)
-- Dashboard UI with Hero animations and custom page transitions
-- History, Profile and Settings placeholder pages with routing
+- Package: `com.abhranil.ledgerly` · State: Riverpod · Storage: Drift (SQLite)
+- Functional spec: [`docs/FUNCTIONAL_SPEC.md`](docs/FUNCTIONAL_SPEC.md)
+- New-developer quickstart: [`docs/HANDOFF.md`](docs/HANDOFF.md)
+- Sideload / permission troubleshooting: [`docs/SIDELOAD_ANDROID.md`](docs/SIDELOAD_ANDROID.md)
 
 ## Prerequisites
 
-- Flutter SDK (stable channel). Minimum Dart SDK is declared in `pubspec.yaml`.
-- Android device/emulator for SMS-reading functionality (SMS permission is Android-specific).
-- For Windows development, you can still run the app, but SMS features require a mobile device.
-
-## Setup (Windows / PowerShell)
-
-1. Install Flutter and confirm it is available on PATH. Then fetch dependencies:
+- Flutter stable (Dart SDK per `pubspec.yaml`), Android SDK + platform-tools (`adb`) on PATH.
+- JDK 17. Builds use Gradle 8.14, AGP 8.11.1, Kotlin 2.2.20.
 
 ```powershell
-cd C:\Users\<user>\Desktop\expensetracker_reloaded
+cd "F:\Dev\Projects - The Hub\expensetracker_reloaded"
 flutter pub get
-```
-
-1. Run the analyzer to check for issues:
-
-```powershell
 flutter analyze
+flutter test
 ```
 
-1. Launch on a connected Android device or emulator:
+## Run on a physical phone over USB (Windows)
+
+1. **Developer options**: Settings → About phone → tap *Build number* 7 times.
+2. **USB debugging**: Settings → System → Developer options → enable *USB debugging*
+   (on Xiaomi/Realme also enable *Install via USB* / *USB debugging (Security settings)*).
+3. Plug in the phone, choose *File transfer*, accept the **Allow USB debugging?** RSA prompt.
+   If the device is not detected, install the OEM USB driver or Google USB Driver (SDK Manager).
+4. Check the connection:
+   ```powershell
+   adb devices          # should list <serial>   device  (not "unauthorized")
+   flutter devices      # shows the id to use below
+   ```
+5. Run with hot reload / breakpoints:
+   ```powershell
+   flutter run -d <device-id>              # debug
+   flutter run -d <device-id> --profile    # performance
+   flutter run -d <device-id> --release
+   ```
+   In VS Code: pick the device in the status bar, then *Run and Debug* → `Ledgerly (debug)`.
+6. Attach to an app already running on the phone (debug build): `flutter attach -d <device-id>`
+   (or VS Code config `Ledgerly (attach)`).
+7. Logs:
+   ```powershell
+   flutter logs -d <device-id>
+   adb logcat -s flutter                     # Dart print/debugPrint only
+   adb logcat --pid=$(adb shell pidof -s com.abhranil.ledgerly)   # whole app (Git Bash/WSL syntax)
+   ```
+   Raw SMS text is never logged; logs show amounts/senders/outcomes only.
+8. Wireless (optional, Android 11+): Developer options → *Wireless debugging* →
+   `adb pair <ip>:<pair-port>` then `adb connect <ip>:<port>`.
+
+### Installing an APK directly
 
 ```powershell
-flutter run -d <device-id>
-# e.g. flutter run -d emulator-5554
-# Ledgerly
-
-A Flutter app that automatically detects expense amounts from incoming SMS messages,
-keeps a running daily total, stores transaction history locally, and provides a modern
-dashboard UI with hero animations and smooth page transitions.
-
-This repository contains the app source used during development: UI components are in
-`lib/home_dashboard.dart` and app entry + routing is in `lib/main.dart`.
-
-## Key features
-
-- Auto-detect expense amounts from SMS (regex-based parsing)
-- Local persistence using `SharedPreferences` (daily total + transaction history)
-- In-app notifications (local notifications) when a new expense is detected
-- Background SMS handling (registered handler for incoming messages)
-- Dashboard UI with Hero animations and custom page transitions
-- History, Profile and Settings placeholder pages with routing
-
-## Prerequisites
-
-- Flutter SDK (stable channel). Minimum Dart SDK is declared in `pubspec.yaml`.
-- Android device/emulator for SMS-reading functionality (SMS permission is Android-specific).
-- For Windows development, you can still run the app, but SMS features require a mobile device.
-
-## Setup (Windows / PowerShell)
-
-1. Install Flutter and confirm it is available on PATH. Then fetch dependencies:
-
-```powershell
-cd C:\Users\Abhra\Desktop\expensetracker_reloaded
-flutter pub get
+flutter build apk --release --split-per-abi
+adb install -r -g build\app\outputs\flutter-apk\app-arm64-v8a-release.apk
 ```
 
-2. Run the analyzer to check for issues:
+`-r` keeps data on reinstall, `-g` grants runtime permissions (SMS, notifications) at install.
+Uninstall first (`adb uninstall com.abhranil.ledgerly`) to see onboarding again.
 
-```powershell
-flutter analyze
+**Sideload restrictions:** APKs opened from Chrome/WhatsApp/Files can be blocked by Play Protect
+(enhanced fraud protection, India pilot) and SMS toggles greyed out by *Restricted settings*
+(Android 13+). Install with `adb install` and, if needed, App info → ⋮ → *Allow restricted
+settings*. Details: [`docs/SIDELOAD_ANDROID.md`](docs/SIDELOAD_ANDROID.md).
+
+## Release signing
+
+`android/app/build.gradle.kts` reads `android/key.properties` (gitignored, never commit it):
+
+```properties
+storePassword=...
+keyPassword=...
+keyAlias=ledgerly
+storeFile=C:/path/to/ledgerly-release.jks
 ```
 
-3. Launch on a connected Android device or emulator:
+If `key.properties` is missing, release builds fall back to the **debug** key (fine for local
+testing, not for distribution). Keep the keystore backed up: losing it means users must
+uninstall to update.
 
-```powershell
-flutter run -d <device-id>
-# e.g. flutter run -d emulator-5554
+## Project layout
+
+```
+lib/
+  main.dart            app entry, background SMS handler, MaterialApp
+  routes/              named routes, onboarding gate, animation variants/showcase
+  screens/             tabs (home, history=Activity, review, settings) + side-menu pages
+  screens/onboarding/  6-page first-run flow
+  widgets/             shared tiles, cards, drawer, add-transaction sheet
+  providers/           all Riverpod providers (providers.dart)
+  domain/sms/          parser, classifier, template keys (pure Dart, unit-tested)
+  domain/summary/      totals and insights maths
+  data/db/             Drift tables + database (run build_runner after schema edits)
+  data/repositories/   TransactionRepository
+  services/            SMS, permissions, notifications, theme, prefs, debug unlock, event log
+test/                  unit, data and widget-flow tests
 ```
 
-**Notes:**
-
-- SMS-reading requires `android.permission.RECEIVE_SMS` and `android.permission.READ_SMS` in
-  `android/app/src/main/AndroidManifest.xml` and runtime permission acceptance on the device.
-- Local notifications require configuring Android notification channels (the app already
-  sets up a basic channel in `main.dart`).
-
-## Project structure (important files)
-
-- `lib/main.dart` — app entry, initialization of notifications, background SMS handler, and routing
-- `lib/home_dashboard.dart` — main UI (Welcome screen, HomeDashboard, History, Profile, Settings),
-  hero animations and SMS parsing logic
-- `pubspec.yaml` — dependencies and SDK constraints
-
-## Notes about SMS & background handling
-
-- The app uses `another_telephony` (or similar) to listen to incoming SMS messages. On Android,
-  a background message handler is annotated with `@pragma('vm:entry-point')` so it can run when
-  the app is backgrounded. Depending on Android versions, background delivery of SMS to apps
-  may be restricted; test on a device and ensure runtime permissions are granted.
-
-## Troubleshooting
-
-- Analyzer warnings: you may see minor warnings (unused imports) — these are non-blocking and
-  can be cleaned up if desired.
-- If transactions do not show up after SMS arrives:
-  - Ensure SMS permissions are granted from device settings
-  - Verify the regex in `home_dashboard.dart` matches your carrier's SMS text
-  - Check `flutter run` logs for parsing or notification errors
-
-## Testing & development tips
-
-- To simulate incoming transactions during development, use the "Add Expense" shortcut in the app.
-- Use `flutter analyze` and `flutter test` (if tests are added) to validate code.
-
-## Next steps / improvements
-
-- Add filters and search on the History page (by date / amount / vendor)
-- Improve parsing to support more currencies and message formats
-- Add sync/backup (e.g., export CSV or cloud sync)
-
-## License
-
-This project is provided as-is. Add a license file if you intend to open-source it.
-
----
-
-If you'd like, I can:
-
-- Clean the small analyzer warnings now (remove unused imports),
-- Add an example AndroidManifest snippet for required permissions, or
-- Add a short demo/test that programmatically inserts transactions for UI testing.
-
-Tell me which of those you'd like and I'll make the changes.
+Regenerate Drift code after changing tables: `dart run build_runner build --delete-conflicting-outputs`.
