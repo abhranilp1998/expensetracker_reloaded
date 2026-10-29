@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:expensetracker_reloaded/providers/providers.dart';
@@ -14,6 +16,10 @@ import 'package:expensetracker_reloaded/data/repositories/transaction_repository
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Debug only: keep the display on while developing on a device.
+  if (kDebugMode) {
+    WakelockPlus.enable();
+  }
 
   await NotificationService.initialize();
 
