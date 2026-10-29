@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:another_telephony/telephony.dart';
+import 'package:expensetracker_reloaded/domain/sms/parsed_sms.dart';
+import 'package:expensetracker_reloaded/domain/sms/sms_parser.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -309,7 +311,6 @@ class _HomeDashboardState extends State<HomeDashboard>
     // Listen for incoming SMS
     telephony.listenIncomingSms(
       onNewMessage: (SmsMessage message) {
-        debugPrint('📨 SMS Received: ${message.body}');
         if (message.body != null) {
           _parseMessage(message.body!);
         }
@@ -321,13 +322,10 @@ class _HomeDashboardState extends State<HomeDashboard>
 
   void _parseMessage(String text) {
     try {
-      final regex = RegExp(
-        r'(?:rs\.?|inr)\s*([0-9,]+\.?[0-9]*)',
-        caseSensitive: false,
-      );
-      final match = regex.firstMatch(text);
-      if (match != null) {
-        final amount = double.parse(match.group(1)!.replaceAll(',', ''));
+      final parsed = const SmsParser()
+          .parse(body: text, sender: '', receivedAt: DateTime.now());
+      if (parsed != null && parsed.type == TxnType.debit) {
+        final amount = parsed.amount;
         final now = DateTime.now();
         final transaction = {
           'amount': amount,

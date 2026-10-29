@@ -6,6 +6,8 @@ import 'package:expensetracker_reloaded/routes/app_routes.dart';
 import 'package:expensetracker_reloaded/routes/animation_preferences.dart';
 import 'package:expensetracker_reloaded/services/theme_service.dart';
 import 'dart:async';
+import 'package:expensetracker_reloaded/domain/sms/parsed_sms.dart';
+import 'package:expensetracker_reloaded/domain/sms/sms_parser.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
@@ -34,15 +36,16 @@ void main() async {
 @pragma('vm:entry-point')
 Future<void> backgroundMessageHandler(SmsMessage message) async {
   debugPrint('🔔 Background SMS Handler triggered');
-  debugPrint('📨 Message: ${message.body}');
   
   if (message.body != null) {
-    final regex = RegExp(r'(?:rs\.?|inr)\s*([0-9,]+\.?[0-9]*)', caseSensitive: false);
-    final match = regex.firstMatch(message.body!);
-    
-    if (match != null) {
+    final parsed = const SmsParser().parse(
+        body: message.body!,
+        sender: message.address ?? '',
+        receivedAt: DateTime.now());
+
+    if (parsed != null && parsed.type == TxnType.debit) {
       try {
-        final amount = double.parse(match.group(1)!.replaceAll(',', ''));
+        final amount = parsed.amount;
         debugPrint('💰 Expense detected: ₹$amount');
         
         final prefs = await SharedPreferences.getInstance();
