@@ -56,7 +56,7 @@ class WelcomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 40),
                 Text(
-                  'Welcome to\nExpenseTracker',
+                  'Welcome to\nLedgerly',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontSize: 32,

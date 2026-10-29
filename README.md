@@ -1,5 +1,5 @@
 
-# ExpenseTracker (reloaded)
+# Ledgerly
 
 A Flutter app that automatically detects expense amounts from incoming SMS messages,
 keeps a running daily total, stores transaction history locally, and provides a modern
@@ -43,7 +43,7 @@ flutter analyze
 ```powershell
 flutter run -d <device-id>
 # e.g. flutter run -d emulator-5554
-# ExpenseTracker (reloaded)
+# Ledgerly
 
 A Flutter app that automatically detects expense amounts from incoming SMS messages,
 keeps a running daily total, stores transaction history locally, and provides a modern
