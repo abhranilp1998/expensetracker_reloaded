@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:expensetracker_reloaded/services/notification_service.dart';
 import 'package:expensetracker_reloaded/services/sms_service.dart';
+import 'package:expensetracker_reloaded/services/permission_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -269,7 +270,8 @@ class _HomeDashboardState extends State<HomeDashboard>
   }
 
   Future<void> _requestPermissions() async {
-    final smsStatus = await Permission.sms.request();
+    await PermissionService.requestAll();
+    final smsStatus = await Permission.sms.status;
     
     setState(() {
       _hasPermission = smsStatus.isGranted;
