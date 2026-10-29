@@ -6,6 +6,9 @@ import 'package:expensetracker_reloaded/routes/app_routes.dart';
 import 'package:expensetracker_reloaded/routes/animation_preferences.dart';
 import 'package:expensetracker_reloaded/services/theme_service.dart';
 import 'dart:async';
+import 'package:expensetracker_reloaded/data/db/db_instance.dart';
+import 'package:expensetracker_reloaded/data/migration/prefs_migration.dart';
+import 'package:expensetracker_reloaded/data/repositories/transaction_repository.dart';
 import 'package:expensetracker_reloaded/domain/sms/parsed_sms.dart';
 import 'package:expensetracker_reloaded/domain/sms/sms_parser.dart';
 
@@ -19,10 +22,17 @@ void main() async {
   const AndroidInitializationSettings initializationSettingsAndroid =
       AndroidInitializationSettings('@mipmap/ic_launcher');
 
-  const InitializationSettings initializationSettings =
-      InitializationSettings(android: initializationSettingsAndroid);
+  const InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+  );
 
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
+  // One-time legacy SharedPreferences -> SQLite migration.
+  await PrefsMigration.run(
+    await SharedPreferences.getInstance(),
+    TransactionRepository(appDatabase),
+  );
 
   // Load saved animation preference
   await AnimationPreferencesService.loadAnimationType();
@@ -36,18 +46,19 @@ void main() async {
 @pragma('vm:entry-point')
 Future<void> backgroundMessageHandler(SmsMessage message) async {
   debugPrint('🔔 Background SMS Handler triggered');
-  
+
   if (message.body != null) {
     final parsed = const SmsParser().parse(
-        body: message.body!,
-        sender: message.address ?? '',
-        receivedAt: DateTime.now());
+      body: message.body!,
+      sender: message.address ?? '',
+      receivedAt: DateTime.now(),
+    );
 
     if (parsed != null && parsed.type == TxnType.debit) {
       try {
         final amount = parsed.amount;
         debugPrint('💰 Expense detected: ₹$amount');
-        
+
         final prefs = await SharedPreferences.getInstance();
         final currentTotal = prefs.getDouble('todayTotal') ?? 0.0;
         final newTotal = currentTotal + amount;
@@ -56,23 +67,23 @@ Future<void> backgroundMessageHandler(SmsMessage message) async {
         // Show notification for background message
         const AndroidNotificationDetails androidPlatformChannelSpecifics =
             AndroidNotificationDetails(
-          'expense_tracker',
-          'Expense Notifications',
-          channelDescription: 'Notifications for expense tracking',
-          importance: Importance.max,
-          priority: Priority.high,
-        );
-        
+              'expense_tracker',
+              'Expense Notifications',
+              channelDescription: 'Notifications for expense tracking',
+              importance: Importance.max,
+              priority: Priority.high,
+            );
+
         const NotificationDetails platformChannelSpecifics =
             NotificationDetails(android: androidPlatformChannelSpecifics);
-        
+
         await flutterLocalNotificationsPlugin.show(
           0,
           'New Expense Detected (Background)',
           '₹${amount.toStringAsFixed(2)} spent\nDaily total: ₹${newTotal.toStringAsFixed(2)}',
           platformChannelSpecifics,
         );
-        
+
         debugPrint('✅ Background handler completed successfully');
       } catch (e) {
         debugPrint('❌ Error in background handler: $e');
@@ -117,8 +128,10 @@ class _ExpenseTrackerAppState extends State<ExpenseTrackerApp> {
     setState(() {
       _accentColor = color;
     });
-    final colorName = ThemeService.availableColors.keys
-        .firstWhere((k) => ThemeService.availableColors[k] == color, orElse: () => 'green');
+    final colorName = ThemeService.availableColors.keys.firstWhere(
+      (k) => ThemeService.availableColors[k] == color,
+      orElse: () => 'green',
+    );
     // Fire and forget, but ensure it's saved
     unawaited(ThemeService.setAccentColor(colorName));
   }
