@@ -4,6 +4,7 @@ import 'package:expensetracker_reloaded/providers/providers.dart';
 import 'package:expensetracker_reloaded/data/txn_view.dart';
 import 'package:expensetracker_reloaded/services/theme_service.dart';
 import 'package:intl/intl.dart';
+import 'package:expensetracker_reloaded/utils/money.dart';
 
 /// Till Now page - shows all-time statistics and summaries
 class TillNowPage extends ConsumerStatefulWidget {
@@ -16,11 +17,12 @@ class TillNowPage extends ConsumerStatefulWidget {
 class _TillNowPageState extends ConsumerState<TillNowPage> {
   @override
   Widget build(BuildContext context) {
+    ref.watch(currencyProvider); // rebuild on currency change
     final all = ref.watch(allTransactionsProvider).value;
     final transactions = all == null ? null : txnMaps(all);
-    final totalSpent = ref.watch(allTimeSummaryProvider).spent;
-    final weekTotal = ref.watch(weekSummaryProvider).spent;
-    final monthTotal = ref.watch(monthSummaryProvider).spent;
+    final totalSpent = ref.watch(allTimeSummaryProvider).spentMinor;
+    final weekTotal = ref.watch(weekSummaryProvider).spentMinor;
+    final monthTotal = ref.watch(monthSummaryProvider).spentMinor;
     return Scaffold(
       backgroundColor: context.getScaffoldBg(),
       appBar: AppBar(
@@ -46,42 +48,42 @@ class _TillNowPageState extends ConsumerState<TillNowPage> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 12),
-            FutureBuilder<double>(
+            FutureBuilder<int>(
               future: null,
               initialData: totalSpent,
               builder: (context, snapshot) {
                 if (!snapshot.hasData) return const SizedBox.shrink();
                 return _buildBigStatCard(
                   'Total Spent (All Time)',
-                  '₹${snapshot.data!.toStringAsFixed(2)}',
+                  Money.minor(snapshot.data!),
                   Theme.of(context).colorScheme.error,
                   Icons.trending_down,
                 );
               },
             ),
             const SizedBox(height: 12),
-            FutureBuilder<double>(
+            FutureBuilder<int>(
               future: null,
               initialData: monthTotal,
               builder: (context, snapshot) {
                 if (!snapshot.hasData) return const SizedBox.shrink();
                 return _buildBigStatCard(
                   'This Month',
-                  '₹${snapshot.data!.toStringAsFixed(2)}',
+                  Money.minor(snapshot.data!),
                   Theme.of(context).colorScheme.tertiary,
                   Icons.calendar_month,
                 );
               },
             ),
             const SizedBox(height: 12),
-            FutureBuilder<double>(
+            FutureBuilder<int>(
               future: null,
               initialData: weekTotal,
               builder: (context, snapshot) {
                 if (!snapshot.hasData) return const SizedBox.shrink();
                 return _buildBigStatCard(
                   'This Week',
-                  '₹${snapshot.data!.toStringAsFixed(2)}',
+                  Money.minor(snapshot.data!),
                   Theme.of(context).colorScheme.primary,
                   Icons.calendar_view_week,
                 );
@@ -209,24 +211,22 @@ class _TillNowPageState extends ConsumerState<TillNowPage> {
   }
 
   Widget _buildAnalysisCards(List<Map<String, dynamic>> transactions) {
-    // Calculate stats
-    double averageTransaction = 0;
-    double maxTransaction = 0;
-    double minTransaction = double.infinity;
-    int totalTransactions = transactions.length;
-
-    for (final t in transactions) {
-      if (t['type'] == 'credit') continue;
-      final amount = (t['amount'] as num).toDouble();
-      averageTransaction += amount;
-      if (amount > maxTransaction) maxTransaction = amount;
-      if (amount < minTransaction) minTransaction = amount;
-    }
-
-    averageTransaction = totalTransactions > 0
-        ? averageTransaction / totalTransactions
-        : 0;
-    if (minTransaction == double.infinity) minTransaction = 0;
+    // Stats over expenses only, in exact minor units (bug #16).
+    final totalTransactions = transactions.length;
+    final debits = [
+      for (final t in transactions)
+        if (t['type'] != 'credit') t['amountMinor'] as int,
+    ];
+    final sumMinor = debits.fold<int>(0, (a, b) => a + b);
+    final averageMinor = debits.isEmpty
+        ? 0
+        : (sumMinor / debits.length).round();
+    final maxMinor = debits.isEmpty
+        ? 0
+        : debits.reduce((a, b) => a > b ? a : b);
+    final minMinor = debits.isEmpty
+        ? 0
+        : debits.reduce((a, b) => a < b ? a : b);
 
     return Column(
       children: [
@@ -238,22 +238,22 @@ class _TillNowPageState extends ConsumerState<TillNowPage> {
         ),
         const SizedBox(height: 12),
         _buildAnalysisItem(
-          'Average Transaction',
-          '₹${averageTransaction.toStringAsFixed(2)}',
+          'Average Expense',
+          Money.minor(averageMinor),
           Theme.of(context).colorScheme.primary,
           Icons.trending_up,
         ),
         const SizedBox(height: 12),
         _buildAnalysisItem(
-          'Highest Transaction',
-          '₹${maxTransaction.toStringAsFixed(2)}',
+          'Highest Expense',
+          Money.minor(maxMinor),
           Theme.of(context).colorScheme.error,
           Icons.trending_up,
         ),
         const SizedBox(height: 12),
         _buildAnalysisItem(
-          'Lowest Transaction',
-          '₹${minTransaction.toStringAsFixed(2)}',
+          'Lowest Expense',
+          Money.minor(minMinor),
           Theme.of(context).colorScheme.secondary,
           Icons.trending_down,
         ),
@@ -333,7 +333,8 @@ class _TillNowPageState extends ConsumerState<TillNowPage> {
           itemBuilder: (context, index) {
             // Get from end (newest first)
             final transaction = transactions[transactions.length - 1 - index];
-            final amount = transaction['amount'] as num;
+            final amountMinor = transaction['amountMinor'] as int;
+            final isCredit = transaction['type'] == 'credit';
             final dateTime = DateTime.parse(transaction['time'].toString());
             final message = transaction['message'] as String?;
 
@@ -351,8 +352,10 @@ class _TillNowPageState extends ConsumerState<TillNowPage> {
                 child: Row(
                   children: [
                     Icon(
-                      Icons.arrow_downward,
-                      color: Theme.of(context).colorScheme.error,
+                      isCredit ? Icons.arrow_upward : Icons.arrow_downward,
+                      color: isCredit
+                          ? Theme.of(context).colorScheme.tertiary
+                          : Theme.of(context).colorScheme.error,
                       size: 20,
                     ),
                     const SizedBox(width: 12),
@@ -379,10 +382,15 @@ class _TillNowPageState extends ConsumerState<TillNowPage> {
                       ),
                     ),
                     Text(
-                      '-₹${amount.toStringAsFixed(2)}',
+                      Money.minor(
+                        isCredit ? amountMinor : -amountMinor,
+                        signed: true,
+                      ),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.error,
+                        color: isCredit
+                            ? Theme.of(context).colorScheme.tertiary
+                            : Theme.of(context).colorScheme.error,
                       ),
                     ),
                   ],
@@ -395,7 +403,7 @@ class _TillNowPageState extends ConsumerState<TillNowPage> {
           Padding(
             padding: const EdgeInsets.only(top: 12),
             child: Text(
-              '+${transactions.length - 10} more transactions',
+              '+${plural(transactions.length - 10, 'more transaction')}',
               style: TextStyle(
                 fontSize: 13,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,

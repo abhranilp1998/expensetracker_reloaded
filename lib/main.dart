@@ -7,12 +7,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:expensetracker_reloaded/routes/app_routes.dart';
 import 'package:expensetracker_reloaded/routes/animation_preferences.dart';
 import 'package:expensetracker_reloaded/services/theme_service.dart';
-import 'dart:async';
 import 'package:expensetracker_reloaded/services/notification_service.dart';
 import 'package:expensetracker_reloaded/services/sms_service.dart';
 import 'package:expensetracker_reloaded/data/db/db_instance.dart';
 import 'package:expensetracker_reloaded/data/migration/prefs_migration.dart';
 import 'package:expensetracker_reloaded/data/repositories/transaction_repository.dart';
+import 'package:expensetracker_reloaded/services/app_settings.dart';
+import 'package:expensetracker_reloaded/services/user_prefs_service.dart';
+import 'package:expensetracker_reloaded/utils/money.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +24,8 @@ void main() async {
   }
 
   await NotificationService.initialize();
+  // Opened by tapping a 'tap to review' notification? MainShell routes it.
+  await NotificationService.checkLaunchDetails();
 
   // One-time legacy SharedPreferences -> SQLite migration.
   await PrefsMigration.run(
@@ -35,9 +39,13 @@ void main() async {
   // Initialize theme service
   await ThemeService.initialize();
 
-  // Single SMS listener (foreground + background) and one-time inbox import.
+  // Feature toggles (haptics, animations, activity log) and currency.
+  await AppSettings.load();
+  Money.code = await UserPrefsService.getCurrency();
+
+  // Live SMS listener only. Past-inbox import never runs at launch: the user
+  // starts it from the Inbox scan screen (after onboarding or in Settings).
   await SmsService.start();
-  unawaited(SmsService.importInboxOnce());
 
   runApp(const ProviderScope(child: ExpenseTrackerApp()));
 }

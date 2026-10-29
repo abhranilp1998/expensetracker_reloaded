@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:expensetracker_reloaded/utils/money.dart';
 
 /// Label/amount row used in summary cards.
 class SummaryRow extends StatelessWidget {
   final String label;
-  final double amount;
+
+  /// Amount in minor units (paise). Formatted with [Money.minor].
+  final int amountMinor;
+
+  /// Show "+"/"-" (used for net values, bug #3).
+  final bool signed;
   final IconData icon;
   final Color color;
 
   const SummaryRow({
     required this.label,
-    required this.amount,
+    required this.amountMinor,
+    this.signed = false,
     required this.icon,
     required this.color,
   });
@@ -38,7 +45,7 @@ class SummaryRow extends StatelessWidget {
           ),
         ),
         Text(
-          '₹${amount.toStringAsFixed(2)}',
+          Money.minor(amountMinor, signed: signed),
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,

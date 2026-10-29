@@ -8,6 +8,8 @@ import '../data/db/db_instance.dart';
 import '../data/repositories/transaction_repository.dart';
 import '../domain/summary/summary.dart';
 import '../services/theme_service.dart';
+import '../services/user_prefs_service.dart';
+import '../utils/money.dart';
 
 /// Overridable in tests.
 final clockProvider = Provider<DateTime Function()>((_) => DateTime.now);
@@ -80,6 +82,12 @@ final allTransactionsProvider = StreamProvider<List<TxnRow>>(
   (ref) => ref.watch(transactionRepositoryProvider).watchAll(),
 );
 
+/// Latest 5 confirmed transactions, any date, newest first (Home 'Recent').
+final recentTransactionsProvider = Provider<List<TxnRow>>(
+  (ref) =>
+      (ref.watch(allTransactionsProvider).value ?? const []).take(5).toList(),
+);
+
 Summary _sum(Ref ref, DateRange r) =>
     summarize(ref.watch(rangeTransactionsProvider(r)).value ?? const []);
 
@@ -136,6 +144,51 @@ class ThemeController extends Notifier<ThemeState> {
 /// Exposes [ThemeController]/[ThemeState] to MaterialApp and settings.
 final themeControllerProvider = NotifierProvider<ThemeController, ThemeState>(
   ThemeController.new,
+);
+
+/// Active currency code (bug #4). Every money label goes through [Money],
+/// which reads [Money.code]; screens `ref.watch(currencyProvider)` so they
+/// rebuild when it changes.
+class CurrencyController extends Notifier<String> {
+  @override
+  String build() => Money.code;
+
+  Future<void> set(String code) async {
+    Money.code = code;
+    state = code;
+    await UserPrefsService.setCurrency(code);
+  }
+}
+
+final currencyProvider = NotifierProvider<CurrencyController, String>(
+  CurrencyController.new,
+);
+
+/// Selected bottom tab of MainShell (0 Home, 1 Activity, 2 Review,
+/// 3 Settings). A provider so Home's "See all" can switch tabs (bug #18).
+class ShellTabController extends Notifier<int> {
+  @override
+  int build() => 0;
+  void select(int i) => state = i;
+}
+
+final shellTabProvider = NotifierProvider<ShellTabController, int>(
+  ShellTabController.new,
+);
+
+/// Display name, shared by Home greeting, drawer and Profile (bug #5).
+class UserNameController extends AsyncNotifier<String> {
+  @override
+  Future<String> build() => UserPrefsService.getUserName();
+
+  Future<void> set(String name) async {
+    await UserPrefsService.setUserName(name);
+    state = AsyncData(await UserPrefsService.getUserName());
+  }
+}
+
+final userNameProvider = AsyncNotifierProvider<UserNameController, String>(
+  UserNameController.new,
 );
 
 /// Uncertain SMS-derived transactions awaiting user review.

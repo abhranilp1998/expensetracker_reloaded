@@ -1,12 +1,15 @@
+import 'package:intl/intl.dart';
+
 import 'db/app_database.dart';
 
 /// Map shape the legacy list widgets render (amount in rupees, local ISO time).
 Map<String, dynamic> txnToMap(TxnRow r) => {
   'id': r.id,
   'amount': r.amountMinor / 100,
+  'amountMinor': r.amountMinor,
   'type': r.type,
   'time': DateTime.fromMillisecondsSinceEpoch(r.occurredAt).toIso8601String(),
-  'message': r.note ?? r.merchant ?? r.rawBody ?? '',
+  'message': txnTitle(r),
   'merchant': r.merchant ?? '',
   'note': r.note ?? '',
   'sender': r.sender ?? '',
@@ -36,3 +39,27 @@ bool txnMatchesSearch(Map<String, dynamic> t, String query) {
 /// Oldest first, matching the legacy list order.
 List<Map<String, dynamic>> txnMaps(List<TxnRow> newestFirst) =>
     newestFirst.reversed.map(txnToMap).toList();
+
+/// Row title: note, else merchant, else SMS body, else "Expense"/"Income".
+/// Never blank (blank-title rows looked broken, bug #17).
+String txnTitle(TxnRow r) {
+  for (final v in [r.note, r.merchant, r.rawBody]) {
+    if (v != null && v.trim().isNotEmpty) return v.trim();
+  }
+  return r.type == 'credit' ? 'Income' : 'Expense';
+}
+
+/// Time label for a row. With [withDate], older rows get a day prefix:
+/// "11:26 PM", "Yesterday, 11:26 PM", "28 Oct, 11:26 PM".
+String txnTimeLabel(DateTime t, {bool withDate = false, DateTime? now}) {
+  final time = DateFormat('hh:mm a').format(t);
+  if (!withDate) return time;
+  final n = now ?? DateTime.now();
+  final day = DateTime(t.year, t.month, t.day);
+  final today = DateTime(n.year, n.month, n.day);
+  final diff = today.difference(day).inDays;
+  if (diff == 0) return time;
+  if (diff == 1) return 'Yesterday, $time';
+  final fmt = t.year == n.year ? 'd MMM' : 'd MMM yyyy';
+  return '${DateFormat(fmt).format(t)}, $time';
+}

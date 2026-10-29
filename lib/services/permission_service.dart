@@ -48,13 +48,13 @@ class PermissionService {
   }
 
   /// Requests [p]. Always calls the platform request (never skips permanentlyDenied).
-  /// Starts SMS capture when SMS is granted.
+  /// Starts live SMS capture when SMS is granted. Does NOT import the inbox;
+  /// that needs explicit consent on the Inbox scan screen.
   static Future<PermissionOutcome> request(AppPermission p) async {
     final status = await p.permission.request();
     if (status.isGranted) {
       if (p == AppPermission.sms) {
         await SmsService.start();
-        await SmsService.importInboxOnce();
       }
       return PermissionOutcome.granted;
     }

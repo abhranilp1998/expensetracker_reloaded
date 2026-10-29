@@ -9,12 +9,13 @@ import 'package:expensetracker_reloaded/providers/providers.dart';
 import 'package:expensetracker_reloaded/routes/app_routes.dart';
 import 'package:expensetracker_reloaded/screens/today_insights_page.dart';
 import 'package:expensetracker_reloaded/services/sms_service.dart';
-import 'package:expensetracker_reloaded/services/user_prefs_service.dart';
 import 'package:expensetracker_reloaded/utils/constants.dart';
 import 'package:expensetracker_reloaded/widgets/add_transaction_sheet.dart';
 import 'package:expensetracker_reloaded/widgets/app_drawer.dart';
 import 'package:expensetracker_reloaded/widgets/summary_row.dart';
 import 'package:expensetracker_reloaded/widgets/transaction_tile.dart';
+import 'package:expensetracker_reloaded/utils/money.dart';
+import 'package:expensetracker_reloaded/services/app_settings.dart';
 
 /// Home tab: today's spend hero, income/net, week/month stats, recent transactions.
 class HomeDashboard extends ConsumerStatefulWidget {
@@ -28,7 +29,6 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
     with WidgetsBindingObserver, TickerProviderStateMixin {
   late AnimationController _totalAnimController;
   late Animation<double> _totalScaleAnim;
-  String _userName = 'User';
 
   @override
   void initState() {
@@ -41,9 +41,6 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
       CurvedAnimation(parent: _totalAnimController, curve: Curves.elasticOut),
     );
     WidgetsBinding.instance.addObserver(this);
-    UserPrefsService.getUserName().then((n) {
-      if (mounted) setState(() => _userName = n);
-    });
     _softStartSms();
   }
 
@@ -51,7 +48,6 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
     // Do NOT call requestAll on every launch — permissions live in onboarding/Settings.
     if (await Permission.sms.isGranted) {
       unawaited(SmsService.start());
-      unawaited(SmsService.importInboxOnce());
     }
   }
 
@@ -81,14 +77,17 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
+    ref.watch(currencyProvider); // rebuild on currency change
     final summary = ref.watch(todaySummaryProvider);
+    // Watched so a rename in Profile shows here at once (bug #5).
+    final userName = ref.watch(userNameProvider).value ?? 'User';
     final week = ref.watch(weekSummaryProvider);
     final month = ref.watch(monthSummaryProvider);
-    final todayTotal = summary.spent;
-    final transactions =
-        (ref.watch(todayTransactionsProvider).value ?? const []).reversed
-            .map(txnToMap)
-            .toList();
+    // Recent = newest 5 overall, not only today's (run4 bug).
+    final transactions = ref
+        .watch(recentTransactionsProvider)
+        .map(txnToMap)
+        .toList();
     ref.listen(todaySummaryProvider, (prev, next) {
       if (prev != null && next.count > prev.count) {
         _totalAnimController.forward(from: 0);
@@ -109,7 +108,7 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
               ),
             ),
             Text(
-              '$_greeting, $_userName',
+              '$_greeting, $userName',
               style: theme.textTheme.labelSmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -149,6 +148,7 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
                 },
                 child: Hero(
                   tag: 'today-total-card',
+                  flightShuttleBuilder: heroCardShuttle,
                   child: Material(
                     color: Colors.transparent,
                     child: Container(
@@ -196,7 +196,7 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
                           ScaleTransition(
                             scale: _totalScaleAnim,
                             child: Text(
-                              '₹${todayTotal.toStringAsFixed(2)}',
+                              Money.minor(summary.spentMinor),
                               style: TextStyle(
                                 fontSize: 42,
                                 fontWeight: FontWeight.bold,
@@ -207,8 +207,8 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Income ₹${summary.income.toStringAsFixed(2)}  ·  '
-                            'Net ${summary.netMinor < 0 ? '-' : '+'}₹${summary.net.abs().toStringAsFixed(2)}',
+                            'Income ${Money.minor(summary.incomeMinor)}  ·  '
+                            'Net ${Money.minor(summary.netMinor, signed: true)}',
                             style: TextStyle(
                               color: cs.onPrimary,
                               fontSize: 14,
@@ -220,7 +220,7 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                '${transactions.length} transactions · tap for insights',
+                                '${plural(summary.count, 'transaction')} · tap for insights',
                                 style: TextStyle(
                                   color: cs.onPrimary.withValues(alpha: 0.75),
                                   fontSize: 13,
@@ -245,7 +245,7 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
                   Expanded(
                     child: _MiniStat(
                       label: 'This week',
-                      amount: week.spent,
+                      amountMinor: week.spentMinor,
                       icon: Icons.calendar_view_week,
                     ),
                   ),
@@ -253,11 +253,51 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
                   Expanded(
                     child: _MiniStat(
                       label: 'This month',
-                      amount: month.spent,
+                      amountMinor: month.spentMinor,
                       icon: Icons.calendar_month,
                     ),
                   ),
                 ],
+              ),
+              // Snapshot sits above Recent so the Add button never covers
+              // "Net today" (bug #19).
+              const SizedBox(height: 24),
+              Text(
+                'Balance snapshot',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      SummaryRow(
+                        label: 'Today spent',
+                        amountMinor: summary.spentMinor,
+                        icon: Icons.today,
+                        color: cs.primary,
+                      ),
+                      const Divider(height: 24),
+                      SummaryRow(
+                        label: 'Today income',
+                        amountMinor: summary.incomeMinor,
+                        icon: Icons.south_west,
+                        color: cs.tertiary,
+                      ),
+                      const Divider(height: 24),
+                      SummaryRow(
+                        label: 'Net today',
+                        amountMinor: summary.netMinor,
+                        signed: true,
+                        icon: Icons.account_balance_wallet_outlined,
+                        color: summary.netMinor < 0 ? cs.error : cs.primary,
+                      ),
+                    ],
+                  ),
+                ),
               ),
               const SizedBox(height: 28),
               Row(
@@ -270,10 +310,10 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
                     ),
                   ),
                   TextButton(
-                    onPressed: () {
-                      // Activity is tab index 1; push history route as fallback.
-                      Navigator.of(context).pushNamed(AppRoutes.history);
-                    },
+                    // Switch to the Activity tab instead of pushing a second
+                    // Activity page (bug #18).
+                    onPressed: () =>
+                        ref.read(shellTabProvider.notifier).select(1),
                     child: const Text('See all'),
                   ),
                 ],
@@ -303,50 +343,13 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
                 ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: transactions.length > 5 ? 5 : transactions.length,
-                  itemBuilder: (context, index) {
-                    final t = transactions[transactions.length - 1 - index];
-                    return TransactionTile(transaction: t, index: index);
-                  },
-                ),
-              const SizedBox(height: 24),
-              Text(
-                'Balance snapshot',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      SummaryRow(
-                        label: 'Today spent',
-                        amount: todayTotal,
-                        icon: Icons.today,
-                        color: cs.primary,
-                      ),
-                      const Divider(height: 24),
-                      SummaryRow(
-                        label: 'Today income',
-                        amount: summary.income,
-                        icon: Icons.south_west,
-                        color: cs.tertiary,
-                      ),
-                      const Divider(height: 24),
-                      SummaryRow(
-                        label: 'Net today',
-                        amount: summary.net.abs(),
-                        icon: Icons.account_balance_wallet_outlined,
-                        color: summary.netMinor < 0 ? cs.error : cs.primary,
-                      ),
-                    ],
+                  itemCount: transactions.length,
+                  itemBuilder: (context, index) => TransactionTile(
+                    transaction: transactions[index],
+                    index: index,
+                    showDate: true,
                   ),
                 ),
-              ),
-              const SizedBox(height: 88),
             ],
           ),
         ),
@@ -355,11 +358,16 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
   }
 
   Future<void> _addTransaction() async {
+    Haptics.tap();
     final entry = await showAddTransactionSheet(context);
     if (entry == null || !mounted) return;
     await ref
         .read(transactionRepositoryProvider)
-        .addManual(amount: entry.amount, type: entry.type, note: entry.note);
+        .addManual(
+          amountMinor: entry.amountMinor,
+          type: entry.type,
+          note: entry.note,
+        );
     if (mounted) unawaited(_totalAnimController.forward(from: 0));
   }
 }
@@ -367,11 +375,11 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
 class _MiniStat extends StatelessWidget {
   const _MiniStat({
     required this.label,
-    required this.amount,
+    required this.amountMinor,
     required this.icon,
   });
   final String label;
-  final double amount;
+  final int amountMinor;
   final IconData icon;
 
   @override
@@ -392,7 +400,7 @@ class _MiniStat extends StatelessWidget {
           Text(label, style: theme.textTheme.labelMedium),
           const SizedBox(height: 4),
           Text(
-            '₹${amount.toStringAsFixed(0)}',
+            Money.minor(amountMinor),
             style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
             ),

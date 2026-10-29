@@ -31,9 +31,27 @@ void main() {
   test('buildDayInsights category, hour, comparisons', () {
     final now = DateTime(2026, 10, 27, 15, 30);
     final today = [
-      row(amountMinor: 50000, type: 'debit', at: now, merchant: 'Swiggy', id: '1'),
-      row(amountMinor: 20000, type: 'debit', at: now.subtract(const Duration(hours: 3)), merchant: 'Uber', id: '2'),
-      row(amountMinor: 100000, type: 'credit', at: now, merchant: 'Salary', id: '3'),
+      row(
+        amountMinor: 50000,
+        type: 'debit',
+        at: now,
+        merchant: 'Swiggy',
+        id: '1',
+      ),
+      row(
+        amountMinor: 20000,
+        type: 'debit',
+        at: now.subtract(const Duration(hours: 3)),
+        merchant: 'Uber',
+        id: '2',
+      ),
+      row(
+        amountMinor: 100000,
+        type: 'credit',
+        at: now,
+        merchant: 'Salary',
+        id: '3',
+      ),
     ];
     final yesterday = [
       row(
@@ -48,7 +66,7 @@ void main() {
       now: now,
       todayRows: today,
       yesterdayRows: yesterday,
-      weekRows: [...today, ...yesterday],
+      previous7DaysRows: yesterday,
     );
     expect(insights.today.spent, 700);
     expect(insights.today.income, 1000);
@@ -61,7 +79,12 @@ void main() {
   });
 
   test('categoryLabel falls back sensibly', () {
-    final r = row(amountMinor: 100, type: 'debit', at: DateTime(2026, 1, 1), id: 'z');
+    final r = row(
+      amountMinor: 100,
+      type: 'debit',
+      at: DateTime(2026, 1, 1),
+      id: 'z',
+    );
     expect(categoryLabel(r), 'Manual');
   });
 }

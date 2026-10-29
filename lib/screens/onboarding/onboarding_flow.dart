@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:expensetracker_reloaded/utils/money.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:expensetracker_reloaded/providers/providers.dart';
 import 'package:expensetracker_reloaded/routes/app_routes.dart';
 import 'package:expensetracker_reloaded/services/permission_service.dart';
+import 'package:expensetracker_reloaded/services/sms_service.dart';
 import 'package:expensetracker_reloaded/services/theme_service.dart';
 import 'package:expensetracker_reloaded/services/user_prefs_service.dart';
 import 'package:expensetracker_reloaded/utils/animations.dart';
@@ -22,6 +24,7 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
   static const _pageCount = 6;
 
   final _nameCtrl = TextEditingController();
+  String? _nameError;
   String _currency = 'INR';
   ThemeMode _theme = ThemeMode.system;
   MaterialColor _accent = Colors.indigo;
@@ -65,20 +68,53 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
     }
   }
 
+  /// "About you" page: same name rule as Profile (Codex 10/10).
+  Future<void> _nextFromName() async {
+    final err = validateDisplayName(_nameCtrl.text);
+    if (err != null) return setState(() => _nameError = err);
+    await _next();
+  }
+
+  /// "Skip setup" keeps every default except the name: like Profile and the
+  /// About you page, an empty name is not allowed, so ask for it first.
+  Future<void> _skipSetup() async {
+    final name = await showDialog<String>(
+      context: context,
+      builder: (_) => _SkipNameDialog(initial: _nameCtrl.text),
+    );
+    if (name == null || !mounted) return; // cancelled
+    _nameCtrl.text = name;
+    await _finish();
+  }
+
   bool _finishing = false;
 
   Future<void> _finish() async {
     if (_finishing) return; // ignore double taps while prefs save
     _finishing = true;
-    await UserPrefsService.setUserName(_nameCtrl.text);
-    await UserPrefsService.setCurrency(_currency);
+    await ref.read(userNameProvider.notifier).set(_nameCtrl.text);
+    await ref.read(currencyProvider.notifier).set(_currency);
     await UserPrefsService.setImportPastSms(_importPast);
     await UserPrefsService.setNotificationsEnabled(_notifications);
     await UserPrefsService.applyImportPreference();
     await ref.read(themeControllerProvider.notifier).setTheme(_theme);
     await ref.read(themeControllerProvider.notifier).setAccentColor(_accent);
     await UserPrefsService.setOnboardingCompleted(true);
+    // Offer the inbox scan only if the user kept "Import past SMS" on and
+    // SMS is granted. The scan screen asks again before reading anything.
+    final offerScan =
+        _importPast &&
+        await SmsService.hasPermission() &&
+        !await SmsService.importDone();
     if (!mounted) return;
+    if (offerScan) {
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRoutes.inboxScan,
+        (route) => false,
+        arguments: true,
+      );
+      return;
+    }
     // Clear the onboarding stack and land on the Home tab.
     Navigator.of(
       context,
@@ -227,7 +263,11 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
           ),
           const Spacer(flex: 3),
           FilledButton(onPressed: _next, child: const Text('Continue')),
-          TextButton(onPressed: _finish, child: const Text('Skip setup')),
+          TextButton(
+            key: const Key('skipSetup'),
+            onPressed: _skipSetup,
+            child: const Text('Skip setup'),
+          ),
         ],
       ),
     );
@@ -314,11 +354,16 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
           TextField(
             controller: _nameCtrl,
             textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(
+            key: const Key('onboardingName'),
+            decoration: InputDecoration(
               labelText: 'Your name',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.person_outline),
+              border: const OutlineInputBorder(),
+              prefixIcon: const Icon(Icons.person_outline),
+              errorText: _nameError,
             ),
+            onChanged: (_) {
+              if (_nameError != null) setState(() => _nameError = null);
+            },
           ),
           const SizedBox(height: 20),
           Text('Currency', style: theme.textTheme.titleSmall),
@@ -334,8 +379,10 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
                 ),
             ],
           ),
+          const SizedBox(height: 6),
+          Text(currencySymbolNote, style: theme.textTheme.bodySmall),
           const Spacer(),
-          FilledButton(onPressed: _next, child: const Text('Continue')),
+          FilledButton(onPressed: _nextFromName, child: const Text('Continue')),
         ],
       ),
     );
@@ -406,9 +453,17 @@ class _OnboardingFlowState extends ConsumerState<OnboardingFlow> {
           const SizedBox(height: 24),
           SwitchListTile(
             title: const Text('Import past SMS'),
-            subtitle: const Text('Last 180 days of bank messages'),
+            subtitle: const Text(
+              'Offer to scan bank messages after setup. You pick the range; '
+              'nothing is read before that.',
+            ),
             value: _importPast,
-            onChanged: (v) => setState(() => _importPast = v),
+            onChanged: (v) {
+              setState(() => _importPast = v);
+              // Save right away so the choice holds even if setup is
+              // interrupted (bug #13).
+              UserPrefsService.setImportPastSms(v);
+            },
           ),
           SwitchListTile(
             title: const Text('Notifications'),
@@ -555,4 +610,72 @@ extension on ThemeMode {
     ThemeMode.dark => 'Dark',
     ThemeMode.system => 'System',
   };
+}
+
+/// Asks for the name before skipping onboarding; returns it, or null on
+/// Cancel. Uses the same [validateDisplayName] rule as Profile.
+class _SkipNameDialog extends StatefulWidget {
+  const _SkipNameDialog({required this.initial});
+  final String initial;
+
+  @override
+  State<_SkipNameDialog> createState() => _SkipNameDialogState();
+}
+
+class _SkipNameDialogState extends State<_SkipNameDialog> {
+  late final _ctrl = TextEditingController(text: widget.initial);
+  String? _error;
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final err = validateDisplayName(_ctrl.text);
+    if (err != null) return setState(() => _error = err);
+    Navigator.of(context).pop(_ctrl.text.trim());
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('What should we call you?'),
+    content: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Everything else uses the defaults. Change it later in Profile.',
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          key: const Key('skipName'),
+          controller: _ctrl,
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+          decoration: InputDecoration(
+            labelText: 'Your name',
+            border: const OutlineInputBorder(),
+            errorText: _error,
+          ),
+          onChanged: (_) {
+            if (_error != null) setState(() => _error = null);
+          },
+          onSubmitted: (_) => _submit(),
+        ),
+      ],
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Cancel'),
+      ),
+      FilledButton(
+        key: const Key('skipConfirm'),
+        onPressed: _submit,
+        child: const Text('Skip setup'),
+      ),
+    ],
+  );
 }

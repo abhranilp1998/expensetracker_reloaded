@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'animation_preferences.dart';
 import 'animation_variants.dart';
 
 /// Widget that demonstrates all available animation types with top preview
@@ -35,11 +36,11 @@ class _AnimationPreviewState extends State<AnimationPreview>
     _previewController.forward(from: 0);
   }
 
+  /// Selecting a style in the showcase is a real choice: persist it in the
+  /// same store Settings uses so it survives a restart (Codex A7).
   void _updateAnimation(AnimationType type) {
-    setState(() {
-      _currentAnimation = type;
-      AnimationVariants.setAnimationType(type);
-    });
+    setState(() => _currentAnimation = type);
+    AnimationPreferencesService.saveAnimationType(type);
     _startPreviewAnimation();
   }
 
@@ -269,7 +270,7 @@ class _AnimationPreviewState extends State<AnimationPreview>
             initiallyExpanded: isSelected,
             leading: Icon(_getIconForAnimation(type)),
             title: Text(
-              type.name,
+              AnimationVariants.getAnimationName(type),
               style: TextStyle(
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
               ),
@@ -307,17 +308,17 @@ class _AnimationPreviewState extends State<AnimationPreview>
       case AnimationType.scaleRotate:
         return 'Smooth expand in - subtle and refined';
       case AnimationType.morphing:
-        return 'Vertical swipe - fluid and smooth';
+        return 'Fades in while rising from below';
       case AnimationType.bouncy:
-        return 'Slide from left - sleek transition';
+        return 'Fades in with a short slide from the left';
       case AnimationType.liquid:
-        return 'Slide from right - smooth modern';
+        return 'Fades in with a short slide from the right';
       case AnimationType.staggered:
         return 'Diagonal swipe - flowing and elegant';
       case AnimationType.kaleidoscope:
-        return 'Scale bloom - modern bright entry';
+        return 'Fades in while growing slightly';
       case AnimationType.elasticBounce:
-        return 'Tilt entry - sophisticated transition';
+        return 'Fades in, sliding down from the top right';
     }
   }
 
@@ -602,17 +603,17 @@ class _AnimationTileState extends State<AnimationTile> {
       case AnimationType.scaleRotate:
         return 'Expand in';
       case AnimationType.morphing:
-        return 'Vertical swipe';
+        return 'Rise & fade';
       case AnimationType.bouncy:
-        return 'Bouncy entry';
+        return 'Fade from left';
       case AnimationType.liquid:
-        return 'Liquid swipe';
+        return 'Fade from right';
       case AnimationType.staggered:
         return 'Staggered cascade';
       case AnimationType.kaleidoscope:
-        return 'Scale bloom';
+        return 'Grow & fade';
       case AnimationType.elasticBounce:
-        return 'Elastic entry';
+        return 'Drop from top right';
     }
   }
 }

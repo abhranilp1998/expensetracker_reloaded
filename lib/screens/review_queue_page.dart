@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../data/db/app_database.dart';
 import '../providers/providers.dart';
 import '../widgets/app_drawer.dart';
+import 'package:expensetracker_reloaded/utils/money.dart';
 
 /// Uncertain SMS waiting for a decision. Each decision is learned as a rule.
 class ReviewQueuePage extends ConsumerWidget {
@@ -14,6 +15,7 @@ class ReviewQueuePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(currencyProvider); // rebuild on currency change
     final queue = ref.watch(reviewQueueProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('Needs review')),
@@ -77,14 +79,21 @@ class _ReviewCard extends ConsumerWidget {
           children: [
             Row(
               children: [
+                // Narrow phones (360dp): the meta text shrinks with an
+                // ellipsis instead of overflowing the row.
                 Text(
-                  '₹${(row.amountMinor / 100).toStringAsFixed(2)}',
+                  Money.minor(row.amountMinor),
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
-                const Spacer(),
-                Text(
-                  '${row.sender ?? ''} · $when',
-                  style: Theme.of(context).textTheme.bodySmall,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    '${row.sender ?? ''} · $when',
+                    style: Theme.of(context).textTheme.bodySmall,
+                    textAlign: TextAlign.end,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),

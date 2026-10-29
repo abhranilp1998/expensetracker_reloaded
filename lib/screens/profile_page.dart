@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:expensetracker_reloaded/utils/money.dart';
 
 import 'package:expensetracker_reloaded/routes/app_routes.dart';
 import 'package:expensetracker_reloaded/services/user_prefs_service.dart';
 import 'package:expensetracker_reloaded/utils/constants.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:expensetracker_reloaded/providers/providers.dart';
 
 /// User profile (name, currency, stats); settings live in [ComprehensiveSettingsPage].
-class ProfilePage extends StatefulWidget {
+class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
 
   @override
-  State<ProfilePage> createState() => _ProfilePageState();
+  ConsumerState<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ProfilePageState extends ConsumerState<ProfilePage> {
   final _nameCtrl = TextEditingController();
   String _currency = 'INR';
   bool _loading = true;
+  String? _nameError;
 
   @override
   void initState() {
@@ -41,8 +45,15 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _save() async {
-    await UserPrefsService.setUserName(_nameCtrl.text);
-    await UserPrefsService.setCurrency(_currency);
+    // A name is required here; don't silently save "User" (bug #6).
+    final nameError = validateDisplayName(_nameCtrl.text);
+    if (nameError != null) {
+      setState(() => _nameError = nameError);
+      return;
+    }
+    await ref.read(userNameProvider.notifier).set(_nameCtrl.text);
+    // Through the provider so every screen re-renders in the new currency.
+    await ref.read(currencyProvider.notifier).set(_currency);
     if (!mounted) return;
     ScaffoldMessenger.of(
       context,
@@ -101,12 +112,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 TextField(
                   controller: _nameCtrl,
                   textCapitalization: TextCapitalization.words,
-                  decoration: const InputDecoration(
+                  key: const Key('profileName'),
+                  decoration: InputDecoration(
                     labelText: 'Display name',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.badge_outlined),
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.badge_outlined),
+                    errorText: _nameError,
                   ),
-                  onChanged: (_) => setState(() {}),
+                  onChanged: (_) => setState(() => _nameError = null),
                 ),
                 const SizedBox(height: 16),
                 Text('Currency', style: theme.textTheme.titleSmall),
@@ -121,6 +134,12 @@ class _ProfilePageState extends State<ProfilePage> {
                         onSelected: (_) => setState(() => _currency = c),
                       ),
                   ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  currencySymbolNote,
+                  key: const Key('currencyNote'),
+                  style: theme.textTheme.bodySmall,
                 ),
                 const SizedBox(height: 24),
                 FilledButton(onPressed: _save, child: const Text('Save')),

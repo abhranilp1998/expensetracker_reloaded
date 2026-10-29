@@ -5,6 +5,34 @@ import 'package:expensetracker_reloaded/data/txn_view.dart';
 import 'package:expensetracker_reloaded/domain/summary/insights.dart';
 import 'package:expensetracker_reloaded/providers/providers.dart';
 import 'package:expensetracker_reloaded/widgets/transaction_tile.dart';
+import 'package:expensetracker_reloaded/utils/money.dart';
+
+/// Flight widget for the 'today-total-card' Hero (bug #1).
+///
+/// The default shuttle squeezes the Home card's Column into the in-between
+/// rect and overflows (46px). This renders the source card at its natural
+/// height and clips it to the flight rect instead.
+Widget heroCardShuttle(
+  BuildContext flightContext,
+  Animation<double> animation,
+  HeroFlightDirection direction,
+  BuildContext fromHeroContext,
+  BuildContext toHeroContext,
+) {
+  final hero =
+      (direction == HeroFlightDirection.push
+              ? fromHeroContext.widget
+              : toHeroContext.widget)
+          as Hero;
+  return ClipRect(
+    child: OverflowBox(
+      alignment: Alignment.topLeft,
+      minHeight: 0,
+      maxHeight: double.infinity,
+      child: hero.child,
+    ),
+  );
+}
 
 /// Hero destination for today's spend card — insights, not a bigger number.
 class TodayInsightsPage extends ConsumerWidget {
@@ -13,21 +41,20 @@ class TodayInsightsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    ref.watch(currencyProvider); // rebuild on currency change
     final now = ref.watch(clockProvider)();
     final todayRows = ref.watch(todayTransactionsProvider).value ?? const [];
     final yRange = yesterdayRange(now);
     final yesterdayRows =
         ref.watch(rangeTransactionsProvider(yRange)).value ?? const [];
-    final weekRows =
-        ref
-            .watch(rangeTransactionsProvider(ref.watch(weekRangeProvider)))
-            .value ??
+    final previous7DaysRows =
+        ref.watch(rangeTransactionsProvider(previous7DaysRange(now))).value ??
         const [];
     final insights = buildDayInsights(
       now: now,
       todayRows: todayRows,
       yesterdayRows: yesterdayRows,
-      weekRows: weekRows,
+      previous7DaysRows: previous7DaysRows,
     );
     final cs = theme.colorScheme;
 
@@ -38,6 +65,7 @@ class TodayInsightsPage extends ConsumerWidget {
         children: [
           Hero(
             tag: 'today-total-card',
+            flightShuttleBuilder: heroCardShuttle,
             child: Material(
               color: Colors.transparent,
               child: Container(
@@ -68,7 +96,7 @@ class TodayInsightsPage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '₹${insights.today.spent.toStringAsFixed(2)}',
+                      Money.minor(insights.today.spentMinor),
                       style: theme.textTheme.displaySmall?.copyWith(
                         color: cs.onPrimary,
                         fontWeight: FontWeight.bold,
@@ -77,8 +105,8 @@ class TodayInsightsPage extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Income ₹${insights.today.income.toStringAsFixed(2)}  ·  '
-                      'Net ${insights.today.netMinor < 0 ? '-' : '+'}₹${insights.today.net.abs().toStringAsFixed(2)}',
+                      'Income ${Money.minor(insights.today.incomeMinor)}  ·  '
+                      'Net ${Money.minor(insights.today.netMinor, signed: true)}',
                       style: TextStyle(
                         color: cs.onPrimary,
                         fontWeight: FontWeight.w600,
@@ -97,7 +125,7 @@ class TodayInsightsPage extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           _CompareRow(
-            label: 'vs 7-day average',
+            label: 'vs avg of previous 7 days',
             other: insights.dailyAverageSpent,
             pct: insights.vsAveragePct,
           ),
@@ -129,7 +157,7 @@ class TodayInsightsPage extends ConsumerWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        Text('₹${e.value.toStringAsFixed(0)}'),
+                        Text(Money.major(e.value)),
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -256,10 +284,7 @@ class _CompareRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(label, style: theme.textTheme.labelLarge),
-                Text(
-                  '₹${other.toStringAsFixed(2)}',
-                  style: theme.textTheme.bodySmall,
-                ),
+                Text(Money.major(other), style: theme.textTheme.bodySmall),
               ],
             ),
           ),

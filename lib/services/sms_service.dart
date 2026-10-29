@@ -7,7 +7,11 @@ import '../data/db/db_instance.dart';
 import '../data/repositories/transaction_repository.dart';
 import '../domain/sms/sms_classifier.dart';
 import 'notification_service.dart';
+import 'sms_import.dart';
 import 'sms_ingest.dart';
+import '../utils/money.dart';
+
+export 'sms_import.dart' show ImportSummary, ImportCancelToken;
 
 /// Background entry point. Must stay top-level with the pragma.
 /// Runs in a separate isolate with its own DB connection. Never logs bodies.
@@ -22,6 +26,8 @@ class SmsService {
   static final Telephony _telephony = Telephony.instance;
   static bool _listening = false;
   static const importDoneKey = 'smsInboxImportV1';
+
+  /// Default range offered on the scan screen.
   static const importWindow = Duration(days: 180);
 
   static Future<bool> hasPermission() => Permission.sms.isGranted;
@@ -30,6 +36,10 @@ class SmsService {
     final body = m.body;
     if (body == null || body.isEmpty) return;
     try {
+      // Background isolate: load the user's currency for the notification.
+      Money.code =
+          (await SharedPreferences.getInstance()).getString('userCurrency') ??
+          Money.code;
       final p = await ingestSms(
         TransactionRepository(appDatabase),
         body: body,
@@ -45,6 +55,9 @@ class SmsService {
               : 'Transaction detected',
           describe(p),
           key: p.dedupeHash,
+          payload: p.decision == Decision.review
+              ? NotificationService.reviewPayload
+              : null,
         );
       }
     } catch (_) {
@@ -63,34 +76,50 @@ class SmsService {
     _listening = true;
   }
 
-  /// One-time import of inbox SMS from the last [importWindow], through the
-  /// same parser + dedupe. Returns number of new rows, or null if skipped.
-  static Future<int?> importInboxOnce() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool(importDoneKey) ?? false) return null;
-    if (!await hasPermission()) return null;
-    final since = DateTime.now().subtract(importWindow).millisecondsSinceEpoch;
+  /// True once an inbox scan finished (not cancelled, not failed).
+  static Future<bool> importDone() async =>
+      (await SharedPreferences.getInstance()).getBool(importDoneKey) ?? false;
+
+  /// Reads inbox SMS from the last [window]. Never runs on its own: only the
+  /// Inbox scan screen calls this, after the user agreed (bugs #12, #13).
+  static Future<List<InboxMessage>> readInbox(Duration window) async {
+    final since = DateTime.now().subtract(window).millisecondsSinceEpoch;
     final msgs = await _telephony.getInboxSms(
       columns: const [SmsColumn.ADDRESS, SmsColumn.BODY, SmsColumn.DATE],
       filter: SmsFilter.where(SmsColumn.DATE).greaterThan('$since'),
     );
-    final repo = TransactionRepository(appDatabase);
-    final rules = await repo.activeRules();
-    var added = 0;
-    for (final m in msgs) {
-      final body = m.body;
-      if (body == null) continue;
-      final p = await ingestSms(
-        repo,
-        body: body,
-        sender: m.address ?? '',
-        receivedAt: DateTime.fromMillisecondsSinceEpoch(m.date ?? 0),
-        source: 'import',
-        rules: rules,
-      );
-      if (p != null) added++;
+    return [
+      for (final m in msgs)
+        if (m.body != null && m.body!.isNotEmpty)
+          InboxMessage(
+            address: m.address ?? '',
+            body: m.body!,
+            date: DateTime.fromMillisecondsSinceEpoch(m.date ?? 0),
+          ),
+    ];
+  }
+
+  /// Scans the inbox and stores transactions. Marks the import as done only
+  /// when it ran to the end; a cancel or an error leaves it not done.
+  static Future<ImportSummary> scanInbox(
+    Duration window, {
+    void Function(int done, int total)? onProgress,
+    ImportCancelToken? cancel,
+  }) async {
+    if (!await hasPermission()) {
+      throw StateError('SMS permission is not granted');
     }
-    await prefs.setBool(importDoneKey, true);
-    return added;
+    final msgs = await readInbox(window);
+    final summary = await importMessages(
+      TransactionRepository(appDatabase),
+      msgs,
+      onProgress: onProgress,
+      cancel: cancel,
+    );
+    if (!summary.cancelled) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(importDoneKey, true);
+    }
+    return summary;
   }
 }

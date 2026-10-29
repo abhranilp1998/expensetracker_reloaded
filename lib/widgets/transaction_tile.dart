@@ -1,53 +1,64 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:expensetracker_reloaded/data/txn_view.dart';
 
-/// List tile for one transaction, used on Home and Activity.
-class TransactionTile extends StatefulWidget {
+import 'package:expensetracker_reloaded/utils/money.dart';
+import 'package:expensetracker_reloaded/widgets/transaction_actions.dart';
+import 'package:expensetracker_reloaded/providers/providers.dart';
+
+/// List tile for one transaction, used on Home, Activity and Insights.
+/// Tap = edit, long-press = Edit/Delete menu (when the row has an 'id').
+class TransactionTile extends ConsumerStatefulWidget {
   final Map<String, dynamic> transaction;
   final int index;
   final bool compact;
+
+  /// Prefix older rows with their day (Home 'Recent' spans many days).
+  final bool showDate;
 
   const TransactionTile({
     super.key,
     required this.transaction,
     required this.index,
     this.compact = false,
+    this.showDate = false,
   });
 
   @override
-  State<TransactionTile> createState() => _TransactionTileState();
+  ConsumerState<TransactionTile> createState() => _TransactionTileState();
 }
 
-class _TransactionTileState extends State<TransactionTile> {
+class _TransactionTileState extends ConsumerState<TransactionTile> {
   bool _isPressed = false;
 
-  static const List<Color> _palette = [
-    Color(0xFFFF6B6B),
-    Color(0xFF4ECDC4),
-    Color(0xFFD6BE43),
-    Color(0xFF95E1D3),
-    Color(0xFFF38181),
-    Color(0xFFAA96DA),
-    Color(0xFFFCBD49),
-    Color(0xFF5DADE2),
-  ];
-
-  Color _color() {
-    if (widget.compact) {
-      final hash = widget.transaction['time'].hashCode;
-      return _palette[hash.abs() % _palette.length];
-    }
-    return _palette[widget.index % _palette.length];
-  }
+  // Colour encodes direction only (bug #17): every expense uses the same red,
+  // every income the same teal. Both come from the original tile palette.
+  static const debitColor = Color(0xFFFF6B6B);
+  static const creditColor = Color(0xFF4ECDC4);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final tileColor = _color();
+    ref.watch(currencyProvider); // rebuild on currency change
     final isCredit = widget.transaction['type'] == 'credit';
+    final tileColor = isCredit ? creditColor : debitColor;
+    final hasId = widget.transaction['id'] != null;
+    final amountMinor =
+        widget.transaction['amountMinor'] as int? ??
+        Money.toMinor(widget.transaction['amount'] as num);
+    final rawTitle = (widget.transaction['message'] ?? '').toString().trim();
+    final title = rawTitle.isNotEmpty
+        ? rawTitle
+        : (isCredit ? 'Income' : 'Expense');
 
     return GestureDetector(
+      onTap: hasId
+          ? () => editTransaction(context, ref, widget.transaction)
+          : null,
+      onLongPress: hasId
+          ? () => showTransactionActions(context, ref, widget.transaction)
+          : null,
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) => setState(() => _isPressed = false),
       onTapCancel: () => setState(() => _isPressed = false),
@@ -89,7 +100,7 @@ class _TransactionTileState extends State<TransactionTile> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.transaction['message'] ?? 'Expense',
+                      title,
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
@@ -100,8 +111,9 @@ class _TransactionTileState extends State<TransactionTile> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      DateFormat('hh:mm a').format(
+                      txnTimeLabel(
                         DateTime.parse(widget.transaction['time'].toString()),
+                        withDate: widget.showDate,
                       ),
                       style: TextStyle(
                         color: theme.colorScheme.onSurfaceVariant,
@@ -112,7 +124,10 @@ class _TransactionTileState extends State<TransactionTile> {
                 ),
               ),
               Text(
-                '${isCredit ? '+' : '-'}₹${(widget.transaction['amount'] as num).toStringAsFixed(2)}',
+                Money.minor(
+                  isCredit ? amountMinor : -amountMinor,
+                  signed: true,
+                ),
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,

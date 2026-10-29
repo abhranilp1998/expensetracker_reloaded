@@ -30,9 +30,18 @@ class _TabBarProbeState extends State<_TabBarProbe> {
         onDestinationSelected: (i) => setState(() => index = i),
         destinations: const [
           NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.receipt_long_outlined), label: 'Activity'),
-          NavigationDestination(icon: Icon(Icons.rule_outlined), label: 'Review'),
-          NavigationDestination(icon: Icon(Icons.settings_outlined), label: 'Settings'),
+          NavigationDestination(
+            icon: Icon(Icons.receipt_long_outlined),
+            label: 'Activity',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.rule_outlined),
+            label: 'Review',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.settings_outlined),
+            label: 'Settings',
+          ),
         ],
       ),
     );
@@ -55,19 +64,23 @@ void main() {
   });
 
   testWidgets('real MainShell starts on Home (index 0)', (tester) async {
-    await tester.pumpWidget(ProviderScope(
-      overrides: [
-        reviewQueueProvider.overrideWith((ref) => Stream.value(const [])),
-      ],
-      child: const MaterialApp(
-        home: MainShell(pagesOverride: [
-          Center(child: Text('home-body')),
-          Center(child: Text('activity-body')),
-          Center(child: Text('review-body')),
-          Center(child: Text('settings-body')),
-        ]),
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          reviewQueueProvider.overrideWith((ref) => Stream.value(const [])),
+        ],
+        child: const MaterialApp(
+          home: MainShell(
+            pagesOverride: [
+              Center(child: Text('home-body')),
+              Center(child: Text('activity-body')),
+              Center(child: Text('review-body')),
+              Center(child: Text('settings-body')),
+            ],
+          ),
+        ),
       ),
-    ));
+    );
     await tester.pump();
     final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
     expect(bar.selectedIndex, MainShell.homeIndex);
