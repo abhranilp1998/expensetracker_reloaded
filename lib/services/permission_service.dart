@@ -11,32 +11,75 @@ enum AppPermission {
   final Permission permission;
 }
 
+/// Outcome of a permission attempt, including Android 13+/15 restricted-settings.
+enum PermissionOutcome {
+  granted,
+  denied,
+  /// Auto-denied / greyed toggle — typical for sideloaded SMS apps on Android 15+.
+  needsRestrictedSettings,
+  openedSettings,
+}
+
 class PermissionService {
   static Future<Map<AppPermission, PermissionStatus>> statuses() async => {
-    for (final p in AppPermission.values) p: await p.permission.status,
-  };
+        for (final p in AppPermission.values) p: await p.permission.status,
+      };
 
-  /// Requests [p]. If permanently denied, opens app settings instead.
-  /// Starts SMS capture as soon as SMS is granted.
-  static Future<PermissionStatus> request(AppPermission p) async {
-    var status = await p.permission.status;
-    if (status.isPermanentlyDenied) {
-      await openAppSettings();
-      return status;
-    }
-    status = await p.permission.request();
-    if (p == AppPermission.sms && status.isGranted) {
-      await SmsService.start();
-      await SmsService.importInboxOnce();
-    }
-    return status;
+  /// True when SMS cannot be granted via the normal dialog (sideload restricted).
+  ///
+  /// On Android 15+, apps installed from a browser/file manager get SMS blocked
+  /// under Restricted settings — [request] returns permanentlyDenied with no dialog,
+  /// and the Settings toggle is greyed until the user enables
+  /// App info → ⋮ → Allow restricted settings.
+  static Future<bool> smsNeedsRestrictedSettings() async {
+    final before = await Permission.sms.status;
+    if (before.isGranted) return false;
+    // Always attempt once: a prior "blocked" cache must not skip this (after the
+    // user unlocks restricted settings, status can still look permanentlyDenied
+    // until a fresh grant succeeds).
+    final after = await Permission.sms.request();
+    if (after.isGranted) return false;
+    if (after.isPermanentlyDenied || after.isRestricted) return true;
+    // Denied with no rationale often means the OS blocked the prompt.
+    final showRationale = await Permission.sms.shouldShowRequestRationale;
+    return !showRationale && after.isDenied;
   }
 
-  /// First-run flow: SMS, then notifications (Android 13+).
-  static Future<void> requestAll() async {
-    for (final p in AppPermission.values) {
-      final s = await p.permission.status;
-      if (!s.isGranted && !s.isPermanentlyDenied) await request(p);
+  /// Requests [p]. Always calls the platform request (never skips permanentlyDenied).
+  /// Starts SMS capture when SMS is granted.
+  static Future<PermissionOutcome> request(AppPermission p) async {
+    final status = await p.permission.request();
+    if (status.isGranted) {
+      if (p == AppPermission.sms) {
+        await SmsService.start();
+        await SmsService.importInboxOnce();
+      }
+      return PermissionOutcome.granted;
     }
+    if (p == AppPermission.sms) {
+      if (status.isPermanentlyDenied ||
+          status.isRestricted ||
+          !(await Permission.sms.shouldShowRequestRationale)) {
+        return PermissionOutcome.needsRestrictedSettings;
+      }
+    }
+    return PermissionOutcome.denied;
+  }
+
+  /// Opens the system app-info page so the user can enable
+  /// "Allow restricted settings", then grant SMS / notifications.
+  static Future<PermissionOutcome> openSettingsForRestricted() async {
+    await openAppSettings();
+    return PermissionOutcome.openedSettings;
+  }
+
+  /// First-run: ask SMS, then notifications. Returns the SMS outcome.
+  static Future<PermissionOutcome> requestAll() async {
+    final sms = await request(AppPermission.sms);
+    final notif = await Permission.notification.status;
+    if (!notif.isGranted) {
+      await request(AppPermission.notifications);
+    }
+    return sms;
   }
 }

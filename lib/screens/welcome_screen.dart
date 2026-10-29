@@ -1,7 +1,6 @@
-import 'package:expensetracker_reloaded/routes/app_routes.dart' as appRoutes;
+import 'package:expensetracker_reloaded/routes/app_routes.dart' show AppRoutes;
 import 'package:flutter/material.dart';
 import '../utils/animations.dart';
-import 'home_dashboard.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -88,8 +87,8 @@ class WelcomeScreen extends StatelessWidget {
                     color: Colors.transparent,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.of(context).pushReplacement(
-                          appRoutes.createRoute(const HomeDashboard()),
+                        Navigator.of(context).pushReplacementNamed(
+                          AppRoutes.onboardingPermissions,
                         );
                       },
                       style: ElevatedButton.styleFrom(
