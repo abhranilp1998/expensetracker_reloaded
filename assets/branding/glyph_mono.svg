@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Monochrome adaptive layer: solid black glyph, transparent bg (system tints it). -->
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080">
+  <path fill="none" stroke="#000000" stroke-width="108" stroke-linecap="round" stroke-linejoin="round"
+        d="M 400 280 L 400 680 L 560 680 L 755 365"/>
+  <circle cx="755" cy="365" r="48" fill="#000000"/>
+</svg>
