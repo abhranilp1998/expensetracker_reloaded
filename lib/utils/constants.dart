@@ -194,7 +194,7 @@ class AppConstants {
   // ==================== APP CONFIG ====================
   
   /// App information
-  static const String appName = 'Expense Tracker';
+  static const String appName = 'Ledgerly';
   static const String appVersion = '1.0.0';
   static const String appDescription = 
       'Track your expenses automatically from SMS messages';

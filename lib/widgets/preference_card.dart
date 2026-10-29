@@ -22,7 +22,7 @@ class PreferenceCard extends StatelessWidget {
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.grey.shade300,
+          color: Theme.of(context).colorScheme.outlineVariant,
           width: 0.5,
         ),
       ),
@@ -58,7 +58,7 @@ class PreferenceCard extends StatelessWidget {
                         subtitle,
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.grey.shade600,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -125,7 +125,7 @@ class _SwitchPreferenceCardState extends State<SwitchPreferenceCard> {
           color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: Colors.grey.shade300,
+            color: Theme.of(context).colorScheme.outlineVariant,
             width: 0.5,
           ),
         ),
@@ -156,7 +156,7 @@ class _SwitchPreferenceCardState extends State<SwitchPreferenceCard> {
                     widget.subtitle,
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey.shade600,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],

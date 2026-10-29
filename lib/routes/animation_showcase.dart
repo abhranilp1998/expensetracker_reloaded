@@ -264,12 +264,31 @@ class _AnimationPreviewState extends State<AnimationPreview>
     return AnimationType.values.map((type) {
       final isSelected = type == _currentAnimation;
       return Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: AnimationTile(
-          type: type,
-          isSelected: isSelected,
-          onSelect: () => _updateAnimation(type),
-          onPreview: () => _previewAnimation(context, type),
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Card(
+          clipBehavior: Clip.antiAlias,
+          child: ExpansionTile(
+            initiallyExpanded: isSelected,
+            leading: Icon(_getIconForAnimation(type)),
+            title: Text(
+              type.name,
+              style: TextStyle(
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              ),
+            ),
+            subtitle: Text(_getAnimationDescription(type), maxLines: 1, overflow: TextOverflow.ellipsis),
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                child: AnimationTile(
+                  type: type,
+                  isSelected: isSelected,
+                  onSelect: () => _updateAnimation(type),
+                  onPreview: () => _previewAnimation(context, type),
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }).toList();

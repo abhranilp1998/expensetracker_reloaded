@@ -4,10 +4,13 @@ import 'package:intl/intl.dart';
 class TransactionTile extends StatefulWidget {
   final Map<String, dynamic> transaction;
   final int index;
+  final bool compact;
 
   const TransactionTile({
+    super.key,
     required this.transaction,
     required this.index,
+    this.compact = false,
   });
 
   @override
@@ -17,27 +20,32 @@ class TransactionTile extends StatefulWidget {
 class _TransactionTileState extends State<TransactionTile> {
   bool _isPressed = false;
 
-  // Alternating color palette for transactions
-  static const List<Color> _transactionColors = [
-    Color(0xFFFF6B6B), // Red
-    Color(0xFF4ECDC4), // Teal
-    Color.fromARGB(255, 214, 190, 67), // Yellow
-    Color(0xFF95E1D3), // Mint
-    Color(0xFFF38181), // Pink
-    Color(0xFFAA96DA), // Purple
-    Color(0xFFFCBD49), // Gold
-    Color(0xFF5DADE2), // Blue
+  static const List<Color> _palette = [
+    Color(0xFFFF6B6B),
+    Color(0xFF4ECDC4),
+    Color(0xFFD6BE43),
+    Color(0xFF95E1D3),
+    Color(0xFFF38181),
+    Color(0xFFAA96DA),
+    Color(0xFFFCBD49),
+    Color(0xFF5DADE2),
   ];
 
-  Color _getBackgroundColor(int index) {
-    return _transactionColors[index % _transactionColors.length];
+  Color _color() {
+    if (widget.compact) {
+      final hash = widget.transaction['time'].hashCode;
+      return _palette[hash.abs() % _palette.length];
+    }
+    return _palette[widget.index % _palette.length];
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final tileColor = _getBackgroundColor(widget.index);
-    
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final tileColor = _color();
+    final isCredit = widget.transaction['type'] == 'credit';
+
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) => setState(() => _isPressed = false),
@@ -46,35 +54,29 @@ class _TransactionTileState extends State<TransactionTile> {
         scale: _isPressed ? 0.98 : 1.0,
         duration: const Duration(milliseconds: 100),
         child: Container(
-          margin: const EdgeInsets.only(bottom: 12),
+          margin: EdgeInsets.only(bottom: widget.compact ? 8 : 12),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: isDark
                 ? tileColor.withValues(alpha: 0.15)
                 : tileColor.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(widget.compact ? 12 : 16),
             border: Border.all(
               color: tileColor.withValues(alpha: isDark ? 0.3 : 0.15),
-              width: 1,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
           ),
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.all(widget.compact ? 10 : 12),
                 decoration: BoxDecoration(
                   color: tileColor.withValues(alpha: isDark ? 0.3 : 0.15),
-                  shape: BoxShape.circle,
+                  shape: widget.compact ? BoxShape.rectangle : BoxShape.circle,
+                  borderRadius:
+                      widget.compact ? BorderRadius.circular(10) : null,
                 ),
                 child: Icon(
-                  Icons.arrow_downward,
+                  isCredit ? Icons.arrow_upward : Icons.arrow_downward,
                   color: tileColor,
                   size: 20,
                 ),
@@ -89,11 +91,9 @@ class _TransactionTileState extends State<TransactionTile> {
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
-                        color: isDark 
-                          ? Colors.white
-                          : Colors.grey.shade900,
+                        color: theme.colorScheme.onSurface,
                       ),
-                      maxLines: 1,
+                      maxLines: widget.compact ? 2 : 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
@@ -102,9 +102,7 @@ class _TransactionTileState extends State<TransactionTile> {
                         DateTime.parse(widget.transaction['time'].toString()),
                       ),
                       style: TextStyle(
-                        color: isDark
-                          ? Colors.grey.shade400
-                          : Colors.grey.shade600,
+                        color: theme.colorScheme.onSurfaceVariant,
                         fontSize: 12,
                       ),
                     ),
@@ -112,7 +110,7 @@ class _TransactionTileState extends State<TransactionTile> {
                 ),
               ),
               Text(
-                '${widget.transaction['type'] == 'credit' ? '+' : '-'}₹${widget.transaction['amount'].toStringAsFixed(2)}',
+                '${isCredit ? '+' : '-'}₹${(widget.transaction['amount'] as num).toStringAsFixed(2)}',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
