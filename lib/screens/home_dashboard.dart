@@ -35,11 +35,27 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
     super.initState();
     _totalAnimController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 450),
     );
-    _totalScaleAnim = Tween<double>(begin: 1.0, end: 1.15).animate(
-      CurvedAnimation(parent: _totalAnimController, curve: Curves.elasticOut),
-    );
+    // A short pulse that returns to 1.0. The old Tween(1.0 -> 1.15) with
+    // elasticOut ended at 1.15, so after any new spend the amount stayed 15%
+    // too big (overflowing the card and jumping when the Hero flew).
+    _totalScaleAnim = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween(
+          begin: 1.0,
+          end: 1.08,
+        ).chain(CurveTween(curve: Curves.easeOutCubic)),
+        weight: 40,
+      ),
+      TweenSequenceItem(
+        tween: Tween(
+          begin: 1.08,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeInOutCubic)),
+        weight: 60,
+      ),
+    ]).animate(_totalAnimController);
     WidgetsBinding.instance.addObserver(this);
     _softStartSms();
   }
@@ -66,6 +82,19 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
     }
   }
 
+  /// Pulses today's total once. Skipped when the phone asks for reduced
+  /// motion or Settings > Enable Animations is off.
+  void _pulseTotal() {
+    final reduce =
+        MediaQuery.maybeDisableAnimationsOf(context) == true ||
+        !AppSettings.animations;
+    if (reduce) {
+      _totalAnimController.value = 0;
+      return;
+    }
+    unawaited(_totalAnimController.forward(from: 0));
+  }
+
   String get _greeting {
     final h = DateTime.now().hour;
     if (h < 12) return 'Good morning';
@@ -90,7 +119,7 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
         .toList();
     ref.listen(todaySummaryProvider, (prev, next) {
       if (prev != null && next.count > prev.count) {
-        _totalAnimController.forward(from: 0);
+        _pulseTotal();
       }
     });
 
@@ -194,6 +223,7 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
                           ),
                           const SizedBox(height: 12),
                           ScaleTransition(
+                            alignment: Alignment.centerLeft,
                             scale: _totalScaleAnim,
                             child: Text(
                               Money.minor(summary.spentMinor),
@@ -368,7 +398,7 @@ class _HomeDashboardState extends ConsumerState<HomeDashboard>
           type: entry.type,
           note: entry.note,
         );
-    if (mounted) unawaited(_totalAnimController.forward(from: 0));
+    if (mounted) _pulseTotal();
   }
 }
 

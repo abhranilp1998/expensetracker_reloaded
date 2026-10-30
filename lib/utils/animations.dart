@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:expensetracker_reloaded/routes/animation_variants.dart'
+    show LedgerlyPageRoute;
 
 Route createSlideFadeRoute(Widget page, {int ms = 450}) {
-  return PageRouteBuilder(
+  return LedgerlyPageRoute(
     transitionDuration: Duration(milliseconds: ms),
     pageBuilder: (context, animation, secondaryAnimation) => page,
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -20,7 +22,7 @@ Route createSlideFadeRoute(Widget page, {int ms = 450}) {
 /// Page-route transition builders used by the showcase.
 class AnimatedRoutes {
   static Route createRoute(Widget page) {
-    return PageRouteBuilder(
+    return LedgerlyPageRoute(
       transitionDuration: const Duration(milliseconds: 500),
       reverseTransitionDuration: const Duration(milliseconds: 400),
       pageBuilder: (context, animation, secondaryAnimation) => page,

@@ -57,7 +57,7 @@ class AnimationVariants {
   static Route<dynamic> createRoute(Widget page) {
     // Settings > Enable Animations off: no transition at all (bug #11).
     if (!AppSettings.animations) {
-      return PageRouteBuilder(
+      return LedgerlyPageRoute(
         pageBuilder: (_, _, _) => page,
         transitionDuration: Duration.zero,
         reverseTransitionDuration: Duration.zero,
@@ -84,7 +84,7 @@ class AnimationVariants {
   /// ANIMATION 1: Fade + Slide (Original - smooth entry)
   /// ============================================================
   static Route<dynamic> _fadeSlideRoute(Widget page) {
-    return PageRouteBuilder(
+    return LedgerlyPageRoute(
       transitionDuration: const Duration(milliseconds: 450),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -107,7 +107,7 @@ class AnimationVariants {
   /// ANIMATION 2: Slide from Left (quick, modern)
   /// ============================================================
   static Route<dynamic> _slideLeftRoute(Widget page) {
-    return PageRouteBuilder(
+    return LedgerlyPageRoute(
       transitionDuration: const Duration(milliseconds: 350),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -128,7 +128,7 @@ class AnimationVariants {
   /// ANIMATION 3: Slide from Right (reverse direction)
   /// ============================================================
   static Route<dynamic> _slideRightRoute(Widget page) {
-    return PageRouteBuilder(
+    return LedgerlyPageRoute(
       transitionDuration: const Duration(milliseconds: 350),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -149,7 +149,7 @@ class AnimationVariants {
   /// ANIMATION 4: Smooth Expand In (modern, subtle)
   /// ============================================================
   static Route<dynamic> _scaleRotateRoute(Widget page) {
-    return PageRouteBuilder(
+    return LedgerlyPageRoute(
       transitionDuration: const Duration(milliseconds: 450),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -177,7 +177,7 @@ class AnimationVariants {
   /// ANIMATION 5: Smooth Vertical Swipe (modern, fluid)
   /// ============================================================
   static Route<dynamic> _morphingRoute(Widget page) {
-    return PageRouteBuilder(
+    return LedgerlyPageRoute(
       transitionDuration: const Duration(milliseconds: 500),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -205,7 +205,7 @@ class AnimationVariants {
   /// ANIMATION 6: Slide + Fade Left (sleek, modern)
   /// ============================================================
   static Route<dynamic> _bouncyRoute(Widget page) {
-    return PageRouteBuilder(
+    return LedgerlyPageRoute(
       transitionDuration: const Duration(milliseconds: 400),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -233,7 +233,7 @@ class AnimationVariants {
   /// ANIMATION 7: Slide + Fade Right (smooth, modern)
   /// ============================================================
   static Route<dynamic> _liquidRoute(Widget page) {
-    return PageRouteBuilder(
+    return LedgerlyPageRoute(
       transitionDuration: const Duration(milliseconds: 400),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -281,7 +281,7 @@ class AnimationVariants {
   /// ANIMATION 8: Smooth Diagonal Swipe (flowing, elegant)
   /// ============================================================
   static Route<dynamic> _staggeredRoute(Widget page) {
-    return PageRouteBuilder(
+    return LedgerlyPageRoute(
       transitionDuration: const Duration(milliseconds: 500),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -309,7 +309,7 @@ class AnimationVariants {
   /// ANIMATION 9: Smooth Scale Bloom (modern, bright entry)
   /// ============================================================
   static Route<dynamic> _kaleidoscopeRoute(Widget page) {
-    return PageRouteBuilder(
+    return LedgerlyPageRoute(
       transitionDuration: const Duration(milliseconds: 450),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -337,7 +337,7 @@ class AnimationVariants {
   /// ANIMATION 10: Smooth Tilt Entry (sophisticated, modern)
   /// ============================================================
   static Route<dynamic> _elasticBounceRoute(Widget page) {
-    return PageRouteBuilder(
+    return LedgerlyPageRoute(
       transitionDuration: const Duration(milliseconds: 500),
       pageBuilder: (context, animation, secondaryAnimation) => page,
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -619,6 +619,55 @@ class CustomAnimationRoute {
           ),
         );
       },
+    );
+  }
+}
+
+/// A [PageRouteBuilder] that keeps Ledgerly's chosen open/close animation but
+/// hands control to the theme's predictive-back transition while the user is
+/// dragging a system back gesture (Android 14+).
+///
+/// Root cause of the "half pull shows the screen behind" bug: plain
+/// [PageRouteBuilder] routes ran their own fade/slide in reverse, driven by
+/// the gesture progress, so a partial swipe faded the page out and exposed
+/// the route behind it; on cancel it snapped back. Delegating to
+/// [PredictiveBackPageTransitionsBuilder] during the gesture gives the
+/// Material shrink-and-peek preview, which cancels and commits cleanly.
+class LedgerlyPageRoute<T> extends PageRouteBuilder<T> {
+  LedgerlyPageRoute({
+    required super.pageBuilder,
+    super.transitionsBuilder,
+    super.transitionDuration,
+    super.reverseTransitionDuration,
+    super.settings,
+  });
+
+  /// Predictive back must use the Material gesture-driven transition.
+  static const PageTransitionsBuilder _predictive =
+      PredictiveBackPageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    if (popGestureInProgress &&
+        Theme.of(context).platform == TargetPlatform.android) {
+      return _predictive.buildTransitions<T>(
+        this,
+        context,
+        animation,
+        secondaryAnimation,
+        child,
+      );
+    }
+    return super.buildTransitions(
+      context,
+      animation,
+      secondaryAnimation,
+      child,
     );
   }
 }
