@@ -297,80 +297,12 @@ class _AnimationPreviewState extends State<AnimationPreview>
     }).toList();
   }
 
-  String _getAnimationDescription(AnimationType type) {
-    switch (type) {
-      case AnimationType.fadeSlide:
-        return 'Smooth fade and slide from bottom - elegant entry';
-      case AnimationType.slideLeft:
-        return 'Quick slide from left - modern and direct';
-      case AnimationType.slideRight:
-        return 'Quick slide from right - playful alternative';
-      case AnimationType.scaleRotate:
-        return 'Smooth expand in - subtle and refined';
-      case AnimationType.morphing:
-        return 'Fades in while rising from below';
-      case AnimationType.bouncy:
-        return 'Fades in with a short slide from the left';
-      case AnimationType.liquid:
-        return 'Fades in with a short slide from the right';
-      case AnimationType.staggered:
-        return 'Diagonal swipe - flowing and elegant';
-      case AnimationType.kaleidoscope:
-        return 'Fades in while growing slightly';
-      case AnimationType.elasticBounce:
-        return 'Fades in, sliding down from the top right';
-    }
-  }
+  String _getAnimationDescription(AnimationType type) =>
+      motionStyles[type]!.description;
 
-  IconData _getIconForAnimation(AnimationType type) {
-    switch (type) {
-      case AnimationType.fadeSlide:
-        return Icons.arrow_upward_rounded;
-      case AnimationType.slideLeft:
-        return Icons.arrow_back_rounded;
-      case AnimationType.slideRight:
-        return Icons.arrow_forward_rounded;
-      case AnimationType.scaleRotate:
-        return Icons.zoom_in_rounded;
-      case AnimationType.morphing:
-        return Icons.bubble_chart_rounded;
-      case AnimationType.bouncy:
-        return Icons.sports_basketball_rounded;
-      case AnimationType.liquid:
-        return Icons.water_rounded;
-      case AnimationType.staggered:
-        return Icons.layers_rounded;
-      case AnimationType.kaleidoscope:
-        return Icons.dashboard_rounded;
-      case AnimationType.elasticBounce:
-        return Icons.toys_rounded;
-    }
-  }
+  IconData _getIconForAnimation(AnimationType type) => motionStyles[type]!.icon;
 
-  String _getAnimationEmoji(AnimationType type) {
-    switch (type) {
-      case AnimationType.fadeSlide:
-        return '✨';
-      case AnimationType.slideLeft:
-        return '⬅️';
-      case AnimationType.slideRight:
-        return '➡️';
-      case AnimationType.scaleRotate:
-        return '🔄';
-      case AnimationType.morphing:
-        return '🫧';
-      case AnimationType.bouncy:
-        return '🏀';
-      case AnimationType.liquid:
-        return '💧';
-      case AnimationType.staggered:
-        return '📚';
-      case AnimationType.kaleidoscope:
-        return '🎪';
-      case AnimationType.elasticBounce:
-        return '🎾';
-    }
-  }
+  String _getAnimationEmoji(AnimationType type) => motionStyles[type]!.emoji;
 
   void _previewAnimation(BuildContext context, AnimationType type) {
     final previousType = AnimationVariants.currentType;
@@ -567,55 +499,10 @@ class _AnimationTileState extends State<AnimationTile> {
     );
   }
 
-  IconData _getIconForAnimation(AnimationType type) {
-    switch (type) {
-      case AnimationType.fadeSlide:
-        return Icons.arrow_upward_rounded;
-      case AnimationType.slideLeft:
-        return Icons.arrow_back_rounded;
-      case AnimationType.slideRight:
-        return Icons.arrow_forward_rounded;
-      case AnimationType.scaleRotate:
-        return Icons.zoom_in_rounded;
-      case AnimationType.morphing:
-        return Icons.bubble_chart_rounded;
-      case AnimationType.bouncy:
-        return Icons.sports_basketball_rounded;
-      case AnimationType.liquid:
-        return Icons.water_rounded;
-      case AnimationType.staggered:
-        return Icons.layers_rounded;
-      case AnimationType.kaleidoscope:
-        return Icons.dashboard_rounded;
-      case AnimationType.elasticBounce:
-        return Icons.toys_rounded;
-    }
-  }
+  IconData _getIconForAnimation(AnimationType type) => motionStyles[type]!.icon;
 
-  String _getShortDescription(AnimationType type) {
-    switch (type) {
-      case AnimationType.fadeSlide:
-        return 'Fade & slide up';
-      case AnimationType.slideLeft:
-        return 'Slide from left';
-      case AnimationType.slideRight:
-        return 'Slide from right';
-      case AnimationType.scaleRotate:
-        return 'Expand in';
-      case AnimationType.morphing:
-        return 'Rise & fade';
-      case AnimationType.bouncy:
-        return 'Fade from left';
-      case AnimationType.liquid:
-        return 'Fade from right';
-      case AnimationType.staggered:
-        return 'Staggered cascade';
-      case AnimationType.kaleidoscope:
-        return 'Grow & fade';
-      case AnimationType.elasticBounce:
-        return 'Drop from top right';
-    }
-  }
+  String _getShortDescription(AnimationType type) =>
+      motionStyles[type]!.description;
 }
 
 /// Simple page for animation preview
