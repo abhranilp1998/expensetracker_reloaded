@@ -19,17 +19,31 @@ Widget heroCardShuttle(
   BuildContext fromHeroContext,
   BuildContext toHeroContext,
 ) {
-  final hero =
-      (direction == HeroFlightDirection.push
-              ? fromHeroContext.widget
-              : toHeroContext.widget)
-          as Hero;
-  return ClipRect(
+  // Cross-fade the two cards while the frame flies. Before, only one side's
+  // child was drawn and swapped for the other at the end, so the content
+  // visibly jumped when the flight landed (and on a cancelled back gesture).
+  final fromChild = (fromHeroContext.widget as Hero).child;
+  final toChild = (toHeroContext.widget as Hero).child;
+  final t = CurvedAnimation(parent: animation, curve: Curves.easeInOut);
+  Widget layer(Widget child, Animation<double> opacity) => FadeTransition(
+    opacity: opacity,
     child: OverflowBox(
       alignment: Alignment.topLeft,
       minHeight: 0,
       maxHeight: double.infinity,
-      child: hero.child,
+      child: child,
+    ),
+  );
+  // animation runs 0 -> 1 towards the insights page on push, and 1 -> 0 on pop.
+  final homeCard = direction == HeroFlightDirection.push ? fromChild : toChild;
+  final insightsCard = direction == HeroFlightDirection.push
+      ? toChild
+      : fromChild;
+  return ClipRRect(
+    borderRadius: BorderRadius.circular(20),
+    child: Stack(
+      fit: StackFit.expand,
+      children: [layer(homeCard, ReverseAnimation(t)), layer(insightsCard, t)],
     ),
   );
 }

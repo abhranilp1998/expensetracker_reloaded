@@ -88,6 +88,12 @@ class AppThemeData {
   static ThemeData lightTheme(MaterialColor accentColor) {
     return ThemeData(
       useMaterial3: true,
+      // Predictive back (Android 14+): see LedgerlyPageRoute.
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: PredictiveBackPageTransitionsBuilder(),
+        },
+      ),
       brightness: Brightness.light,
       colorScheme: ColorScheme.fromSeed(
         seedColor: accentColor,
@@ -195,6 +201,12 @@ class AppThemeData {
   static ThemeData darkTheme(MaterialColor accentColor) {
     return ThemeData(
       useMaterial3: true,
+      // Predictive back (Android 14+): see LedgerlyPageRoute.
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: PredictiveBackPageTransitionsBuilder(),
+        },
+      ),
       brightness: Brightness.dark,
       colorScheme: ColorScheme.fromSeed(
         seedColor: accentColor,
