@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:expensetracker_reloaded/providers/providers.dart';
+import 'package:expensetracker_reloaded/routes/animation_variants.dart';
 import 'package:expensetracker_reloaded/routes/predictive_back.dart';
 import 'package:expensetracker_reloaded/screens/comprehensive_settings_page.dart';
 import 'package:expensetracker_reloaded/screens/history_page.dart';
@@ -36,7 +37,11 @@ class _MainShellState extends ConsumerState<MainShell>
 
   /// Tab the current swipe started on; null when no swipe is running.
   int? _swipeTab;
-  SwipeEdge _edge = SwipeEdge.left;
+  late final Animation<double> _tabPeek = ReverseAnimation(_peek);
+  late final Animation<double> _homePeek = Tween<double>(
+    begin: 1,
+    end: 0.5,
+  ).animate(_peek);
 
   /// Keeps each tab's state while it moves between onstage and offstage.
   final List<GlobalKey> _tabKeys = List.generate(
@@ -93,7 +98,6 @@ class _MainShellState extends ConsumerState<MainShell>
     }
     setState(() {
       _swipeTab = ref.read(shellTabProvider);
-      _edge = backEvent.swipeEdge;
     });
     _peek.value = backEvent.progress;
     return true;
@@ -153,24 +157,21 @@ class _MainShellState extends ConsumerState<MainShell>
                 !(i == index || (swipe != null && i == MainShell.homeIndex)),
             child: TickerMode(
               enabled: i == index,
-              child: AnimatedBuilder(
-                animation: _peek,
-                builder: (context, child) {
+              child: Builder(
+                builder: (context) {
+                  final page = KeyedSubtree(key: _tabKeys[i], child: pages[i]);
                   final moving = swipe != null && i == index;
-                  final p = moving ? _peek.value : 0.0;
-                  return predictiveBackTransform(
-                    context: context,
-                    style: BackStyle.shrink,
-                    progress: i == MainShell.homeIndex ? p * 0.5 : p,
-                    edge: _edge,
-                    // A committed tab swipe fades out as it lands on Home.
-                    fadeOut: moving && i != MainShell.homeIndex
-                        ? ((p - 0.8) / 0.2).clamp(0.0, 1.0)
-                        : 0,
-                    child: child!,
-                  );
+                  // The user's selected animation style, played in reverse
+                  // as the finger pulls (Home only goes halfway: a peek).
+                  final anim = !moving
+                      ? kAlwaysCompleteAnimation
+                      : i == MainShell.homeIndex
+                      ? _homePeek
+                      : _tabPeek;
+                  return AnimationVariants.transitionFor(
+                    AnimationVariants.currentType,
+                  )(context, anim, kAlwaysDismissedAnimation, page);
                 },
-                child: KeyedSubtree(key: _tabKeys[i], child: pages[i]),
               ),
             ),
           ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show SwipeEdge;
 import 'package:expensetracker_reloaded/routes/predictive_back.dart';
 import 'package:expensetracker_reloaded/services/app_settings.dart';
 
@@ -66,6 +65,13 @@ class AnimationVariants {
       );
     }
     return _routeBuilders[_currentType]!(page);
+  }
+
+  /// The transition of [type], for widgets that are not routes (the shell's
+  /// tab and Home back-swipe peek). `animation` 1 = at rest, 0 = gone.
+  static RouteTransitionsBuilder transitionFor(AnimationType type) {
+    final route = _routeBuilders[type]!(const SizedBox()) as PageRouteBuilder;
+    return route.transitionsBuilder;
   }
 
   /// Map of animation builders - one for each type
@@ -625,35 +631,15 @@ class CustomAnimationRoute {
   }
 }
 
-/// Back-swipe motion that matches each opening style (see [BackStyle]).
-BackStyle backStyleFor(AnimationType type) {
-  switch (type) {
-    case AnimationType.slideLeft: // came in from the left
-    case AnimationType.bouncy:
-      return BackStyle.slideToLeft;
-    case AnimationType.slideRight: // came in from the right
-    case AnimationType.liquid:
-    case AnimationType.elasticBounce:
-      return BackStyle.slideToRight;
-    case AnimationType.fadeSlide:
-    case AnimationType.scaleRotate:
-    case AnimationType.morphing:
-    case AnimationType.staggered:
-    case AnimationType.kaleidoscope:
-      return BackStyle.shrink;
-  }
-}
-
 /// Ledgerly's page route: opens with the user's chosen animation, and on
-/// Android follows the predictive back swipe with a matching motion.
+/// Android follows the predictive back swipe with a the same style played in reverse.
 ///
 /// * Opening: the chosen [AnimationType] transition, unchanged.
 /// * Back swipe (Android 14+): [RouteBackGestureListener] feeds the finger
-///   into the route animation; the page moves per [backStyle] and the page
+///   into the route animation; the selected style plays in reverse and the page
 ///   behind shows. Let go early = slides back (cancel); far enough = pops.
-/// * Back without a swipe (button, Android 13): same motion, plus a fade in
-///   the last stretch so the page never sits see-through over the one behind.
-/// * Reduce motion / animations off: no transform.
+/// * Back without a swipe (button, Android 13): the style's exit, as before.
+/// * Reduce motion / animations off: no transition at all.
 class LedgerlyPageRoute<T> extends PageRouteBuilder<T> {
   LedgerlyPageRoute({
     required super.pageBuilder,
@@ -661,11 +647,7 @@ class LedgerlyPageRoute<T> extends PageRouteBuilder<T> {
     super.transitionDuration,
     super.reverseTransitionDuration,
     super.settings,
-    BackStyle? backStyle,
-  }) : backStyle = backStyle ?? backStyleFor(AnimationVariants.currentType);
-
-  /// Motion used while going back.
-  final BackStyle backStyle;
+  });
 
   // Keeps the page's state when the wrapper switches between the opening
   // animation and the back-swipe motion.
@@ -687,37 +669,19 @@ class LedgerlyPageRoute<T> extends PageRouteBuilder<T> {
       );
     }
     child = KeyedSubtree(key: _pageKey, child: child);
+    // The selected style's own transition runs for opening AND for back:
+    // during a predictive swipe the route's animation value follows the
+    // finger (1 - progress), so the style plays in reverse under the finger;
+    // cancel animates it forward to rest, commit finishes the style's exit.
     return RouteBackGestureListener(
       route: this,
       builder: (context, edge) {
-        final popping = animation.status == AnimationStatus.reverse;
-        final swiping = popGestureInProgress && isCurrent;
-        if (!swiping && !popping) {
-          return super.buildTransitions(
-            context,
-            animation,
-            secondaryAnimation,
-            child,
-          );
-        }
         if (reduceMotion(context)) return child;
-        return AnimatedBuilder(
-          animation: animation,
-          builder: (context, _) {
-            final progress = 1 - animation.value;
-            // Fade only after commit, in the last 35% of the way out.
-            final fade = swiping
-                ? 0.0
-                : ((progress - 0.65) / 0.35).clamp(0.0, 1.0);
-            return predictiveBackTransform(
-              context: context,
-              style: backStyle,
-              progress: progress,
-              edge: edge ?? SwipeEdge.left,
-              fadeOut: fade,
-              child: child,
-            );
-          },
+        return super.buildTransitions(
+          context,
+          animation,
+          secondaryAnimation,
+          child,
         );
       },
     );
