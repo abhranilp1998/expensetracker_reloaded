@@ -168,9 +168,14 @@ class _MainShellState extends ConsumerState<MainShell>
                       : i == MainShell.homeIndex
                       ? _homePeek
                       : _tabPeek;
-                  return AnimationVariants.transitionFor(
+                  return buildMotion(
                     AnimationVariants.currentType,
-                  )(context, anim, kAlwaysDismissedAnimation, page);
+                    anim,
+                    kAlwaysDismissedAnimation,
+                    page,
+                    // Finger-driven: linear, no overshoot.
+                    gesture: () => true,
+                  );
                 },
               ),
             ),

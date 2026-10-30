@@ -47,30 +47,8 @@ class AnimationPreferencesService {
   }
 
   /// Get description for animation type
-  static String getDescription(AnimationType type) {
-    switch (type) {
-      case AnimationType.fadeSlide:
-        return 'Smooth fade and slide from bottom - elegant entry';
-      case AnimationType.slideLeft:
-        return 'Quick slide from left - modern and direct';
-      case AnimationType.slideRight:
-        return 'Quick slide from right - playful alternative';
-      case AnimationType.scaleRotate:
-        return 'Smooth expand in - subtle and refined';
-      case AnimationType.morphing:
-        return 'Fades in while rising from below';
-      case AnimationType.bouncy:
-        return 'Fades in with a short slide from the left';
-      case AnimationType.liquid:
-        return 'Fades in with a short slide from the right';
-      case AnimationType.staggered:
-        return 'Diagonal swipe - flowing and elegant';
-      case AnimationType.kaleidoscope:
-        return 'Fades in while growing slightly';
-      case AnimationType.elasticBounce:
-        return 'Fades in, sliding down from the top right';
-    }
-  }
+  static String getDescription(AnimationType type) =>
+      motionStyles[type]!.description;
 }
 
 /// Widget to display animation variants for selection

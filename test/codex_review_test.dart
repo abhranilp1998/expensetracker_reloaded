@@ -200,7 +200,7 @@ void main() {
     await t.pumpWidget(const MaterialApp(home: AnimationPreview()));
     await t.pumpAndSettle();
     final tiles = find.byType(ExpansionTile);
-    expect(tiles, findsNWidgets(10));
+    expect(tiles, findsNWidgets(AnimationType.values.length));
     await t.ensureVisible(tiles.at(1));
     await t.tap(tiles.at(1));
     await t.pumpAndSettle();

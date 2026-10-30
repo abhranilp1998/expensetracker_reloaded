@@ -178,13 +178,14 @@ void main() {
     }
     expect(
       AnimationVariants.getAnimationName(AnimationType.fadeSlide),
-      'Fade + Slide',
+      'Fade Up',
     );
+    // Names say what the motion does (beta.5 rewrite).
     final d = AnimationPreferencesService.getDescription;
-    expect(d(AnimationType.bouncy), contains('left'));
-    expect(d(AnimationType.liquid), contains('right'));
-    expect(d(AnimationType.morphing), contains('below'));
-    expect(d(AnimationType.kaleidoscope), contains('growing'));
-    expect(d(AnimationType.elasticBounce), contains('top right'));
+    expect(d(AnimationType.bouncy), contains('overshoot'));
+    expect(d(AnimationType.liquid), contains('liquid'));
+    expect(d(AnimationType.morphing), contains('blob'));
+    expect(d(AnimationType.kaleidoscope), contains('wedges'));
+    expect(d(AnimationType.elasticBounce), contains('elastic'));
   });
 }

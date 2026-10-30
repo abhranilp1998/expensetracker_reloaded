@@ -1,5 +1,6 @@
 import 'package:expensetracker_reloaded/utils/app_version.dart';
 import 'package:flutter/material.dart';
+import 'package:expensetracker_reloaded/widgets/animation_style_picker.dart';
 import 'package:expensetracker_reloaded/utils/money.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -291,36 +292,17 @@ class _ComprehensiveSettingsPageState extends State<ComprehensiveSettingsPage> {
                 subtitle: 'Choose page transition style',
                 icon: Icons.flash_on,
                 color: cs.primary,
-                child: Column(
-                  children: [
-                    for (final animType in AnimationType.values)
-                      RadioListTile<AnimationType>(
-                        title: Text(
-                          AnimationVariants.getAnimationName(animType),
-                        ),
-                        subtitle: Text(
-                          AnimationPreferencesService.getDescription(animType),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                        value: animType,
-                        groupValue: _currentAnimation,
-                        onChanged: (value) {
-                          if (value != null) {
-                            setState(() => _currentAnimation = value);
-                            AnimationPreferencesService.saveAnimationType(
-                              value,
-                            );
-                            EventLoggerService.logEvent(
-                              type: EventType.animationChanged,
-                              message:
-                                  'Animation type changed to ${AnimationVariants.getAnimationName(value)}',
-                            );
-                          }
-                        },
-                      ),
-                  ],
+                child: AnimationStylePicker(
+                  value: _currentAnimation,
+                  onChanged: (value) {
+                    setState(() => _currentAnimation = value);
+                    AnimationPreferencesService.saveAnimationType(value);
+                    EventLoggerService.logEvent(
+                      type: EventType.animationChanged,
+                      message:
+                          'Animation type changed to ${AnimationVariants.getAnimationName(value)}',
+                    );
+                  },
                 ),
               ),
               const SizedBox(height: 16),
