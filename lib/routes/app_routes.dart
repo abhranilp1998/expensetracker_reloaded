@@ -47,7 +47,7 @@ Route<dynamic> createRoute(Widget page) {
 Route<dynamic> onGenerateRoute(RouteSettings settings) {
   switch (settings.name) {
     case AppRoutes.welcome:
-      return createRoute(const _BootstrapGate());
+      return createRoute(const BootstrapGate());
     case AppRoutes.onboarding:
       return createRoute(const OnboardingFlow());
     case AppRoutes.home:
@@ -79,19 +79,20 @@ Route<dynamic> onGenerateRoute(RouteSettings settings) {
     case AppRoutes.debugHub:
       return createRoute(const DebugHubPage());
     default:
-      return createRoute(const _BootstrapGate());
+      return createRoute(const BootstrapGate());
   }
 }
 
 /// Routes `/` to onboarding or home based on persisted flag.
-class _BootstrapGate extends StatefulWidget {
-  const _BootstrapGate();
+@visibleForTesting
+class BootstrapGate extends StatefulWidget {
+  const BootstrapGate();
 
   @override
-  State<_BootstrapGate> createState() => _BootstrapGateState();
+  State<BootstrapGate> createState() => BootstrapGateState();
 }
 
-class _BootstrapGateState extends State<_BootstrapGate> {
+class BootstrapGateState extends State<BootstrapGate> {
   @override
   void initState() {
     super.initState();
@@ -108,6 +109,11 @@ class _BootstrapGateState extends State<_BootstrapGate> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    // Back is ignored while we decide where to go (it used to exit the app
+    // before Home loaded, skipping the "Leaving already?" dialog).
+    return const PopScope(
+      canPop: false,
+      child: Scaffold(body: Center(child: CircularProgressIndicator())),
+    );
   }
 }
