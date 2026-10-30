@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:expensetracker_reloaded/providers/providers.dart';
@@ -63,10 +64,18 @@ class _MainShellState extends ConsumerState<MainShell> {
 
     // Back (bug #7): on Activity/Review/Settings go to Home; on Home let the
     // system handle it (leave the app).
+    // Back on Home asks before leaving (Stay is the default).
     return PopScope(
-      canPop: index == MainShell.homeIndex,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) tabs.select(MainShell.homeIndex);
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        if (index != MainShell.homeIndex) {
+          tabs.select(MainShell.homeIndex);
+          return;
+        }
+        if (await confirmLeaveApp(context)) {
+          await SystemNavigator.pop();
+        }
       },
       child: Scaffold(
         body: IndexedStack(
@@ -120,4 +129,30 @@ class _MainShellState extends ConsumerState<MainShell> {
       ),
     );
   }
+}
+
+/// Asks "Leaving already?" on Back from Home. Returns true only for Quit;
+/// dismissing the dialog or tapping Stay keeps the app open.
+Future<bool> confirmLeaveApp(BuildContext context) async {
+  final quit = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('Leaving already?'),
+      content: const Text('More insights await.'),
+      actions: [
+        TextButton(
+          key: const Key('leave-quit'),
+          onPressed: () => Navigator.of(ctx).pop(true),
+          child: const Text('Quit'),
+        ),
+        FilledButton(
+          key: const Key('leave-stay'),
+          autofocus: true,
+          onPressed: () => Navigator.of(ctx).pop(false),
+          child: const Text('Stay'),
+        ),
+      ],
+    ),
+  );
+  return quit ?? false;
 }
