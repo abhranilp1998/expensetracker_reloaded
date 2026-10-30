@@ -50,4 +50,36 @@ void main() {
     expect(find.text('page'), findsNothing);
     expect(find.text('home'), findsOneWidget);
   });
+
+  testWidgets('pop never cross-fades the page over the one behind', (
+    tester,
+  ) async {
+    AppSettings.animations = true;
+    final key = GlobalKey<NavigatorState>();
+    await tester.pumpWidget(
+      MaterialApp(
+        navigatorKey: key,
+        theme: AppThemeData.lightTheme(Colors.blue),
+        home: const Text('home'),
+      ),
+    );
+    key.currentState!.push(AnimationVariants.createRoute(const Text('page')));
+    await tester.pumpAndSettle();
+    key.currentState!.pop();
+    await tester.pump(const Duration(milliseconds: 100));
+    final fades = tester.widgetList<FadeTransition>(
+      find.ancestor(
+        of: find.text('page'),
+        matching: find.byType(FadeTransition),
+      ),
+    );
+    // The open animation's FadeTransition(opacity: animation) must not drive
+    // the closing page; reverse uses the Material back transition.
+    expect(
+      fades.where((f) => f.opacity.value < 0.99 && f.opacity.value > 0.5),
+      isEmpty,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('home'), findsOneWidget);
+  });
 }

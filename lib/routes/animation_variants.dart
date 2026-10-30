@@ -653,7 +653,12 @@ class LedgerlyPageRoute<T> extends PageRouteBuilder<T> {
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
-    if (popGestureInProgress &&
+    // Also on every pop (Android 13 has no gesture progress: the system just
+    // sends "back" on release). Running the open animation in reverse faded
+    // the page out over the page behind, which looked like a half-cancelled
+    // swipe. The Material back transition keeps the page opaque.
+    final popping = animation.status == AnimationStatus.reverse;
+    if ((popGestureInProgress || popping) &&
         Theme.of(context).platform == TargetPlatform.android) {
       return _predictive.buildTransitions<T>(
         this,
