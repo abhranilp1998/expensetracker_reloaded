@@ -2,6 +2,7 @@ import 'package:expensetracker_reloaded/routes/animation_variants.dart';
 import 'package:expensetracker_reloaded/services/app_settings.dart';
 import 'package:expensetracker_reloaded/services/theme_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -81,5 +82,65 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('home'), findsOneWidget);
+  });
+
+  group('Android predictive back gesture (system events)', () {
+    Future<void> send(WidgetTester t, String method, [Object? args]) async {
+      final data = const StandardMethodCodec().encodeMethodCall(
+        MethodCall(method, args),
+      );
+      await t.binding.defaultBinaryMessenger.handlePlatformMessage(
+        'flutter/backgesture',
+        data,
+        (_) {},
+      );
+    }
+
+    Map<String, Object?> ev(double p) => {
+      'touchOffset': <double>[5.0, 300.0],
+      'progress': p,
+      'swipeEdge': 0,
+    };
+
+    Future<GlobalKey<NavigatorState>> open(WidgetTester t) async {
+      AppSettings.animations = true;
+      final key = GlobalKey<NavigatorState>();
+      await t.pumpWidget(
+        MaterialApp(
+          navigatorKey: key,
+          theme: AppThemeData.lightTheme(Colors.blue),
+          home: const Text('home'),
+        ),
+      );
+      key.currentState!.push(AnimationVariants.createRoute(const Text('page')));
+      await t.pumpAndSettle();
+      return key;
+    }
+
+    testWidgets('half pull shows live progress, cancel restores page', (
+      t,
+    ) async {
+      final key = await open(t);
+      await send(t, 'startBackGesture', ev(0));
+      await send(t, 'updateBackGestureProgress', ev(0.4));
+      await t.pump();
+      expect(key.currentState!.userGestureInProgress, isTrue);
+      expect(find.text('home'), findsOneWidget); // peeking behind
+      await send(t, 'cancelBackGesture');
+      await t.pumpAndSettle();
+      expect(key.currentState!.userGestureInProgress, isFalse);
+      expect(find.text('page'), findsOneWidget);
+    });
+
+    testWidgets('full pull commits and goes back', (t) async {
+      await open(t);
+      await send(t, 'startBackGesture', ev(0));
+      await send(t, 'updateBackGestureProgress', ev(0.9));
+      await t.pump();
+      await send(t, 'commitBackGesture');
+      await t.pumpAndSettle();
+      expect(find.text('page'), findsNothing);
+      expect(find.text('home'), findsOneWidget);
+    });
   });
 }

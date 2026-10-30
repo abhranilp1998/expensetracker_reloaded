@@ -653,26 +653,33 @@ class LedgerlyPageRoute<T> extends PageRouteBuilder<T> {
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
-    // Also on every pop (Android 13 has no gesture progress: the system just
-    // sends "back" on release). Running the open animation in reverse faded
-    // the page out over the page behind, which looked like a half-cancelled
-    // swipe. The Material back transition keeps the page opaque.
-    final popping = animation.status == AnimationStatus.reverse;
-    if ((popGestureInProgress || popping) &&
-        Theme.of(context).platform == TargetPlatform.android) {
-      return _predictive.buildTransitions<T>(
-        this,
+    if (Theme.of(context).platform != TargetPlatform.android) {
+      return super.buildTransitions(
         context,
         animation,
         secondaryAnimation,
         child,
       );
     }
-    return super.buildTransitions(
+    // The predictive-back builder must ALWAYS be in the tree: it owns the
+    // listener that receives the system's back-gesture start/progress events.
+    // (beta.1 only inserted it once popGestureInProgress was already true,
+    // which never happens without that listener, so no live animation.)
+    //
+    // Gesture or pop: let it drive the real Material transition.
+    // Otherwise (normal open): our chosen animation runs inside, and the
+    // builder gets settled animations so it adds no motion of its own.
+    final popping = animation.status == AnimationStatus.reverse;
+    final material = popGestureInProgress || popping;
+    final inner = material
+        ? child
+        : super.buildTransitions(context, animation, secondaryAnimation, child);
+    return _predictive.buildTransitions<T>(
+      this,
       context,
-      animation,
-      secondaryAnimation,
-      child,
+      material ? animation : kAlwaysCompleteAnimation,
+      material ? secondaryAnimation : kAlwaysDismissedAnimation,
+      inner,
     );
   }
 }
