@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:expensetracker_reloaded/providers/providers.dart';
+import 'package:expensetracker_reloaded/routes/predictive_back.dart';
 import 'package:expensetracker_reloaded/screens/comprehensive_settings_page.dart';
 import 'package:expensetracker_reloaded/screens/history_page.dart';
 import 'package:expensetracker_reloaded/screens/home_dashboard.dart';
@@ -27,10 +28,26 @@ class MainShell extends ConsumerStatefulWidget {
   ConsumerState<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends ConsumerState<MainShell> {
+class _MainShellState extends ConsumerState<MainShell>
+    with WidgetsBindingObserver, SingleTickerProviderStateMixin {
+  /// Back-swipe progress for the shell itself (0 = idle, 1 = fully pulled).
+  /// Drives the tab -> Home peek and the Home "leaving" peek.
+  late final AnimationController _peek = AnimationController(vsync: this);
+
+  /// Tab the current swipe started on; null when no swipe is running.
+  int? _swipeTab;
+  SwipeEdge _edge = SwipeEdge.left;
+
+  /// Keeps each tab's state while it moves between onstage and offstage.
+  final List<GlobalKey> _tabKeys = List.generate(
+    4,
+    (i) => GlobalKey(debugLabel: 'tab-$i'),
+  );
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     NotificationService.pendingPayload.addListener(_onNotificationTap);
     // Cold start: the payload was stored before this widget existed.
     WidgetsBinding.instance.addPostFrameCallback((_) => _onNotificationTap());
@@ -38,6 +55,8 @@ class _MainShellState extends ConsumerState<MainShell> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _peek.dispose();
     NotificationService.pendingPayload.removeListener(_onNotificationTap);
     super.dispose();
   }
@@ -54,6 +73,109 @@ class _MainShellState extends ConsumerState<MainShell> {
       Navigator.of(context).popUntil((r) => r == shellRoute);
     }
     ref.read(shellTabProvider.notifier).select(MainShell.reviewIndex);
+  }
+
+  // ---- Predictive back for the shell (Android 14+) -------------------------
+  // The tabs live in one route, so the Navigator has nothing to animate. The
+  // shell listens to the system swipe itself:
+  //  * on Activity/Review/Settings the tab shrinks and Home shows behind it;
+  //    letting go early springs back, a full pull lands on Home.
+  //  * on Home the page shrinks like the system back-to-home preview; a full
+  //    pull asks "Leaving already?" (Stay / Quit).
+  // Without a swipe (Back button, Android 13, reduce motion) the PopScope
+  // below handles Back the same way, just without the peek.
+
+  @override
+  bool handleStartBackGesture(PredictiveBackEvent backEvent) {
+    final route = ModalRoute.of(context);
+    if (route == null || !route.isCurrent || reduceMotion(context)) {
+      return false;
+    }
+    setState(() {
+      _swipeTab = ref.read(shellTabProvider);
+      _edge = backEvent.swipeEdge;
+    });
+    _peek.value = backEvent.progress;
+    return true;
+  }
+
+  @override
+  void handleUpdateBackGestureProgress(PredictiveBackEvent backEvent) {
+    if (_swipeTab != null) _peek.value = backEvent.progress;
+  }
+
+  @override
+  void handleCancelBackGesture() {
+    if (_swipeTab == null) return;
+    _peek
+        .animateBack(0, duration: const Duration(milliseconds: 200))
+        .whenComplete(() {
+          if (mounted) setState(() => _swipeTab = null);
+        });
+  }
+
+  @override
+  void handleCommitBackGesture() {
+    final tab = _swipeTab;
+    if (tab == null) return;
+    if (tab != MainShell.homeIndex) {
+      _peek
+          .animateTo(1, duration: const Duration(milliseconds: 180))
+          .whenComplete(() {
+            if (!mounted) return;
+            ref.read(shellTabProvider.notifier).select(MainShell.homeIndex);
+            _peek.value = 0;
+            setState(() => _swipeTab = null);
+          });
+      return;
+    }
+    _peek
+        .animateBack(0, duration: const Duration(milliseconds: 200))
+        .whenComplete(() async {
+          if (!mounted) return;
+          setState(() => _swipeTab = null);
+          if (await confirmLeaveApp(context)) {
+            await SystemNavigator.pop();
+          }
+        });
+  }
+
+  /// The four tab bodies stacked; only the current one is onstage, plus Home
+  /// underneath while a tab is being swiped back.
+  Widget _tabStack(List<Widget> pages, int index) {
+    final swipe = _swipeTab;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        for (var i = 0; i < pages.length; i++)
+          Offstage(
+            offstage:
+                !(i == index || (swipe != null && i == MainShell.homeIndex)),
+            child: TickerMode(
+              enabled: i == index,
+              child: AnimatedBuilder(
+                animation: _peek,
+                builder: (context, child) {
+                  final moving = swipe != null && i == index;
+                  final p = moving ? _peek.value : 0.0;
+                  return predictiveBackTransform(
+                    context: context,
+                    style: BackStyle.shrink,
+                    progress: i == MainShell.homeIndex ? p * 0.5 : p,
+                    edge: _edge,
+                    // A committed tab swipe fades out as it lands on Home.
+                    fadeOut: moving && i != MainShell.homeIndex
+                        ? ((p - 0.8) / 0.2).clamp(0.0, 1.0)
+                        : 0,
+                    child: child!,
+                  );
+                },
+                child: KeyedSubtree(key: _tabKeys[i], child: pages[i]),
+              ),
+            ),
+          ),
+      ],
+    );
   }
 
   @override
@@ -78,16 +200,15 @@ class _MainShellState extends ConsumerState<MainShell> {
         }
       },
       child: Scaffold(
-        body: IndexedStack(
-          index: index,
-          children:
-              widget.pagesOverride ??
+        body: _tabStack(
+          widget.pagesOverride ??
               const [
                 HomeDashboard(),
                 HistoryPage(asTab: true),
                 ReviewQueuePage(asTab: true),
                 ComprehensiveSettingsPage(asTab: true),
               ],
+          index,
         ),
         bottomNavigationBar: NavigationBar(
           selectedIndex: index,

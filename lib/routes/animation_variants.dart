@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show SwipeEdge;
+import 'package:expensetracker_reloaded/routes/predictive_back.dart';
 import 'package:expensetracker_reloaded/services/app_settings.dart';
 
 /// Enumeration of available route animation variants
@@ -623,16 +625,35 @@ class CustomAnimationRoute {
   }
 }
 
-/// A [PageRouteBuilder] that keeps Ledgerly's chosen open/close animation but
-/// hands control to the theme's predictive-back transition while the user is
-/// dragging a system back gesture (Android 14+).
+/// Back-swipe motion that matches each opening style (see [BackStyle]).
+BackStyle backStyleFor(AnimationType type) {
+  switch (type) {
+    case AnimationType.slideLeft: // came in from the left
+    case AnimationType.bouncy:
+      return BackStyle.slideToLeft;
+    case AnimationType.slideRight: // came in from the right
+    case AnimationType.liquid:
+    case AnimationType.elasticBounce:
+      return BackStyle.slideToRight;
+    case AnimationType.fadeSlide:
+    case AnimationType.scaleRotate:
+    case AnimationType.morphing:
+    case AnimationType.staggered:
+    case AnimationType.kaleidoscope:
+      return BackStyle.shrink;
+  }
+}
+
+/// Ledgerly's page route: opens with the user's chosen animation, and on
+/// Android follows the predictive back swipe with a matching motion.
 ///
-/// Root cause of the "half pull shows the screen behind" bug: plain
-/// [PageRouteBuilder] routes ran their own fade/slide in reverse, driven by
-/// the gesture progress, so a partial swipe faded the page out and exposed
-/// the route behind it; on cancel it snapped back. Delegating to
-/// [PredictiveBackPageTransitionsBuilder] during the gesture gives the
-/// Material shrink-and-peek preview, which cancels and commits cleanly.
+/// * Opening: the chosen [AnimationType] transition, unchanged.
+/// * Back swipe (Android 14+): [RouteBackGestureListener] feeds the finger
+///   into the route animation; the page moves per [backStyle] and the page
+///   behind shows. Let go early = slides back (cancel); far enough = pops.
+/// * Back without a swipe (button, Android 13): same motion, plus a fade in
+///   the last stretch so the page never sits see-through over the one behind.
+/// * Reduce motion / animations off: no transform.
 class LedgerlyPageRoute<T> extends PageRouteBuilder<T> {
   LedgerlyPageRoute({
     required super.pageBuilder,
@@ -640,11 +661,15 @@ class LedgerlyPageRoute<T> extends PageRouteBuilder<T> {
     super.transitionDuration,
     super.reverseTransitionDuration,
     super.settings,
-  });
+    BackStyle? backStyle,
+  }) : backStyle = backStyle ?? backStyleFor(AnimationVariants.currentType);
 
-  /// Predictive back must use the Material gesture-driven transition.
-  static const PageTransitionsBuilder _predictive =
-      PredictiveBackPageTransitionsBuilder();
+  /// Motion used while going back.
+  final BackStyle backStyle;
+
+  // Keeps the page's state when the wrapper switches between the opening
+  // animation and the back-swipe motion.
+  final GlobalKey _pageKey = GlobalKey(debugLabel: 'LedgerlyPageRoute.page');
 
   @override
   Widget buildTransitions(
@@ -661,25 +686,40 @@ class LedgerlyPageRoute<T> extends PageRouteBuilder<T> {
         child,
       );
     }
-    // The predictive-back builder must ALWAYS be in the tree: it owns the
-    // listener that receives the system's back-gesture start/progress events.
-    // (beta.1 only inserted it once popGestureInProgress was already true,
-    // which never happens without that listener, so no live animation.)
-    //
-    // Gesture or pop: let it drive the real Material transition.
-    // Otherwise (normal open): our chosen animation runs inside, and the
-    // builder gets settled animations so it adds no motion of its own.
-    final popping = animation.status == AnimationStatus.reverse;
-    final material = popGestureInProgress || popping;
-    final inner = material
-        ? child
-        : super.buildTransitions(context, animation, secondaryAnimation, child);
-    return _predictive.buildTransitions<T>(
-      this,
-      context,
-      material ? animation : kAlwaysCompleteAnimation,
-      material ? secondaryAnimation : kAlwaysDismissedAnimation,
-      inner,
+    child = KeyedSubtree(key: _pageKey, child: child);
+    return RouteBackGestureListener(
+      route: this,
+      builder: (context, edge) {
+        final popping = animation.status == AnimationStatus.reverse;
+        final swiping = popGestureInProgress && isCurrent;
+        if (!swiping && !popping) {
+          return super.buildTransitions(
+            context,
+            animation,
+            secondaryAnimation,
+            child,
+          );
+        }
+        if (reduceMotion(context)) return child;
+        return AnimatedBuilder(
+          animation: animation,
+          builder: (context, _) {
+            final progress = 1 - animation.value;
+            // Fade only after commit, in the last 35% of the way out.
+            final fade = swiping
+                ? 0.0
+                : ((progress - 0.65) / 0.35).clamp(0.0, 1.0);
+            return predictiveBackTransform(
+              context: context,
+              style: backStyle,
+              progress: progress,
+              edge: edge ?? SwipeEdge.left,
+              fadeOut: fade,
+              child: child,
+            );
+          },
+        );
+      },
     );
   }
 }

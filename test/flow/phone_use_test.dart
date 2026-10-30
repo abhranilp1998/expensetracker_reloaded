@@ -40,8 +40,8 @@ void main() {
     await t.pump();
     expect(popped, isTrue); // handled by PopScope, app stays open
     expect(c.read(shellTabProvider), MainShell.homeIndex);
-    final stack = t.widget<IndexedStack>(find.byType(IndexedStack));
-    expect(stack.index, 0);
+    expect(find.text('home-body'), findsOneWidget); // only Home onstage
+    expect(find.text('settings-body'), findsNothing);
   });
 
   testWidgets('Back on Home asks; Stay keeps app, Quit exits', (t) async {

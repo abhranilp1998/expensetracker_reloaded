@@ -85,7 +85,7 @@ void main() {
     final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
     expect(bar.selectedIndex, MainShell.homeIndex);
     expect(MainShell.homeIndex, 0);
-    final stack = tester.widget<IndexedStack>(find.byType(IndexedStack));
-    expect(stack.index, 0);
+    expect(find.text('home-body'), findsOneWidget); // only Home onstage
+    expect(find.text('settings-body'), findsNothing);
   });
 }
